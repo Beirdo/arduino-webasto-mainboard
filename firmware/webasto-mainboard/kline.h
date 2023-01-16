@@ -5,6 +5,7 @@
 #include <pico.h>
 
 void init_kline(void);
+void send_break(void);
 void process_kline(void);
 
 #endif

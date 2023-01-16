@@ -1,4 +1,4 @@
 (sym_lib_table
-  (lib (name "MCU_RaspberryPi_and_Boards")(type "KiCad")(uri "D:/kraken/webasto-mainboard/hardware/git-libraries/KiCad-RP-Pico/RP-Pico Libraries/MCU_RaspberryPi_and_Boards.kicad_sym")(options "")(descr ""))
   (lib (name "UltraLibrarian")(type "KiCad")(uri "${KIPRJMOD}/library/UltraLibrarian/UltraLibrarian.kicad_sym")(options "")(descr ""))
+  (lib (name "MCU_RaspberryPi_and_Boards")(type "KiCad")(uri "${KIPRJMOD}/library/RP-Pico/MCU_RaspberryPi_and_Boards.kicad_sym")(options "")(descr ""))
 )
