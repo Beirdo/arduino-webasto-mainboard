@@ -1,7 +1,6 @@
 #ifndef __analog_h
 #define __analog_h
 
-#include <arduino.h>
 #include <pico.h>
 
 void init_analog(void);

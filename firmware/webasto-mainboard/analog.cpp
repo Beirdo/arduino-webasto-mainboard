@@ -1,4 +1,3 @@
-#include <arduino.h>
 #include <pico.h>
 #include <Wire.h>
 
