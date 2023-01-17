@@ -258,6 +258,26 @@ klinePacket_t *kline_rx_dispatch(klinePacket_t *packet, uint8_t cmd)
       buf = kline_command_read_sensor(packet->buf[3]);
       break;
 
+    case 0x51:
+      // Read stuff
+      buf = kline_command_read_stuff(packet->buf[3]);
+      break;
+
+    case 0x52:
+      // Read voltage data
+      buf = kline_command_read_voltage_data(packet->buf[3]);
+      break;
+
+    case 0x56:
+      // event log
+      buf = kline_command_get_error_codes(packet->buf[3], packet->buf[4]);
+      break;
+
+    case 0x57:
+      // CO2 calibration (umm, we have a sensor for that?!)
+      buf = kline_command_co2_calibration(packet->buf[3], packet->buf[4]);
+      break;
+
     default:
       break;
   } 
@@ -380,3 +400,273 @@ uint8_t *kline_command_read_sensor(uint8_t sensornum)
       return 0;
   }
 }
+
+uint8_t *kline_command_read_stuff(uint8_t index)
+{
+  switch(index) {
+    case 0x01:
+      // Device ID Number
+      return kline_read_device_number();
+    case 0x02:
+      // Hardware Version
+      return kline_read_hardware_version();
+    case 0x03:
+      // Data set ID Number
+      return kline_read_data_set_number();
+    case 0x04:      
+      // Control Unit Build Date (DD MM YY)
+      return kline_read_control_unit_man_date();
+    case 0x05:
+      // Heater manufacture date (DD MM YY)
+      return kline_read_heater_man_date();
+    case 0x06:
+      // "one byte, no idea"
+      return 0;
+    case 0x07:
+      // Customer ID Number (i.e. VW Part Number)
+      return kline_read_customer_id();
+    case 0x08:
+      // Serial Number
+      return kline_read_serial_number();
+    case 0x0A:
+      // W-Bus version (3.3 -> 0x33)
+      return kline_read_wbus_version();
+    case 0x0B:
+      // Device name
+      return kline_read_device_name();
+    case 0x0C:
+      // WBus Code - Flags of supported subsystems
+      return kline_read_subsystems_supported();
+    case 0x0D:
+      // "no idea"
+      return 0;
+    default:
+      return 0;
+  }
+}  
+
+uint8_t *kline_command_read_voltage_data(uint8_t index)
+{
+  if (index != 0x02) {
+    return 0;
+  }
+
+  uint8_t *buf = (uint8_t *)malloc(19);
+  buf[1] = 17;
+  buf[3] = index;
+  return buf;
+}
+
+uint8_t *kline_command_get_error_codes(uint8_t subcmd, uint8_t index)
+{
+  switch(subcmd) {
+    case 0x01:
+      return kline_get_error_code_list();
+    case 0x02:
+      return kline_get_error_code_details(index);
+    case 0x03:
+      return kline_clear_error_code_list();
+    default:
+      return 0;
+  }
+}
+
+uint8_t *kline_get_error_code_list(void)
+{
+  uint8_t error_list_len = 2;   // for now
+  uint8_t len = 5 + 2 * error_list_len;    
+  uint8_t *buf = (uint8_t *)malloc(len);
+
+  buf[1] = len - 2;
+  buf[3] = 1;
+  buf[4] = error_list_len;
+  for (int i = 0; i < (int)error_list_len; i++) {
+    buf[5 + 2*i] = 0xFF;  // arbitrary error code for now
+    buf[6 + 2*i] = 0x05;  // error count of 5 for now
+  }
+  return buf;
+}
+
+uint8_t *kline_get_error_code_details(uint8_t index)
+{
+  uint8_t error_list_len = 2;   // for now
+  uint8_t *buf = (uint8_t *)malloc(16);
+
+  buf[1] = 14;
+  buf[3] = 2;
+  buf[4] = index;
+  buf[5] = 0x00;  // status - stubbed
+  buf[6] = 0x03;  // counter - stubbed
+  uint16_t state = 0x3445;  // from command 0x50, index 7, bytes 0-1
+  buf[7] = (state >> 8) & 0xFF;
+  buf[8] = state & 0xFF;
+  buf[9] = 50 + 35;         // temperature in C, + 50
+  uint16_t power_supply_mv = 12000;
+  buf[10] = (power_supply_mv >> 8) & 0xFF;
+  buf[11] = power_supply_mv & 0xFF;
+  uint16_t operating_hours = 500;
+  buf[12] = (operating_hours >> 8) & 0xFF;
+  buf[13] = operating_hours & 0xFF;
+  buf[14] = 45;   // operating minutes
+  return buf;
+}
+
+uint8_t *kline_clear_error_code_list(void)
+{
+  uint8_t *buf = (uint8_t *)malloc(4);
+  buf[1] = 3;
+  buf[3] = 3;
+  return buf;
+}
+
+uint8_t *kline_command_co2_calibration(uint8_t index, uint8_t value)
+{
+  switch(index) {
+    case 0x01:
+      // read CO2 values
+      return kline_get_co2();
+    case 0x02:
+      // write CO2 value - minimum - not listed upstream.
+      return kline_set_co2(index, value);
+    case 0x03:
+      // write CO2 value - maximum
+      return kline_set_co2(index, value);
+    default:
+      return 0;
+  }
+}
+
+uint8_t *kline_get_co2(void)
+{
+  return 0;
+}
+
+uint8_t *kline_set_co2(uint8_t index, uint8_t value)
+{
+  return 0;
+}
+
+
+
+uint8_t *kline_read_status_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_subsystem_enabled_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_fuel_param_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_operational_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_operating_time_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_state_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_burning_level_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_burning_duration_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_start_counter_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_subsystem_status_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_temperature_thresh_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_ventilation_duration_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_fuel_prewarming_sensor(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_spark_transmission_sensor(void)
+{
+  return 0;
+}
+
+
+uint8_t *kline_read_device_number(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_hardware_version(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_data_set_number(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_control_unit_man_date(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_heater_man_date(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_customer_id(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_serial_number(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_wbus_version(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_device_name(void)
+{
+  return 0;
+}
+
+uint8_t *kline_read_subsystems_supported(void)
+{
+  return 0;
+}
+
+
