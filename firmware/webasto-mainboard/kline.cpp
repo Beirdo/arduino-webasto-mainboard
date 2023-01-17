@@ -240,10 +240,6 @@ klinePacket_t *kline_rx_dispatch(klinePacket_t *packet, uint8_t cmd)
       // and returns a 16-bit "minutes remaining" time
       buf = kline_command_keep_alive(packet->buf[3], packet->buf[4]);
       break;  
-      typedef struct {
-  uint8_t *buf;
-  int len;
-} klinePacket_t;
 
     case 0x48:
       // Component test
@@ -420,12 +416,12 @@ uint8_t *kline_command_read_stuff(uint8_t index)
       // Heater manufacture date (DD MM YY)
       return kline_read_heater_man_date();
     case 0x06:
-      // "one byte, no idea"
+      // Telestart code
       return 0;
     case 0x07:
       // Customer ID Number (i.e. VW Part Number)
       return kline_read_customer_id();
-    case 0x08:
+    case 0x08:  // maybe 0x09?
       // Serial Number
       return kline_read_serial_number();
     case 0x0A:
@@ -438,7 +434,7 @@ uint8_t *kline_command_read_stuff(uint8_t index)
       // WBus Code - Flags of supported subsystems
       return kline_read_subsystems_supported();
     case 0x0D:
-      // "no idea"
+      // Software ID (unsupported for now)
       return 0;
     default:
       return 0;
@@ -500,10 +496,11 @@ uint8_t *kline_get_error_code_details(uint8_t index)
   uint16_t state = 0x3445;  // from command 0x50, index 7, bytes 0-1
   buf[7] = (state >> 8) & 0xFF;
   buf[8] = state & 0xFF;
-  buf[9] = 50 + 35;         // temperature in C, + 50
-  uint16_t power_supply_mv = 12000;
-  buf[10] = (power_supply_mv >> 8) & 0xFF;
-  buf[11] = power_supply_mv & 0xFF;
+  buf[9] = 50 + 35;         // tem      typedef struct {
+  uint8_t *buf;
+  int len;
+} klinePacket_t;
+;
   uint16_t operating_hours = 500;
   buf[12] = (operating_hours >> 8) & 0xFF;
   buf[13] = operating_hours & 0xFF;
