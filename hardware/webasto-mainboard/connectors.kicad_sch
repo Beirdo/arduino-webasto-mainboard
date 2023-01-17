@@ -1,6 +1,6 @@
 (kicad_sch (version 20211123) (generator eeschema)
 
-  (uuid 329cc83a-b032-40bb-a447-0cad27f4bec2)
+  (uuid 6b8bde92-35f5-4b70-9a01-1b06a887f22d)
 
   (paper "A4")
 
@@ -366,10 +366,10 @@
       (effects (font (size 1.27 1.27)) (justify right) hide)
     )
   )
-  (global_label "Timer" (shape input) (at 127.508 58.166 180) (fields_autoplaced)
+  (global_label "OutdoorTempSensor" (shape input) (at 127.508 58.166 180) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid c302f989-45ee-4250-8ba1-0c8d2e318b04)
-    (property "Intersheet References" "${INTERSHEET_REFS}" (id 0) (at 119.9544 58.0866 0)
+    (property "Intersheet References" "${INTERSHEET_REFS}" (id 0) (at 106.3473 58.0866 0)
       (effects (font (size 1.27 1.27)) (justify right) hide)
     )
   )

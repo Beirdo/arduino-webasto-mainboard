@@ -1,6 +1,6 @@
 (kicad_sch (version 20211123) (generator eeschema)
 
-  (uuid 751b080a-5572-42ba-8972-655556dc8135)
+  (uuid f97aafd3-40a5-4cb0-aa36-d096f7982661)
 
   (paper "A4")
 
@@ -908,6 +908,11 @@
   (text "/ 6 to allow for max around 20V" (at 97.536 30.607 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid af16473c-ab33-474d-853d-f83193b088d3)
+  )
+  (text "Need OutdoorTempSensor.\nNeed to change GlowPlug to using a Kelvin 4-wire setup"
+    (at 271.018 75.819 180)
+    (effects (font (size 1.27 1.27)) (justify right bottom))
+    (uuid b8d45bb2-7ea2-4642-8549-a9b643507a9c)
   )
   (text "/ 4 for max temp of 350C (at 12V)" (at 92.202 66.548 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
