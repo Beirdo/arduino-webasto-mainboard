@@ -1,9 +1,10 @@
 #include <pico.h>
+#include <Wire.h>
 
 #include "analog_source.h"
 
 
-AnalogSourceBase::AnalogSourceBase(uint8_t i2c_address, int bits, uint16_t mult, uint16_t div_)
+AnalogSourceBase::AnalogSourceBase(uint8_t i2c_address, int bits, int mult, int div_)
 {
   _valid = false;
   _i2c_address = i2c_address;
@@ -27,7 +28,7 @@ void AnalogSourceBase::update(void)
   uint32_t raw_value;
   int32_t scaled_value;
   
-  raw_value = read_device());
+  raw_value = read_device();
   scaled_value = convert(raw_value);
   append_value(scaled_value);
   _value = filter();
@@ -73,12 +74,16 @@ int32_t AnalogSourceBase::filter(void)
 
 void AnalogSourceBase::append_value(int32_t value)
 {
+  if (value == UNUSED_READING || value == DISABLED_READING) {
+    return;
+  }  
+  
   _readings[_tail] = value;
   _tail += 1;
   _tail %= ADC_AVG_WINDOW;
 }
 
-void AnalogSourceBase::i2c_write_register(uint8_t regnum, uint8_t value, bool skip_byte = false)
+void AnalogSourceBase::i2c_write_register(uint8_t regnum, uint8_t value, bool skip_byte)
 {
   CoreMutex m(&_i2c_mutex);
     
@@ -90,7 +95,18 @@ void AnalogSourceBase::i2c_write_register(uint8_t regnum, uint8_t value, bool sk
   Wire.endTransmission();  
 }
 
-void AnalogSourceBase::i2c_read_data(uint8_t regnum, uint8_t *buf, uint8_t count, bool skip_regnum = false)
+void AnalogSourceBase::i2c_write_register_word(uint8_t regnum, uint16_t value)
+{
+  CoreMutex m(&_i2c_mutex);
+    
+  Wire.beginTransmission(_i2c_address);
+  Wire.write(regnum);
+  Wire.write((value >> 8) & 0xFF);
+  Wire.write(value & 0xFF);
+  Wire.endTransmission();  
+}
+
+void AnalogSourceBase::i2c_read_data(uint8_t regnum, uint8_t *buf, uint8_t count, bool skip_regnum)
 {
   CoreMutex m(&_i2c_mutex);
 
@@ -114,7 +130,8 @@ int32_t AnalogSourceBase::convert(int32_t reading)
     return 0;
   }
 
-  value = reading * _mult;
+  value = reading;
+  value *= _mult;
   value /= _div;
   return value;
 }

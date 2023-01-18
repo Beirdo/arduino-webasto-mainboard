@@ -2,6 +2,8 @@
 #include "kline.h"
 
 void setup() {
+  glow_plug_in_enable = false;
+
   // put your setup code here, to run once:
   init_analog();
   init_kline();

@@ -496,11 +496,8 @@ uint8_t *kline_get_error_code_details(uint8_t index)
   uint16_t state = 0x3445;  // from command 0x50, index 7, bytes 0-1
   buf[7] = (state >> 8) & 0xFF;
   buf[8] = state & 0xFF;
-  buf[9] = 50 + 35;         // tem      typedef struct {
-  uint8_t *buf;
-  int len;
-} klinePacket_t;
-;
+  buf[9] = 50 + 35;         // temperature +50C offset
+  
   uint16_t operating_hours = 500;
   buf[12] = (operating_hours >> 8) & 0xFF;
   buf[13] = operating_hours & 0xFF;

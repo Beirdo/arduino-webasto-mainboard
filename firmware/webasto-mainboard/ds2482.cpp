@@ -132,7 +132,7 @@ int32_t DS2482Source::read_device(void)
     value = -value;
   }
 
-  value &= (0xFFFFFFFF << (12 - bits));
+  value &= (0xFFFFFFFF << (12 - _bits));
   
   if (negative) {
     value = -value;

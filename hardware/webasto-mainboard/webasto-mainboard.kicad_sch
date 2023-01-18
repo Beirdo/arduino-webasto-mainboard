@@ -1517,9 +1517,6 @@
     (path "/51487718-e94e-4b32-b7da-dfb4e19040ef/98e8d41e-475e-407e-80ae-90ce0278b369"
       (reference "#PWR?") (unit 1) (value "GND") (footprint "")
     )
-    (path "/4eba7f3e-81ac-47cd-894e-cb117f012064/9a1593f7-419c-424a-a97a-9748bc7713de"
-      (reference "#PWR?") (unit 1) (value "GND") (footprint "")
-    )
     (path "/4eba7f3e-81ac-47cd-894e-cb117f012064/9a1f3023-4010-4ce9-ba0d-8e585f2d8919"
       (reference "#PWR?") (unit 1) (value "GND") (footprint "")
     )
@@ -1572,9 +1569,6 @@
       (reference "#PWR?") (unit 1) (value "+3V3") (footprint "")
     )
     (path "/f242fe8c-1db7-43b3-b163-603b74e22b47"
-      (reference "#PWR?") (unit 1) (value "GND") (footprint "")
-    )
-    (path "/4eba7f3e-81ac-47cd-894e-cb117f012064/f4ad093c-01d3-434e-983b-94c93f16ce21"
       (reference "#PWR?") (unit 1) (value "GND") (footprint "")
     )
     (path "/4eba7f3e-81ac-47cd-894e-cb117f012064/f67d462d-1643-41bc-955f-feced585db49"
@@ -1755,7 +1749,7 @@
       (reference "R?") (unit 1) (value "10k") (footprint "")
     )
     (path "/4eba7f3e-81ac-47cd-894e-cb117f012064/95b4e689-78d9-48a5-adc7-257e77b3f616"
-      (reference "R?") (unit 1) (value "10R 1% 5W") (footprint "UltraLibrarian:355010RFT")
+      (reference "R?") (unit 1) (value "50R 1% 1W") (footprint "Resistor_SMD:R_2816_7142Metric_Pad3.20x4.45mm_HandSolder")
     )
     (path "/4eba7f3e-81ac-47cd-894e-cb117f012064/b0552be4-9298-407d-a722-b0904fab5b67"
       (reference "R?") (unit 1) (value "10R") (footprint "")

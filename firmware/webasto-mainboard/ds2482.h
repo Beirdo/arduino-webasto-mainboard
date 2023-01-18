@@ -3,8 +3,9 @@
 
 #include "analog_source.h"
 
-class DS2482Source : AnalogSourceBase {
+class DS2482Source : public AnalogSourceBase {
   public:
+    DS2482Source(uint8_t i2c_address, int bits) : AnalogSourceBase(i2c_address, bits) {};
     virtual void init(void);
   protected:
     virtual int32_t read_device(void);
