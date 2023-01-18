@@ -239,7 +239,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "webasto-mainboard.kicad_pro",
+    "filename": "qwiic-interface.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -318,20 +318,8 @@
   },
   "sheets": [
     [
-      "fc80a22a-e0f8-47c4-911c-4f3e03671d89",
+      "df9d35c5-6d88-4d7e-a3b6-18803c080c7e",
       ""
-    ],
-    [
-      "7d073a75-c0a6-4467-8507-95514c8d14f0",
-      "Connectors"
-    ],
-    [
-      "4eba7f3e-81ac-47cd-894e-cb117f012064",
-      "Digital IO"
-    ],
-    [
-      "51487718-e94e-4b32-b7da-dfb4e19040ef",
-      "Power"
     ]
   ],
   "text_variables": {}
