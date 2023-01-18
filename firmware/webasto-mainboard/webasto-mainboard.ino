@@ -2,13 +2,11 @@
 #include "kline.h"
 
 void setup() {
-  glow_plug_in_enable = false;
-
   // put your setup code here, to run once:
   init_analog();
   init_kline();
 
-  rp2040.wdt_begin(200);
+  rp2040.wdt_begin(500);
 }
 
 void loop() {
