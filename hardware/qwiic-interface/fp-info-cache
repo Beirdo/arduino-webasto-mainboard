@@ -1,4 +1,4 @@
-20120398979191661
+20118725127000801
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -311,6 +311,13 @@ Battery
 Battery_Panasonic_CR3032-VCN_Vertical_CircularHoles
 Panasonic CR-3032/VCN battery, https://industrial.panasonic.com/cdbs/www-data/pdf2/AAA4000/AAA4000D508.PDF
 battery CR-3032 coin cell vertical
+0
+2
+2
+Beirdo
+PM4346.333NLT
+
+
 0
 2
 2
@@ -84847,19 +84854,12 @@ igbt diode module
 25
 25
 UltraLibrarian
-ADS7823EB&slash_250
+347930040
 
 
 0
 8
 8
-UltraLibrarian
-MCP96L01T-E&slash_MX
-
-
-0
-21
-21
 UltraLibrarian
 PRT-16766
 
@@ -84867,13 +84867,6 @@ PRT-16766
 0
 6
 6
-UltraLibrarian
-ds2482s-100&plus_
-
-
-0
-8
-8
 Valve
 Valve_ECC-83-1
 Valve ECC-83-1 round pins

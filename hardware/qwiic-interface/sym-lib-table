@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name "UltraLibrarian")(type "KiCad")(uri "${KIPRJMOD}/library/UltraLibrarian/UltraLibrarian.kicad_sym")(options "")(descr ""))
+  (lib (name "Beirdo")(type "KiCad")(uri "${KIPRJMOD}/library/Beirdo/Beirdo.kicad_sym")(options "")(descr ""))
 )
