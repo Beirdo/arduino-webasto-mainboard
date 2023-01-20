@@ -1,3 +1,6 @@
 [submodule "hardware/git-libraries/KiCad-RP-Pico"]
 	path = hardware/git-libraries/KiCad-RP-Pico
 	url = https://github.com/ncarandini/KiCad-RP-Pico.git
+[submodule "firmware/lib/tinyfsm"]
+	path = firmware/lib/tinyfsm
+	url = https://github.com/digint/tinyfsm.git
