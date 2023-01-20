@@ -4,6 +4,12 @@
 
   (paper "A4")
 
+  (title_block
+    (title "Webasto Thermo Top C Replacement Controller")
+    (date "2023-01-19")
+    (rev "v1.0")
+  )
+
   (lib_symbols
     (symbol "+12V_1" (power) (pin_names (offset 0)) (in_bom yes) (on_board yes)
       (property "Reference" "#PWR" (id 0) (at 0 -3.81 0)
