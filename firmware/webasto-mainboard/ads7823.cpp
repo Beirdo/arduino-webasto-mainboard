@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <pico.h>
+#include <ArduinoLog.h>
 
 #include "ads7823.h"
 
@@ -10,9 +11,11 @@ void ADS7823Source::init(void)
   }
 
   if (!_valid) {
-    // logmsg("ADS7823@0x%02X/I2C is not configured correctly", _i2c_address);
+    Log.error("ADS7823@0x%02X/I2C is not configured correctly", _i2c_address);
     return;
   }
+
+  Log.notice("Setting up ADS7823@0x%02X/I2C", _i2c_address);
 
   // This ADC doesn't even have a control register.  Cool.
 }

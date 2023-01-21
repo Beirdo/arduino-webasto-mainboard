@@ -7,6 +7,7 @@
 #include "mcp96l01.h"
 #include "internal_adc.h"
 #include "ina219.h"
+#include "pca9501.h"
 
 void init_analog(void);
 void update_analog(void);
@@ -16,11 +17,12 @@ extern volatile bool glow_plug_out_enable;
 void set_open_drain_pin(int pinNum, int value);
 
 
-extern DS2482Source externalTempSensor;
-extern ADS7823Source batteryVoltageSensor;
-extern MCP96L01Source coolantTempSensor;
-extern MCP96L01Source exhaustTempSensor;
-extern InternalADCSource internalTempSensor;
-extern INA219Source flameDetectorSensor;
+extern DS2482Source *externalTempSensor;
+extern ADS7823Source *batteryVoltageSensor;
+extern MCP96L01Source *coolantTempSensor;
+extern MCP96L01Source *exhaustTempSensor;
+extern PCA9501DigitalSource *ignitionSenseSensor;
+extern InternalADCSource *internalTempSensor;
+extern INA219Source *flameDetectorSensor;
 
 #endif

@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <pico.h>
+#include <ArduinoLog.h>
 
 #include "ina219.h"
 
@@ -11,9 +12,11 @@ void INA219Source::init(void)
   }
 
   if (!_valid){
-    // logmsg("INA219@0x%02X/I2C not configured correctly",_i2c_address");
+    Log.error("INA219@0x%02X/I2C not configured correctly", _i2c_address);
     return;
   }
+
+  Log.notice("Setting up INA219@0x%02X/I2C", _i2c_address);
 
   // Send the chip a reset, clearing all values to factory defaults
   i2c_write_register_word(0x00, 0x8000);

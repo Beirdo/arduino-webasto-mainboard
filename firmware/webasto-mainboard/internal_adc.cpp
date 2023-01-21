@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <pico.h>
+#include <ArduinoLog.h>
 
 #include "internal_adc.h"
 
@@ -10,10 +11,12 @@ void InternalADCSource::init(void)
   }
 
   if (!_valid){
-    // logmsg("InternalADC@%d not configured correctly", _channel");
+    Log.error("InternalADC@%d not configured correctly", _channel);
     return;
   }
 
+  Log.error("Setting up InternalADC@%d", _channel);
+    
   // Set the resolution
   analogReadResolution(_bits);
 }
