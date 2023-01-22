@@ -26,6 +26,7 @@ class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
     virtual void react(RestartEvent       const &);
     virtual void react(ShutdownEvent      const &);
     virtual void react(StartupEvent       const &);
+    virtual void react(AddTimeEvent       const &);
 
     void react(GlowPlugInEnableEvent      const &);
     void react(GlowPlugOutEnableEvent     const &);
@@ -56,6 +57,13 @@ extern int fuelPumpPeriodMs;
 
 extern bool glowPlugInEnable;   // mutually exclusive with glowPlugOutEnable
 extern bool glowPlugOutEnable;  // mutually exclusive with glowPlugInEnable
+
+extern int time_start_ms[5];
+extern int time_minutes[5];
+extern timerItem_t *timer[5];
+
+extern int kline_remaining_ms;
+
 
 void set_open_drain_pin(int pinNum, int value);
 

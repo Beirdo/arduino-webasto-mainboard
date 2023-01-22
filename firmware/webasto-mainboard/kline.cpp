@@ -9,6 +9,7 @@
 #include "kline_packet.h"
 #include "kline.h"
 #include "webasto.h"
+#include "fsm.h"
 
 #define KLINE_RX_MATCH_ADDR 0xF4
 #define KLINE_TX_ADDR       0x4F
@@ -108,7 +109,7 @@ uint8_t calc_kline_checksum(uint8_t *buf, int len)
 
 void process_kline(void)
 {
-  if (Serial2.getBreakReceived()) {
+  if (0) { //Serial2.getBreakReceived()) {
     rx_active = true;
     kline_rx_tail = 0;
     Serial2.flush();
@@ -289,6 +290,10 @@ uint8_t *kline_command_shutdown(void)
   uint8_t *buf = (uint8_t *)malloc(4);
   buf[1] = 0x02;
   buf[2] = 0;
+
+  ShutdownEvent event;
+  event.mode = WEBASTO_MODE_DEFAULT;
+  WebastoControlFSM::dispatch(event);
   return buf;
 }
 
@@ -299,7 +304,10 @@ uint8_t *kline_command_timed_start(uint8_t mode, uint8_t minutes)
   buf[2] = 0;
   buf[3] = minutes;
 
-  (void)mode;   // for now
+  StartupEvent event;
+  event.mode = (int)mode;
+  event.minutes = (int)minutes;
+  WebastoControlFSM::dispatch(event);
   return buf;
 }
 
@@ -316,7 +324,14 @@ uint8_t *kline_command_diagnostics(void)
 uint8_t *kline_command_keep_alive(uint8_t mode, uint8_t minutes)
 {
   uint8_t *buf = (uint8_t *)malloc(6);
-  uint16_t remaining = 0x0088;  // Matching the example until this is wired in
+
+  AddTimeEvent event;
+  event.mode = mode;
+  event.minutes = minutes;
+  WebastoControlFSM::dispatch(event);
+
+  int elapsed = kline_remaining_ms; 
+  uint16_t remaining = elapsed / 60000;
 
   // Add x minutes to the timer for mode, and return the number of minutes left.
   buf[1] = 0x04;

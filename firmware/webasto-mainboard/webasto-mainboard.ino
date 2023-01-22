@@ -6,6 +6,7 @@
 #include "analog.h"
 #include "kline.h"
 #include "sensor_eeprom.h"
+#include "global_timer.h"
 
 void setup() {
   Serial.begin(115200);
@@ -38,6 +39,7 @@ void loop() {
   // put your main code here, to run repeatedly:
   update_analog();
   process_kline();
+  globalTimer.tick();
   
   rp2040.wdt_reset();
 }

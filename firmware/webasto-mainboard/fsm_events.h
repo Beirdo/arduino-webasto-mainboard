@@ -32,8 +32,10 @@ struct RestartEvent       : tinyfsm::Event { };
 
 struct ModeChangeEvent    : tinyfsm::Event {
   int mode;
+  int minutes;
 };
 struct ShutdownEvent      : ModeChangeEvent { };
 struct StartupEvent       : ModeChangeEvent { };
+struct AddTimeEvent       : ModeChangeEvent { };
 
 #endif

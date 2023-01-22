@@ -26,6 +26,12 @@ int fuelPumpPeriodMs = 0;
 bool glowPlugInEnable = false;   // mutually exclusive with glowPlugOutEnable
 bool glowPlugOutEnable = false;  // mutually exclusive with glowPlugInEnable
 
+int time_start_ms[5] = {0};
+int time_minutes[5] = {0};
+timerItem_t *timer[5] = {0};
+
+int kline_remaining_ms = 0;
+
 void set_open_drain_pin(int pinNum, int value)
 {
   // open drain with external pullup, asserted low (negative logic)
@@ -198,6 +204,30 @@ void WebastoControlFSM::react(ShutdownEvent const &e)
   }
 }
 
+void WebastoControlFSM::react(AddTimeEvent const &e)
+{
+  Log.notice("AddTimeEvent: mode 0x%02X, %d minutes", e.mode, e.minutes);
+  int new_mode = e.mode;
+  int minutes = e.minutes;
+  
+  if (new_mode == WEBASTO_MODE_DEFAULT) {
+    if (ignitionOn){
+      new_mode = WEBASTO_MODE_SUPPLEMENTAL_HEATER; 
+    } else{
+      new_mode = WEBASTO_MODE_PARKING_HEATER;
+    }
+  }
+
+  if (minutes) {
+    int index = mode - WEBASTO_MODE_PARKING_HEATER;
+    int start_time = time_start_ms[index];
+    time_minutes[index] += minutes;
+    kline_remaining_ms = time_minutes[index] * 60000 + start_time - millis();
+    globalTimer.adjust_timer(timer[index], minutes * 60000);
+  }
+}
+
+
 void WebastoControlFSM::react(IgnitionEvent const &e)
 {
   ignitionOn = e.enable;
@@ -211,6 +241,16 @@ void IdleState::entry()
   Log.notice("Entering IdleState");
   mode = 0;
   ignitionOn = ignitionSenseSensor->get_value();
+  for (int i = 0; i < 5; i ++) {
+    time_start_ms[i] = 0;
+  }
+}
+
+void fsmTimerShutdownCallback(int delay)
+{
+  ShutdownEvent event;
+  event.mode = mode;
+  WebastoControlFSM::dispatch(event);
 }
 
 void IdleState::react(StartupEvent const &e)
@@ -218,6 +258,7 @@ void IdleState::react(StartupEvent const &e)
   Log.notice("StartupEvent: mode 0x%02X", e.mode);
   int new_mode = e.mode;
   int old_mode = mode;
+  int minutes = e.minutes;
   
   if (new_mode == WEBASTO_MODE_DEFAULT) {
     if (ignitionOn){
@@ -228,6 +269,15 @@ void IdleState::react(StartupEvent const &e)
   }
 
   mode = new_mode;
+
+  if (minutes) {
+    int index = mode - WEBASTO_MODE_PARKING_HEATER;
+    int start_time = millis();
+    time_start_ms[index] = start_time;
+    time_minutes[index] = minutes;
+
+    timer[index] = globalTimer.register_timer(minutes * 60000, &fsmTimerShutdownCallback);
+  }
   
   switch(mode) {
     case WEBASTO_MODE_PARKING_HEATER:
