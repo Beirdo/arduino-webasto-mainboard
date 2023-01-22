@@ -16,9 +16,10 @@ AnalogSourceBase::AnalogSourceBase(uint8_t i2c_address, int bits, int mult, int 
   }
   
   _tail = 0;
-  _value = 0;
+  _value = UNUSED_READING;
   _mult = mult;
   _div = div_;
+  _prev_value = UNUSED_READING;
   
   mutex_init(&_i2c_mutex);
 }
@@ -31,6 +32,7 @@ void AnalogSourceBase::update(void)
   raw_value = read_device();
   scaled_value = convert(raw_value);
   append_value(scaled_value);
+  _prev_value = _value;
   _value = filter();
 }
 

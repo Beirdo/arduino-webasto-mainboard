@@ -11,10 +11,11 @@ class InternalADCSource : public AnalogSourceBase {
       _channel = channel;
     };
     
-    virtual void init(void); 
+    void init(void);
+    void feedback(int index); 
   protected:
-    virtual int32_t read_device(void);
-    virtual int32_t convert(int32_t reading);
+    int32_t read_device(void);
+    int32_t convert(int32_t reading);
 
     int _min_bits = 12;
     int _max_bits = 12;

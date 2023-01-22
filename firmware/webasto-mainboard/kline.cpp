@@ -1,26 +1,14 @@
 
-
-#include "kline_packet.h"
-#include "kline.h"
-#include "webasto.h"
 #include <cppQueue.h>
 #include <Arduino.h>
 #include <pico.h>
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef PIN_SERIAL2_TX
-#undef PIN_SERIAL2_TX
-#endif
-#define PIN_SERIAL2_TX  4
-
-#ifdef PIN_SERIAL2_RX
-#undef PIN_SERIAL2_RX
-#endif
-#define PIN_SERIAL2_RX  5
-
-#define PIN_KLINE_EN    3
-
+#include "project.h"
+#include "kline_packet.h"
+#include "kline.h"
+#include "webasto.h"
 
 #define KLINE_RX_MATCH_ADDR 0xF4
 #define KLINE_TX_ADDR       0x4F
@@ -55,6 +43,7 @@ void send_break(void)
 {
   Serial2.end();
 
+  // Send a break - may not be needed as we are the slave, not the master.
   digitalWrite(PIN_SERIAL2_TX, HIGH);
   pinMode(PIN_SERIAL2_TX, OUTPUT);
   digitalWrite(PIN_SERIAL2_TX, LOW);
@@ -662,5 +651,3 @@ uint8_t *kline_read_subsystems_supported(void)
 {
   return 0;
 }
-
-

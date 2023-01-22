@@ -3,6 +3,7 @@
 #include <ArduinoLog.h>
 
 #include "ina219.h"
+#include "fsm.h"
 
 
 void INA219Source::init(void)
@@ -89,4 +90,15 @@ int32_t INA219Source::convert(int32_t reading)
 
   int32_t resistance = voltage * 1000 / current;    // we want milli-ohm
   return resistance;
+}
+
+void INA219Source::feedback(int index)
+{
+  if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > 20) {
+    if (index == 6) {
+      FlameDetectEvent event;
+      event.value = (int)_value;
+      WebastoControlFSM::dispatch(event);
+    }
+  }
 }

@@ -3,6 +3,7 @@
 #include <ArduinoLog.h>
 
 #include "ds2482.h"
+#include "fsm.h"
 
 void DS2482Source::wait_for_1wire(uint32_t poll_us) {
   uint8_t status_reg;
@@ -153,4 +154,15 @@ int32_t DS2482Source::convert(int32_t reading)
   }
 
   return reading;
+}
+
+void DS2482Source::feedback(int index)
+{
+  if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > 100) {
+    if (index == 0) {
+      OutdoorTempEvent event;
+      event.value = (int)_value;
+      WebastoControlFSM::dispatch(event);
+    }
+  }
 }

@@ -6,9 +6,10 @@
 class ADS7823Source : public AnalogSourceBase {
   public:
     ADS7823Source(uint8_t i2c_address, int bits, int mult, int div_) : AnalogSourceBase(i2c_address, bits, mult, div_) {};
-    virtual void init(void);
+    void init(void);
+    void feedback(int index);
   protected:
-    virtual int32_t read_device(void);
+    int32_t read_device(void);
 
     int _min_bits = 12;
     int _max_bits = 12;

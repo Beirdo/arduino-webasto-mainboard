@@ -1,7 +1,3 @@
-#if __cplusplus > 199211L
-#define register    // Deprecated in C++11
-#endif
-
 #include <pico.h>
 #include <Wire.h>
 #include <ArduinoLog.h>
@@ -16,6 +12,10 @@ void setup() {
   if (Serial.available()) {
       Log.begin(LOG_LEVEL_VERBOSE, &Serial);
   } else {
+    Serial1.setTX(PIN_SERIAL1_TX);
+    Serial1.setRX(PIN_SERIAL1_RX);
+    Serial1.setCTS(PIN_SERIAL1_CTS);
+    Serial1.setRTS(PIN_SERIAL1_RTS);
     Serial1.begin(115200);
     Log.begin(LOG_LEVEL_VERBOSE, &Serial1);
   } 

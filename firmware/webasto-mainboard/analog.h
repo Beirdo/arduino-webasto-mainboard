@@ -8,14 +8,11 @@
 #include "internal_adc.h"
 #include "ina219.h"
 #include "pca9501.h"
+#include "internal_gpio.h"
+#include "fsm.h"
 
 void init_analog(void);
 void update_analog(void);
-
-extern volatile bool glow_plug_in_enable;
-extern volatile bool glow_plug_out_enable;
-void set_open_drain_pin(int pinNum, int value);
-
 
 extern DS2482Source *externalTempSensor;
 extern ADS7823Source *batteryVoltageSensor;
@@ -24,5 +21,6 @@ extern MCP96L01Source *exhaustTempSensor;
 extern PCA9501DigitalSource *ignitionSenseSensor;
 extern InternalADCSource *internalTempSensor;
 extern INA219Source *flameDetectorSensor;
+extern InternalGPIODigitalSource *startRunSensor;
 
 #endif

@@ -3,6 +3,7 @@
 #include <ArduinoLog.h>
 
 #include "internal_adc.h"
+#include "fsm.h"
 
 void InternalADCSource::init(void)
 {
@@ -39,4 +40,15 @@ int32_t InternalADCSource::convert(int32_t reading)
   }
 
   return AnalogSourceBase::convert(reading);
+}
+
+void InternalADCSource::feedback(int index)
+{
+  if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > 100) {
+    if (index == 5) {
+      InternalTempEvent event;
+      event.value = (int)_value;
+      WebastoControlFSM::dispatch(event);
+    }
+  }
 }

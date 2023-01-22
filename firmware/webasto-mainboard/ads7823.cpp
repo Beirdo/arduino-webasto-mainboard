@@ -3,6 +3,7 @@
 #include <ArduinoLog.h>
 
 #include "ads7823.h"
+#include "fsm.h"
 
 void ADS7823Source::init(void)
 {
@@ -38,3 +39,13 @@ int32_t ADS7823Source::read_device(void)
   return accumulator / 4;
 }
 
+void ADS7823Source::feedback(int index)
+{
+  if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > 100) {
+    if (index == 1) {
+      BatteryLevelEvent event;
+      event.value = _value;
+      WebastoControlFSM::dispatch(event);
+    }
+  }
+}

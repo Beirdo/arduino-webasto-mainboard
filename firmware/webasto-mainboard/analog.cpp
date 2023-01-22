@@ -13,9 +13,11 @@
 #include "ina219.h"
 #include "pca9501.h"
 #include "sensor_eeprom.h"
+#include "internal_gpio.h"
+#include "fsm.h"
 
 #define OFFBOARD_SENSOR_COUNT 5
-#define ONBOARD_SENSOR_COUNT  2
+#define ONBOARD_SENSOR_COUNT  3
 
 AnalogSourceBase *sensors[OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT];
 
@@ -27,32 +29,11 @@ PCA9501DigitalSource *ignitionSenseSensor;
 
 InternalADCSource *internalTempSensor;
 INA219Source *flameDetectorSensor;
-
-// should move to glow_plug later.
-volatile bool glow_plug_in_enable;
-volatile bool glow_plug_out_enable;
-
-
-void set_open_drain_pin(int pinNum, int value)
-{
-  if (value) {
-    pinMode(pinNum, INPUT);
-    digitalWrite(pinNum, LOW);  // shutoff builtin pullup
-  } else {
-    pinMode(pinNum, OUTPUT);
-    digitalWrite(pinNum, LOW);
-  }
-}
+InternalGPIODigitalSource *startRunSensor;
 
 void init_analog(void)
 {
   Wire.begin();
-
-  glow_plug_in_enable = false;
-  set_open_drain_pin(GLOW_PLUG_IN_EN_PIN, glow_plug_in_enable);
-
-  glow_plug_out_enable = false;
-  set_open_drain_pin(GLOW_PLUG_OUT_EN_PIN, glow_plug_out_enable);
 
   for (int i = 0; i < 5; i++) {
     sensors[i] = 0;
@@ -96,10 +77,12 @@ void init_analog(void)
   ignitionSenseSensor = static_cast<PCA9501DigitalSource *>(sensors[4]);
 
   internalTempSensor = new InternalADCSource(4, 12);
-  flameDetectorSensor = new INA219Source(0x4F, 12, &glow_plug_in_enable);
+  flameDetectorSensor = new INA219Source(0x4F, 12, &glowPlugInEnable);
+  startRunSensor = new InternalGPIODigitalSource(PIN_START_RUN);
   
   sensors[ONBOARD_SENSOR_COUNT] = internalTempSensor;
   sensors[ONBOARD_SENSOR_COUNT + 1] = flameDetectorSensor;  
+  sensors[ONBOARD_SENSOR_COUNT + 2] = startRunSensor;
 
   // Now init() the suckers
   for (int i = 0; i < OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT; i++) {
@@ -120,5 +103,6 @@ void update_analog(void)
       continue;
     }
     sensors[i]->update();
+    sensors[i]->feedback(i);
   }
 }
