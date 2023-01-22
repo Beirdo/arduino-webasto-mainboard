@@ -17,6 +17,10 @@ const char *capabilities_names[7] = {
   "flame detector",  
 };
 
+int eeprom_lengths[] = {
+  sizeof(struct eeprom_v1_s),
+};
+
 eeprom_data_t eeprom_data[8];
 void *eeprom_devices[8];
 
@@ -31,11 +35,15 @@ uint8_t eeprom_checksum(uint8_t *buf, int len)
 
 void init_eeprom(void) 
 {
-  // TODO: still gonna be funky at rev 2
-  memset(eeprom_data, 0xFF, sizeof(eeprom_data));
+  memset((char *)&eeprom_data, 0xFF, sizeof(eeprom_data));
 
-  int max_eeprom_data = sizeof(struct eeprom_v1_s);
-  int min_eeprom_data = sizeof(struct eeprom_v1_s);
+  int max_eeprom_data = -1;
+  int min_eeprom_data = PCA9501_DEVICE_SIZE + 1;
+
+  for (int i = 0; i < MAX_EEPROM_VERSION; i++) {
+    max_eeprom_data = max(max_eeprom_data, eeprom_lengths[i]);
+    min_eeprom_data = min(min_eeprom_data, eeprom_lengths[i]);
+  }
 
   // This will redefine the I2C bus used in analog.cpp, but the values are identical
   for (int i = 0; i < 8; i++) {
@@ -71,7 +79,7 @@ void init_eeprom(void)
     }
 
     if (empty) {
-      Log.error("Sensor board EEPROM at index %d is empty", i, len);
+      Log.error("Sensor board EEPROM at index %d is empty", i);
       delete eeprom;
       eeprom_devices[i] = 0;
       continue;
@@ -79,35 +87,33 @@ void init_eeprom(void)
 
     // Check the checksum
     if (eeprom_checksum(buf, len)) {
-      Log.error("Sensor board EEPROM at index %d has bad checksum", i, len);
+      Log.error("Sensor board EEPROM at index %d has bad checksum", i);
       delete eeprom;
       eeprom_devices[i] = 0;
       continue;
     }
 
-    uint8_t version = eeprom_data[i].version;
-    bool too_small = false;
-  
-    switch (version) {
-      case 1:
-        if(len < sizeof(struct eeprom_v1_s)) {
-          too_small = true;
-        }
-        break;
-      default:
-        Log.error("Sensor board EEPROM at index %s has an unsupported version (%d)", i, version);
-        delete eeprom;
-        eeprom_devices[i] = 0;
-        continue;
+    uint8_t version = eeprom_data[i].current.version;
+    if (version > MAX_EEPROM_VERSION || version < 1) {
+      Log.error("Sensor board EEPROM at index %d has an unsupported version (%d)", i, version);
+      delete eeprom;
+      eeprom_devices[i] = 0;
+      return;
     }
 
-    if (too_small) {
-      Log.error("Sensor board EEPROM at index %d incomplete for v%d (%d bytes read)", i, version, len);
+    if (len < eeprom_lengths[version - 1]) {
+      Log.error("Sensor board EEPROM at index %d incomplete for v%d (%d of %d bytes read)", i, version, len, eeprom_lengths[version - 1]);
       delete eeprom;
       eeprom_devices[1] = 0;
       continue;
     } 
 
-    Log.notice("Found v%d Sensor Board at index %d with capabilities of 0x%02X", eeprom_data[i].version, i, eeprom_data[i].capabilities);
+    if (version != CURRENT_EEPROM_VERSION) {
+      upgrade_eeprom_version(&eeprom_data[i]);        
+    }    
+
+    Log.notice("Found v%d Sensor Board at index %d with capabilities of 0x%02X", version, i, eeprom_data[i].current.capabilities);
   }
 }
+
+ 

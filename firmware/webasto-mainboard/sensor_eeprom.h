@@ -21,9 +21,16 @@ struct eeprom_v1_s {
   uint8_t addr_ds2482;
 };
 
-typedef struct eeprom_v1_s eeprom_data_t;
+typedef union {
+  struct eeprom_v1_s v1;
+  struct eeprom_v1_s current;
+} eeprom_data_t;
 
-static_assert(sizeof(eeprom_data_t) <= PCA9501_BLOCK_SIZE, "Structure eeprom_data_t is larger than the EEPROM!");
+static_assert(sizeof(eeprom_data_t) <= PCA9501_DEVICE_SIZE, "Structure eeprom_data_t is larger than the EEPROM!");
+
+#define CURRENT_EEPROM_VERSION  1
+#define MAX_EEPROM_VERSION      1
+extern int eeprom_lengths[];
 
 #define CAPABILITIES_EXTERNAL_TEMP    0x01
 #define CAPABILITIES_BATTERY_VOLTAGE  0x02
@@ -36,6 +43,7 @@ extern eeprom_data_t eeprom_data[8];
 extern void *eeprom_devices[8];
 
 void init_eeprom(void);
-uint8_t eeprom_checksum(uint8_t buf, int len);
+uint8_t eeprom_checksum(uint8_t *buf, int len);
+void upgrade_eeprom_version(eeprom_data_t *data);
 
 #endif

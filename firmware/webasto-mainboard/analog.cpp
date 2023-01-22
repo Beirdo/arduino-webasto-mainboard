@@ -43,7 +43,7 @@ void init_analog(void)
         continue;
       }
 
-      uint8_t cap = eeprom_data[j].capabilities & (1 << i);
+      uint8_t cap = eeprom_data[j].current.capabilities & (1 << i);
       if (!cap) {
         continue;
       }
@@ -52,17 +52,17 @@ void init_analog(void)
 
       switch(i) {
         case 0:
-          sensors[i] = new DS2482Source(eeprom_data[j].addr_ds2482, 9);
+          sensors[i] = new DS2482Source(eeprom_data[j].current.addr_ds2482, 9);
           break;
         case 1:
-          sensors[i] = new ADS7823Source(eeprom_data[j].addr_ads7823, 12, 19767, 4096);
+          sensors[i] = new ADS7823Source(eeprom_data[j].current.addr_ads7823, 12, 19767, 4096);
           break;
         case 2:
         case 3:
-          sensors[i] = new MCP96L01Source(eeprom_data[j].addr_mcp96l01, 16, TYPE_K, 4);
+          sensors[i] = new MCP96L01Source(eeprom_data[j].current.addr_mcp96l01, 16, TYPE_K, 4);
           break;
         case 4:
-          sensors[i] = new PCA9501DigitalSource(eeprom_data[j].addr_pca9501_gpio, PCA9501_VINN);
+          sensors[i] = new PCA9501DigitalSource(eeprom_data[j].current.addr_pca9501_gpio, PCA9501_VINN);
           break;
         default:
           break;

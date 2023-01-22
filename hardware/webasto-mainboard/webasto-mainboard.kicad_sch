@@ -1367,7 +1367,7 @@
     (uuid feff8b90-b3c4-41d1-8bf9-3c2da08c4963)
   )
 
-  (text "I2C Addresses 0x60/61 - 0x66/67\nUsing 0x60/61" (at 54.61 158.242 0)
+  (text "I2C Addresses 0x50/51 - 0x56/57\nUsing 0x50/51" (at 54.61 158.242 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 5911167e-1dc2-4a46-ad97-a3f78ad4880d)
   )

@@ -7,6 +7,7 @@
 #include "kline.h"
 #include "sensor_eeprom.h"
 #include "global_timer.h"
+#include "fram.h"
 
 void setup() {
   Serial.begin(115200);
@@ -29,6 +30,7 @@ void setup() {
 
   // put your setup code here, to run once:
   init_eeprom();
+  init_fram();
   init_analog();
   init_kline();
 
@@ -37,6 +39,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  update_fram();
   update_analog();
   process_kline();
   globalTimer.tick();
