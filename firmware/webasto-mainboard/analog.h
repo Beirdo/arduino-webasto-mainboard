@@ -22,5 +22,6 @@ extern PCA9501DigitalSource *ignitionSenseSensor;
 extern InternalADCSource *internalTempSensor;
 extern INA219Source *flameDetectorSensor;
 extern InternalGPIODigitalSource *startRunSensor;
+extern InternalGPIODigitalSource *emergencyStopSensor;
 
 #endif

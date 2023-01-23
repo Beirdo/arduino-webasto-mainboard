@@ -16,6 +16,7 @@ class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
     virtual void react(FlameDetectEvent   const &);
     virtual void react(IgnitionEvent      const &);
     virtual void react(StartRunEvent      const &);
+    virtual void react(EmergencyStopEvent const &);
     virtual void react(CoolantTempEvent   const &);
     virtual void react(OutdoorTempEvent   const &);
     virtual void react(ExhaustTempEvent   const &);
@@ -37,9 +38,13 @@ class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
     void react(FuelPumpEvent              const &);
     void react(VehicleFanEvent            const &);
 
-    
+    uint8_t getStateNum(void) { return _state_num; };
+
     virtual void entry(void)  { };
     void exit(void)  { };
+
+  protected:
+    uint8_t _state_num;
 };
 
 extern int mode;

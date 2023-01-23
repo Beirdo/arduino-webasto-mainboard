@@ -8,6 +8,7 @@ struct BooleanEvent       : tinyfsm::Event {
 };
 struct IgnitionEvent            : BooleanEvent { };
 struct StartRunEvent            : BooleanEvent { };
+struct EmergencyStopEvent       : BooleanEvent { };
 struct GlowPlugInEnableEvent    : BooleanEvent { };
 struct GlowPlugOutEnableEvent   : BooleanEvent { };
 struct CirculationPumpEvent     : BooleanEvent { };

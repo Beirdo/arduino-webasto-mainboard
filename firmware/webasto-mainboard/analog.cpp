@@ -17,7 +17,7 @@
 #include "fsm.h"
 
 #define OFFBOARD_SENSOR_COUNT 5
-#define ONBOARD_SENSOR_COUNT  3
+#define ONBOARD_SENSOR_COUNT  4
 
 AnalogSourceBase *sensors[OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT];
 
@@ -30,6 +30,8 @@ PCA9501DigitalSource *ignitionSenseSensor;
 InternalADCSource *internalTempSensor;
 INA219Source *flameDetectorSensor;
 InternalGPIODigitalSource *startRunSensor;
+InternalGPIODigitalSource *emergencyStopSensor;
+
 
 void init_analog(void)
 {
@@ -79,10 +81,12 @@ void init_analog(void)
   internalTempSensor = new InternalADCSource(4, 12);
   flameDetectorSensor = new INA219Source(0x4F, 12, &glowPlugInEnable);
   startRunSensor = new InternalGPIODigitalSource(PIN_START_RUN);
-  
+  emergencyStopSensor = new InternalGPIODigitalSource(PIN_EMERGENCY_STOP);
+
   sensors[ONBOARD_SENSOR_COUNT] = internalTempSensor;
   sensors[ONBOARD_SENSOR_COUNT + 1] = flameDetectorSensor;  
   sensors[ONBOARD_SENSOR_COUNT + 2] = startRunSensor;
+  sensors[ONBOARD_SENSOR_COUNT + 3] = emergencyStopSensor;
 
   // Now init() the suckers
   for (int i = 0; i < OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT; i++) {

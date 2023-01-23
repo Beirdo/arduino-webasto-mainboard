@@ -5,8 +5,8 @@
 
 class InternalGPIODigitalSource : public AnalogSourceBase {
   public:
-    InternalGPIODigitalSource(int pin) : 
-        AnalogSourceBase(0, 1) {_pin = pin;};
+    InternalGPIODigitalSource(int pin, bool active_low = true) : 
+        AnalogSourceBase(0, 1), _pin(pin), _active_low(active_low) { };
     
     void init(void);
     void feedback(int index);
@@ -15,6 +15,7 @@ class InternalGPIODigitalSource : public AnalogSourceBase {
     int32_t convert(int32_t reading);
 
     int _pin;
+    bool _active_low;
 };
 
 

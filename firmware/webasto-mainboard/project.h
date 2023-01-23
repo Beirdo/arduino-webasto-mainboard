@@ -62,6 +62,7 @@
 #define PIN_GLOW_PLUG_OUT     12
 #define PIN_FUEL_PUMP         13
 #define PIN_VEHICLE_FAN_RELAY 14
+#define PIN_EMERGENCY_STOP    16
 
 inline int clamp(int value, int minval, int maxval)
 {

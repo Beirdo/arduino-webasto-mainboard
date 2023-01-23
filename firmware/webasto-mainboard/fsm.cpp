@@ -144,6 +144,62 @@ void WebastoControlFSM::react(FuelPumpEvent const &e)
   fuelPumpTimer.setBurnPower(value);
 }
 
+void WebastoControlFSM::react(TimerEvent const &e)
+{
+
+}
+
+void WebastoControlFSM::react(FlameDetectEvent const &e)
+{
+
+}
+
+void WebastoControlFSM::react(StartRunEvent const &e)
+{
+
+}
+
+void WebastoControlFSM::react(EmergencyStopEvent const &e)
+{
+
+}
+
+void WebastoControlFSM::react(CoolantTempEvent const &e)
+{
+
+}
+
+void WebastoControlFSM::react(OutdoorTempEvent const &e)
+{
+
+}
+
+void WebastoControlFSM::react(ExhaustTempEvent const &e)
+{
+
+}
+
+void WebastoControlFSM::react(InternalTempEvent const &e) 
+{
+  
+}
+
+void WebastoControlFSM::reach(BatteryLevelEvent const &e)
+{
+
+}
+
+void WebastoControlFSM::react(FlameoutEvent const &e)
+{
+  
+}
+
+void WebastoControlFSM::react(RestartEvent const &e)
+{
+  
+}
+
+
 
 void WebastoControlFSM::react(ShutdownEvent const &e)
 {
