@@ -1,4 +1,5 @@
 *-backups
 *-bak
+*.bak
 _autosave-*
 *auto_saved_*
