@@ -10,12 +10,15 @@
 #include "kline.h"
 #include "webasto.h"
 #include "fsm.h"
+#include "fram.h"
+#include "fuel_pump.h"
+#include "analog.h"
 
 #define KLINE_RX_MATCH_ADDR 0xF4
 #define KLINE_TX_ADDR       0x4F
 
-#define KLINE_FIFO_SIZE   16
-#define KLINE_BUFFER_SIZE 16
+#define KLINE_FIFO_SIZE   64
+#define KLINE_BUFFER_SIZE 64
 
 int tx_active;
 int rx_active;
@@ -372,28 +375,28 @@ uint8_t *kline_command_read_sensor(uint8_t sensornum)
     case 0x07:
       // Operating state
       return kline_read_state_sensor();
-    case 10:
-      // Burning level
-      return kline_read_burning_level_sensor();
-    case 11:
+    case 0x0A:
       // Burning duration
       return kline_read_burning_duration_sensor();
-    case 12:
+    case 0x0B:
+      // Operating duration
+      return kline_read_operating_duration_sensor();
+    case 0x0C:
       // Start counters
       return kline_read_start_counter_sensor();
-    case 15:
+    case 0x0F:
       // subsystem status
       return kline_read_subsystem_status_sensor();
-    case 17:
+    case 0x11:
       // Temperature thresholds
       return kline_read_temperature_thresh_sensor();
-    case 18:
+    case 0x12:
       // Ventilation duration
       return kline_read_ventilation_duration_sensor();
-    case 19:
+    case 0x13:
       // Fuel prewarming status
       return kline_read_fuel_prewarming_sensor();
-    case 20:
+    case 0x14:
       // Spark Transmission
       return kline_read_spark_transmission_sensor();
     default:
@@ -548,27 +551,101 @@ uint8_t *kline_set_co2(uint8_t index, uint8_t value)
 
 uint8_t *kline_read_status_sensor(void)
 {
-  return 0;
+  int len = 9;
+  uint8_t *buf = (uint8_t *)malloc(len);
+  buf[1] = 0x02;
+  buf[3] = len - 2;
+
+  uint8_t flags = 0x00;
+  flags |= (mode == WEBASTO_MODE_SUPPLEMENTAL_HEATER ? 0x10 : 0x00);
+  flags |= ((mode == WEBASTO_MODE_SUPPLEMENTAL_HEATER || mode == WEBASTO_MODE_PARKING_HEATER) ? 0x01 : 0x00);
+  buf[4] = flags;
+
+  flags = 0x00;
+  flags |= (externalTempSensor->get_value() >= 1000 ? 0x01 : 0x00);    // >= 10C - summer.  Below - winter
+  buf[5] = flags;
+  buf[6] = 0x00;      // Generator signal D+  (whaaa?)
+  buf[7] = 0x00;      // boost mode, auxiliary drive
+
+  flags = 0x00;
+  flags |= (ignitionOn ? 0x01 : 0x00);
+  buf[8] = flags;
+  return buf;
 }
 
 uint8_t *kline_read_subsystem_enabled_sensor(void)
 {
-  return 0;
+  int len = 5;
+  uint8_t *buf = (uint8_t *)malloc(len);
+  buf[1] = 0x03;
+  buf[3] = len - 2;
+
+  uint8_t flags = 0x00;
+  flags |= (combustionFanOn ? 0x01 : 0x00);
+  flags |= (glowPlugOutEnable ? 0x02 : 0x00);
+  flags |= (fuelPumpTimer.getBurnPower() ? 0x04 : 0x00);
+  flags |= (circulationPumpOn ? 0x08 : 0x00);
+  flags |= (vehicleFanPercent ? 0x10 : 0x00);
+  flags |= 0x00;        // Nozzle stock heating... we don't have that??!
+  flags |= (glowPlugInEnable ? 0x40 : 0x00);  
+  buf[4] = flags;
+  return buf;
 }
 
 uint8_t *kline_read_fuel_param_sensor(void)
 {
-  return 0;
+  int len = 7;
+  uint8_t *buf = (uint8_t *)malloc(len);
+  buf[1] = 0x04;
+  buf[3] = len - 2;
+  buf[4] = 0x1D;      // from libwbus example, change to what it reads with OEM controller
+  buf[5] = 0x3C;      // from libwbus example, change to what it reads with OEM controller
+  buf[6] = 0x3C;      // from libwbus example, change to what it reads with OEM controller
+  return buf;
 }
 
 uint8_t *kline_read_operational_sensor(void)
 {
-  return 0;
+  int len = 12;
+  uint8_t *buf = (uint8_t *)malloc(len);
+  buf[1] = 0x05;
+  buf[3] = len - 2;
+  
+  buf[4] = (uint8_t)(((externalTempSensor->get_value() / 50) + 1 / 2) + 50);
+
+  int vbat = batteryVoltageSensor->get_value();
+  buf[5] = HIBYTE(vbat);
+  buf[6] = LOBYTE(vbat);
+  buf[7] = (glowPlugInEnable ? 0x01 : 0x00);
+
+  int power = fuelPumpTimer.getBurnPower();  
+  buf[8] = HIBYTE(power);
+  buf[9] = LOBYTE(power);
+
+  int milliohms = flameDetectorSensor->get_value();
+  buf[10] = HIBYTE(milliohms);
+  buf[11] = LOBYTE(milliohms);
+
+  return buf;
 }
 
 uint8_t *kline_read_operating_time_sensor(void)
 {
-  return 0;
+  int len = 12;
+  uint8_t *buf = (uint8_t *)malloc(len);
+  buf[1] = 0x06;
+  buf[3] = len - 2;
+  
+  buf[4] = HIBYTE(fram_data.current.total_burn_duration.hours);
+  buf[5] = LOBYTE(fram_data.current.total_burn_duration.hours);
+  buf[6] = fram_data.current.total_burn_duration.minutes;
+  buf[7] = HIBYTE(fram_data.current.total_working_duration.hours);
+  buf[8] = LOBYTE(fram_data.current.total_working_duration.hours);
+  buf[9] = fram_data.current.total_working_duration.minutes;
+  buf[10] = HIBYTE(fram_data.current.total_start_counter);
+  buf[11] = LOBYTE(fram_data.current.total_start_counter);
+
+  return buf;
 }
 
 uint8_t *kline_read_state_sensor(void)
@@ -576,24 +653,79 @@ uint8_t *kline_read_state_sensor(void)
   return 0;
 }
 
-uint8_t *kline_read_burning_level_sensor(void)
-{
-  return 0;
-}
-
 uint8_t *kline_read_burning_duration_sensor(void)
 {
-  return 0;
+  int len = 28;
+  uint8_t *buf = (uint8_t *)malloc(len);
+  buf[1] = 0x0A;
+  buf[3] = len - 2;
+  
+  int index = 4;
+  for (int i = 0; i < 4; i++) {
+    buf[index++] = HIBYTE(fram_data.current.burn_duration_parking_heater[i].hours);
+    buf[index++] = LOBYTE(fram_data.current.burn_duration_parking_heater[i].hours);
+    buf[index++] = fram_data.current.burn_duration_parking_heater[i].minutes;
+  }
+  
+  for (int i = 0; i < 4; i++) {
+    buf[index++] = HIBYTE(fram_data.current.burn_duration_supplemental_heater[i].hours);
+    buf[index++] = LOBYTE(fram_data.current.burn_duration_supplemental_heater[i].hours);
+    buf[index++] = fram_data.current.burn_duration_supplemental_heater[i].minutes;
+  }
+
+  return buf;
+}
+
+uint8_t *kline_read_operating_duration_sensor(void)
+{
+  int len = 28;
+  uint8_t *buf = (uint8_t *)malloc(len);
+  buf[1] = 0x0B;
+  buf[3] = len - 2;
+  
+  int index = 4;
+  for (int i = 0; i < 4; i++) {
+    buf[index++] = HIBYTE(fram_data.current.working_duration_parking_heater[i].hours);
+    buf[index++] = LOBYTE(fram_data.current.working_duration_parking_heater[i].hours);
+    buf[index++] = fram_data.current.working_duration_parking_heater[i].minutes;
+  }
+  
+  for (int i = 0; i < 4; i++) {
+    buf[index++] = HIBYTE(fram_data.current.working_duration_supplemental_heater[i].hours);
+    buf[index++] = LOBYTE(fram_data.current.working_duration_supplemental_heater[i].hours);
+    buf[index++] = fram_data.current.working_duration_supplemental_heater[i].minutes;
+  }
+
+  return buf;
 }
 
 uint8_t *kline_read_start_counter_sensor(void)
 {
-  return 0;
+  int len = 10;
+  uint8_t *buf = (uint8_t *)malloc(len);
+  buf[1] = 0x0C;
+  buf[3] = len - 2;
+  buf[4] = HIBYTE(fram_data.current.start_counter_parking_heater);
+  buf[5] = LOBYTE(fram_data.current.start_counter_parking_heater);
+  buf[6] = HIBYTE(fram_data.current.start_counter_supplemental_heater);
+  buf[7] = LOBYTE(fram_data.current.start_counter_supplemental_heater);
+  buf[8] = HIBYTE(fram_data.current.counter_emergency_shutdown);
+  buf[9] = LOBYTE(fram_data.current.counter_emergency_shutdown);
+  return buf;
 }
 
 uint8_t *kline_read_subsystem_status_sensor(void)
 {
-  return 0;
+  int len = 9;
+  uint8_t *buf = (uint8_t *)malloc(len);
+  buf[1] = 0x0F;
+  buf[3] = len - 2;
+  buf[4] = (uint8_t)glowPlugPercent;
+  buf[5] = fuelPumpTimer.getFuelPumpFrequencyKline();
+  buf[6] = (uint8_t)(combustionFanOn ? 100 : 0);
+  buf[7] = 0x00;    // Unknown
+  buf[8] = (uint8_t)(circulationPumpOn ? 100 : 0);
+  return buf;
 }
 
 uint8_t *kline_read_temperature_thresh_sensor(void)

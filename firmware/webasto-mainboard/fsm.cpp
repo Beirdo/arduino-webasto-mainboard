@@ -16,7 +16,6 @@ bool startRunSignalOn;
 
 bool combustionFanOn = false;
 bool circulationPumpOn = false;
-bool flameSensorOn = false;
 
 int vehicleFanPercent = 0;
 int glowPlugPercent = 0;
@@ -129,28 +128,20 @@ void WebastoControlFSM::react(GlowPlugOutEvent const &e)
     return;
   } 
   
-  glowPlugPercent = e.value;
+  glowPlugPercent = clamp(e.value, 0, 100);
   analogWrite(PIN_GLOW_PLUG_OUT, glowPlugPercent * 255 / 100);
 }
 
 void WebastoControlFSM::react(VehicleFanEvent const &e)
 {
-  vehicleFanPercent = e.value;
+  vehicleFanPercent = clamp(e.value, 0, 100);
   analogWrite(PIN_VEHICLE_FAN_RELAY, vehicleFanPercent * 255 / 100);
 }
 
 void WebastoControlFSM::react(FuelPumpEvent const &e)
 {
-  int value = e.value;
-  
-  if (value && value < FUEL_PUMP_MIN_PERIOD) {
-    value = FUEL_PUMP_MIN_PERIOD;
-  } else if (value && value > FUEL_PUMP_MAX_PERIOD) {
-    value = FUEL_PUMP_MAX_PERIOD;
-  }
-  
-  fuelPumpPeriodMs = e.value;
-  fuelPumpTimer.setPeriod(fuelPumpPeriodMs);
+  int value = clamp(e.value, 0, MAX_RATED_POWER);
+  fuelPumpTimer.setBurnPower(value);
 }
 
 

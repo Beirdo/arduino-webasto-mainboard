@@ -27,6 +27,9 @@ struct fram_v1_s {
   uint16_t start_counter_parking_heater;
   uint16_t start_counter_supplemental_heater;
   uint16_t counter_emergency_shutdown;
+  time_sensor_t total_burn_duration;
+  time_sensor_t total_working_duration;
+  uint16_t total_start_counter;
 };
 
 typedef union {

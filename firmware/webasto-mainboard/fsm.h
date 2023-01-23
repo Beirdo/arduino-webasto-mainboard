@@ -48,7 +48,6 @@ extern bool startRunSignalOn;
 
 extern bool combustionFanOn;
 extern bool circulationPumpOn;
-extern bool flameSensorOn;
 
 extern int vehicleFanPercent;
 extern int glowPlugPercent;

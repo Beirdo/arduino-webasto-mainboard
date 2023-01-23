@@ -63,5 +63,12 @@
 #define PIN_FUEL_PUMP         13
 #define PIN_VEHICLE_FAN_RELAY 14
 
+inline int clamp(int value, int minval, int maxval)
+{
+  return max(min(value, maxval), minval);
+}
+
+#define HIBYTE(x)   ((uint8_t)(((int)(x) >> 8) & 0xFF))
+#define LOBYTE(x)   ((uint8_t)(((int)(x) & 0xFF)))
 
 #endif
