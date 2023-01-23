@@ -27,7 +27,7 @@ struct InternalTempEvent  : IntegerEvent { };
 struct FlameDetectEvent   : IntegerEvent { };
 struct BatteryLevelEvent  : IntegerEvent { };
 
-struct TimerEvent         : IntegerEvent { 
+struct TimerEvent         : IntegerEvent {
   int timerId;
 };
 
