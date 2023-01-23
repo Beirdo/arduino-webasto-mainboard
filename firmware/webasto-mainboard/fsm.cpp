@@ -27,7 +27,6 @@ bool glowPlugOutEnable = false;  // mutually exclusive with glowPlugInEnable
 
 int time_start_ms[5] = {0};
 int time_minutes[5] = {0};
-timerItem_t *timer[5] = {0};
 
 int kline_remaining_ms = 0;
 
@@ -146,7 +145,17 @@ void WebastoControlFSM::react(FuelPumpEvent const &e)
 
 void WebastoControlFSM::react(TimerEvent const &e)
 {
-
+  switch (e.timerId) {
+    case TIMER_TIMED_SHUT_DOWN:
+      {
+        ShutdownEvent event;
+        event.mode = mode;
+        dispatch(event);
+      }
+      break;
+    default:
+      break;
+  }
 }
 
 void WebastoControlFSM::react(FlameDetectEvent const &e)
@@ -270,7 +279,7 @@ void WebastoControlFSM::react(AddTimeEvent const &e)
     int start_time = time_start_ms[index];
     time_minutes[index] += minutes;
     kline_remaining_ms = time_minutes[index] * 60000 + start_time - millis();
-    globalTimer.adjust_timer(timer[index], minutes * 60000);
+    globalTimer.adjust_timer(TIMER_TIMED_SHUT_DOWN, minutes * 60000);
   }
 }
 
@@ -293,10 +302,11 @@ void IdleState::entry()
   }
 }
 
-void fsmTimerShutdownCallback(int delay)
+void fsmTimerCallback(int timer_id, int delay)
 {
-  ShutdownEvent event;
-  event.mode = mode;
+  TimerEvent event;
+  event.value = delay;
+  event.timerId = timer_id;
   WebastoControlFSM::dispatch(event);
 }
 
@@ -323,7 +333,7 @@ void IdleState::react(StartupEvent const &e)
     time_start_ms[index] = start_time;
     time_minutes[index] = minutes;
 
-    timer[index] = globalTimer.register_timer(minutes * 60000, &fsmTimerShutdownCallback);
+    globalTimer.register_timer(TIMER_TIMED_SHUT_DOWN, minutes * 60000, &fsmTimerCallback);
   }
   
   switch(mode) {

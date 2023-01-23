@@ -13,25 +13,24 @@ GlobalTimer::GlobalTimer(void)
   mutex_init(&_mutex);
 }
 
-timerItem_t *GlobalTimer::register_timer(int delay_ms, timer_callback cb)
+void GlobalTimer::register_timer(int timer_id, int delay_ms, timer_callback cb)
 {
   if (delay_ms <= 0 || !cb) {
-    return 0;
+    return;
   }
   
   timerItem_t *item = (timerItem_t *)malloc(sizeof(timerItem_t));
 
+  item->timer_id = timer_id;
   item->start_ms = millis();
   item->target_ms = item->start_ms + delay_ms;
   item->cb = cb;
   item->next = 0;
 
   insert_item(item, false);
-
-  return item;
 }
 
-timerItem_t *GlobalTimer::remove_item(timerItem_t *item, bool locked)
+timerItem_t *GlobalTimer::remove_item(int timer_id, bool locked)
 {
   if (!locked) {
     mutex_enter_blocking(&_mutex);
@@ -39,7 +38,7 @@ timerItem_t *GlobalTimer::remove_item(timerItem_t *item, bool locked)
 
   timerItem_t *curr, *prev;
   for (curr = _head, prev = 0; curr; prev = curr, curr = curr->next) {
-    if (curr == item) {
+    if (curr->timer_id == timer_id) {
       if (!prev) {
         _head = curr->next;
       } else {
@@ -55,6 +54,27 @@ timerItem_t *GlobalTimer::remove_item(timerItem_t *item, bool locked)
 
   return curr;
 }
+
+timerItem_t *GlobalTimer::find_item(int timer_id, bool locked)
+{
+  if (!locked) {
+    mutex_enter_blocking(&_mutex);
+  }
+
+  timerItem_t *curr, *prev;
+  for (curr = _head, prev = 0; curr; prev = curr, curr = curr->next) {
+    if (curr->timer_id == timer_id) {
+      break;
+    }
+  }
+
+  if (!locked) {
+   mutex_exit(&_mutex);
+  }  
+
+  return curr;
+}
+
 
 void GlobalTimer::insert_item(timerItem_t *item, bool locked)
 {
@@ -90,23 +110,35 @@ void GlobalTimer::insert_item(timerItem_t *item, bool locked)
   }
 }
 
-void GlobalTimer::adjust_timer(timerItem_t *item, int delay_ms)
+void GlobalTimer::adjust_timer(int timer_id, int delay_ms)
 {
-  if (item) {
-    return;
-  }
-
   mutex_enter_blocking(&_mutex);
 
-  item = remove_item(item);
+  timerItem_t *item = remove_item(timer_id);
 
-  if (item) {
+  if (item && delay_ms > 0) {
     item->target_ms += delay_ms;
     insert_item(item);
   }
 
   mutex_exit(&_mutex);
 }
+
+int GlobalTimer::get_remaining_time(int timer_id)
+{
+  mutex_enter_blocking(&_mutex);
+
+  timerItem_t *item = find_item(timer_id);
+  int remaining = 0;
+  
+  if (item) {
+    remaining = max(0, item->target_ms - millis());
+  }
+
+  mutex_exit(&_mutex);
+  return remaining;
+}
+
 
 void GlobalTimer::tick(void)
 {
@@ -122,7 +154,7 @@ void GlobalTimer::tick(void)
   for (curr = _head; curr; curr = curr->next) {
     if (curr->target_ms <= now) {
       _head = curr->next;
-      (*curr->cb)(now - curr->start_ms);
+      (*curr->cb)(curr->timer_id, now - curr->start_ms);
     }
   }
 

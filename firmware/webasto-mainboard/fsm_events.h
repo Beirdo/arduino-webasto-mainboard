@@ -26,7 +26,10 @@ struct ExhaustTempEvent   : IntegerEvent { };
 struct InternalTempEvent  : IntegerEvent { };
 struct FlameDetectEvent   : IntegerEvent { };
 struct BatteryLevelEvent  : IntegerEvent { };
-struct TimerEvent         : IntegerEvent { };
+
+struct TimerEvent         : IntegerEvent { 
+  int timerId;
+};
 
 struct FlameoutEvent      : tinyfsm::Event { };
 struct RestartEvent       : tinyfsm::Event { };

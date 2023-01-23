@@ -70,5 +70,6 @@ extern int kline_remaining_ms;
 
 
 void set_open_drain_pin(int pinNum, int value);
+void fsmTimerShutdownCallback(int timer_id, int delay);
 
 #endif
