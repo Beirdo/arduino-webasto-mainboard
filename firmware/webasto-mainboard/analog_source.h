@@ -30,6 +30,8 @@ class AnalogSourceBase {
     mutex_t _i2c_mutex;
     int _mult;
     int _div;
+    bool _connected;
+    char *_classname;
 
     virtual int32_t read_device(void) = 0;
     virtual int32_t convert(int32_t reading);
@@ -39,6 +41,7 @@ class AnalogSourceBase {
     void i2c_write_register(uint8_t regnum, uint8_t value, bool skip_byte = false);
     void i2c_write_register_word(uint8_t regnum, uint16_t value);
     void i2c_read_data(uint8_t regnum, uint8_t *buf, uint8_t count, bool skip_regnum = false);
+    virtual bool i2c_is_connected(void);
 };
 
 #endif

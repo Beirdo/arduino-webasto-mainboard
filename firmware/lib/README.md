@@ -14,3 +14,5 @@ The board to use is then the "Raspberry Pi Pico"
 also, to populate this directory, you need:
 - git submodule init
 - get submodule update
+
+Please don't forget to enable RTTI in the Tools menu.

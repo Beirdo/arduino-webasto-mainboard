@@ -1,5 +1,8 @@
+#include <Arduino.h>
 #include <pico.h>
 #include <Wire.h>
+#include <ArduinoLog.h>
+#include <cxxabi.h>
 
 #include "analog_source.h"
 
@@ -22,6 +25,16 @@ AnalogSourceBase::AnalogSourceBase(uint8_t i2c_address, int bits, int mult, int 
   _prev_value = UNUSED_READING;
   
   mutex_init(&_i2c_mutex);
+
+  _connected = i2c_is_connected();
+
+  int status;
+  _classname = abi::__cxa_demangle(typeid(this).name(), 0, 0, &status);
+  if (_connected) {
+    Log.notice("Found sensor (%s) at I2C 0x02X", _classname, _i2c_address);
+  } else {
+    Log.error("No sensor (%s) at I2C 0x02X", _classname, _i2c_address);
+  }
 }
 
 void AnalogSourceBase::update(void)
@@ -29,6 +42,10 @@ void AnalogSourceBase::update(void)
   uint32_t raw_value;
   int32_t scaled_value;
   
+  if (!_connected) {
+    return;
+  }
+
   raw_value = read_device();
   scaled_value = convert(raw_value);
   append_value(scaled_value);
@@ -122,6 +139,14 @@ void AnalogSourceBase::i2c_read_data(uint8_t regnum, uint8_t *buf, uint8_t count
   for (int i = 0; i < count && Wire.available(); i++) {
     *(buf++) = Wire.read();
   }
+}
+
+bool AnalogSourceBase::i2c_is_connected(void)
+{
+  CoreMutex m(&_i2c_mutex);
+
+  Wire.beginTransmission(_i2c_address);
+  return (Wire.endTransmission() == 0);
 }
 
 int32_t AnalogSourceBase::convert(int32_t reading)

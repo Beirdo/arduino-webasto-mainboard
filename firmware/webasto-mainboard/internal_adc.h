@@ -16,6 +16,7 @@ class InternalADCSource : public AnalogSourceBase {
   protected:
     int32_t read_device(void);
     int32_t convert(int32_t reading);
+    bool i2c_is_connected(void) { return true; };
 
     int _min_bits = 12;
     int _max_bits = 12;

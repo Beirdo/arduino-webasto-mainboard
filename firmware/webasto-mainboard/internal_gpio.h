@@ -13,6 +13,7 @@ class InternalGPIODigitalSource : public AnalogSourceBase {
   protected:
     int32_t read_device(void);
     int32_t convert(int32_t reading);
+    bool i2c_is_connected(void) { return true; };
 
     int _pin;
     bool _active_low;
