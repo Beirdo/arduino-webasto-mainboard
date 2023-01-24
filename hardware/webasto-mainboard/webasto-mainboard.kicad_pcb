@@ -6040,7 +6040,7 @@
   (gr_line locked (start 142.342 117.79) (end 142.342 125.29) (layer "Edge.Cuts") (width 0.254) (tstamp f1782535-55f4-4299-bd4f-6f51b0b7259c))
   (gr_line locked (start 129.514 117.695) (end 129.514 125.195) (layer "Edge.Cuts") (width 0.254) (tstamp f357ddb5-3f44-43b0-b00d-d64f5c62ba4a))
   (gr_line locked (start 100.192 120.348) (end 109.384 129.54) (layer "Edge.Cuts") (width 0.254) (tstamp fe14c012-3d58-4e5e-9a37-4b9765a7f764))
-  (gr_text "v1.0 (c) 2013 Gavin Hurlbut" (at 111.5 96.5) (layer "F.SilkS") (tstamp 888c31e1-3b1b-441a-a374-845f72c7085b)
+  (gr_text "v1.0 (c) 2023 Gavin Hurlbut" (at 111.5 96.5) (layer "F.SilkS") (tstamp 888c31e1-3b1b-441a-a374-845f72c7085b)
     (effects (font (size 1 1) (thickness 0.15)))
   )
   (gr_text "Webasto Thermo Top C\nReplacement Controller" (at 110.5 93.75) (layer "F.SilkS") (tstamp 93d0e9d1-5c29-4410-a36a-ca781ad33774)
