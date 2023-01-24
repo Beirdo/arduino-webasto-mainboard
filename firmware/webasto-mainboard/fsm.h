@@ -48,7 +48,7 @@ class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
     uint8_t _state_num;
 };
 
-extern int mode;
+extern int fsm_mode;
 extern bool ignitionOn;
 extern bool startRunSignalOn;
 
@@ -68,6 +68,7 @@ extern int time_minutes[5];
 extern time_sensor_t ventilation_duration;
 
 extern int kline_remaining_ms;
+extern mutex_t fsm_mutex;
 
 extern WebastoControlFSM fsm;
 

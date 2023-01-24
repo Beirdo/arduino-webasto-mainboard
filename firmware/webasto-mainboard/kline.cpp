@@ -128,7 +128,7 @@ uint8_t *allocate_response(uint8_t command, uint8_t len, uint8_t subcommand)
 
 void process_kline(void)
 {
-  if (0) { //Serial2.getBreakReceived()) {
+  if (Serial2.getBreakReceived()) {
     rx_active = true;
     kline_rx_tail = 0;
     Serial2.flush();
@@ -345,8 +345,7 @@ uint8_t *kline_command_keep_alive(uint8_t mode, uint8_t minutes)
   event.minutes = minutes;
   WebastoControlFSM::dispatch(event);
 
-  int elapsed = kline_remaining_ms; 
-  uint16_t remaining = elapsed / 60000;
+  int remaining = globalTimer.get_remaining_time(TIMER_TIMED_SHUT_DOWN) / 60000;
 
   // Add x minutes to the timer for mode, and return the number of minutes left.
   buf[3] = HIBYTE(remaining);
@@ -356,6 +355,7 @@ uint8_t *kline_command_keep_alive(uint8_t mode, uint8_t minutes)
 
 uint8_t *kline_command_component_test(uint8_t component, uint8_t seconds, uint16_t value)
 {
+  // TODO:  Implement tests
   uint8_t *buf = allocate_response(0x45, 7, component);
   buf[4] = seconds;
   buf[5] = HIBYTE(value);
@@ -593,10 +593,12 @@ uint8_t *kline_set_co2(uint8_t value)
 
 uint8_t *kline_read_status_sensor(void)
 {
+  CoreMutex m(&fsm_mutex);
+
   uint8_t *buf = allocate_response(0x50, 9, 0x02);
   uint8_t flags = 0x00;
-  flags |= (mode == WEBASTO_MODE_SUPPLEMENTAL_HEATER ? 0x10 : 0x00);
-  flags |= ((mode == WEBASTO_MODE_SUPPLEMENTAL_HEATER || mode == WEBASTO_MODE_PARKING_HEATER) ? 0x01 : 0x00);
+  flags |= (fsm_mode == WEBASTO_MODE_SUPPLEMENTAL_HEATER ? 0x10 : 0x00);
+  flags |= ((fsm_mode == WEBASTO_MODE_SUPPLEMENTAL_HEATER || fsm_mode == WEBASTO_MODE_PARKING_HEATER) ? 0x01 : 0x00);
   buf[4] = flags;
 
   flags = 0x00;
@@ -613,6 +615,8 @@ uint8_t *kline_read_status_sensor(void)
 
 uint8_t *kline_read_subsystem_enabled_sensor(void)
 {
+  CoreMutex m(&fsm_mutex);
+  
   uint8_t *buf = allocate_response(0x50, 5, 0x03);
   uint8_t flags = 0x00;
   flags |= (combustionFanOn ? 0x01 : 0x00);
@@ -659,12 +663,13 @@ uint8_t *kline_read_operational_sensor(void)
 
 uint8_t *kline_read_operating_time_sensor(void)
 {
+  CoreMutex m(&fram_mutex);
+  
   int len = 12;
   uint8_t *buf = (uint8_t *)malloc(len);
   buf[1] = 0x06;
   buf[3] = len - 2;
   
-  CoreMutex m(&fram_mutex);
   buf[4] = HIBYTE(fram_data.current.total_burn_duration.hours);
   buf[5] = LOBYTE(fram_data.current.total_burn_duration.hours);
   buf[6] = fram_data.current.total_burn_duration.minutes;
@@ -681,10 +686,16 @@ uint8_t *kline_read_state_sensor(void)
 {
   uint8_t *buf = allocate_response(0x50, 10, 0x07);
 
-  CoreMutex m(&fram_mutex);
+  mutex_enter_blocking(&fsm_mutex);
   buf[4] = fsm.getStateNum();
+  mutex_exit(&fsm_mutex);
+
   buf[5] = 0x00;                // Operating state state number ???
+  
+  mutex_enter_blocking(&fram_mutex);
   buf[6] = fram_data.current.device_status; // Device state bitfield,  0x01 = STFL, 0x02 = UEHFL, 0x04 = SAFL, 0x08 = RZFL
+  mutex_exit(&fram_mutex);
+  
   buf[7] = 0x00;                // unknown
   buf[8] = 0x00;                // unknown
   buf[9] = 0x00;                // unknown  
@@ -696,6 +707,7 @@ uint8_t *kline_read_burning_duration_sensor(void)
   uint8_t *buf = allocate_response(0x50, 28, 0x0A);
 
   CoreMutex m(&fram_mutex);  
+
   int index = 4;
   for (int i = 0; i < 4; i++) {
     buf[index++] = HIBYTE(fram_data.current.burn_duration_parking_heater[i].hours);
@@ -717,6 +729,7 @@ uint8_t *kline_read_operating_duration_sensor(void)
   uint8_t *buf = allocate_response(0x50, 28, 0x0B);
 
   CoreMutex m(&fram_mutex);  
+
   int index = 4;
   for (int i = 0; i < 4; i++) {
     buf[index++] = HIBYTE(fram_data.current.working_duration_parking_heater[i].hours);
@@ -738,6 +751,7 @@ uint8_t *kline_read_start_counter_sensor(void)
   uint8_t *buf = allocate_response(0x50, 10, 0x0C);
 
   CoreMutex m(&fram_mutex);
+
   buf[4] = HIBYTE(fram_data.current.start_counter_parking_heater);
   buf[5] = LOBYTE(fram_data.current.start_counter_parking_heater);
   buf[6] = HIBYTE(fram_data.current.start_counter_supplemental_heater);
@@ -749,6 +763,8 @@ uint8_t *kline_read_start_counter_sensor(void)
 
 uint8_t *kline_read_subsystem_status_sensor(void)
 {
+  CoreMutex m(&fsm_mutex);
+  
   uint8_t *buf = allocate_response(0x50, 9, 0x0F);
   buf[4] = (uint8_t)glowPlugPercent;
   buf[5] = fuelPumpTimer.getFuelPumpFrequencyKline();
@@ -770,6 +786,8 @@ uint8_t *kline_read_temperature_thresh_sensor(void)
 
 uint8_t *kline_read_ventilation_duration_sensor(void)
 {
+  CoreMutex m(&fsm_mutex);
+  
   uint8_t *buf = allocate_response(0x50, 7, 0x12);
   buf[4] = HIBYTE(ventilation_duration.hours);
   buf[5] = LOBYTE(ventilation_duration.hours);

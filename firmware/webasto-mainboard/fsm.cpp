@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <pico.h>
 #include <ArduinoLog.h>
+#include <CoreMutex.h>
 
 #include "fsm.h"
 #include "fsm_state.h"
@@ -11,7 +12,7 @@
 #include "webasto.h"
 #include "fram.h"
 
-int mode = 0;
+int fsm_mode = 0;
 bool ignitionOn;
 bool startRunSignalOn;
 
@@ -30,6 +31,7 @@ int time_start_ms[5] = {0};
 int time_minutes[5] = {0};
 time_sensor_t ventilation_duration = {0};
 
+mutex_t fsm_mutex;
 int kline_remaining_ms = 0;
 
 void set_open_drain_pin(int pinNum, int value)
@@ -47,6 +49,8 @@ void set_open_drain_pin(int pinNum, int value)
 
 void init_state_machine(void)
 {
+  mutex_init(&fsm_mutex);
+
   // Set input pins as inputs
   pinMode(PIN_START_RUN, INPUT);
 
@@ -93,6 +97,7 @@ void init_state_machine(void)
 
 void WebastoControlFSM::react(GlowPlugInEnableEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   glowPlugInEnable = e.enable;
   if (glowPlugInEnable && glowPlugOutEnable) {
     glowPlugOutEnable = false;
@@ -103,6 +108,7 @@ void WebastoControlFSM::react(GlowPlugInEnableEvent const &e)
 
 void WebastoControlFSM::react(GlowPlugOutEnableEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   glowPlugOutEnable = e.enable;
   if (glowPlugOutEnable && glowPlugInEnable) {
     glowPlugInEnable = false;
@@ -113,18 +119,21 @@ void WebastoControlFSM::react(GlowPlugOutEnableEvent const &e)
 
 void WebastoControlFSM::react(CirculationPumpEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   circulationPumpOn = e.enable;
   digitalWrite(PIN_CIRCULATION_PUMP, circulationPumpOn);
 }
 
 void WebastoControlFSM::react(CombustionFanEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   combustionFanOn = e.enable;
   digitalWrite(PIN_COMBUSTION_FAN, combustionFanOn);
 }
 
 void WebastoControlFSM::react(GlowPlugOutEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   if (e.value && !glowPlugOutEnable) {
     return;
   } 
@@ -135,6 +144,7 @@ void WebastoControlFSM::react(GlowPlugOutEvent const &e)
 
 void WebastoControlFSM::react(VehicleFanEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   vehicleFanPercent = clamp(e.value, 0, 100);
   analogWrite(PIN_VEHICLE_FAN_RELAY, vehicleFanPercent * 255 / 100);
 }
@@ -151,7 +161,7 @@ void WebastoControlFSM::react(TimerEvent const &e)
     case TIMER_TIMED_SHUT_DOWN:
       {
         ShutdownEvent event;
-        event.mode = mode;
+        event.mode = fsm_mode;
         dispatch(event);
       }
       break;
@@ -214,8 +224,9 @@ void WebastoControlFSM::react(RestartEvent const &e)
 
 void WebastoControlFSM::react(ShutdownEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   int new_mode;
-  int old_mode = mode;
+  int old_mode = fsm_mode;
   
   Log.notice("ShutdownEvent: mode 0x%02X", e.mode);
   if (new_mode == WEBASTO_MODE_DEFAULT) {
@@ -228,17 +239,17 @@ void WebastoControlFSM::react(ShutdownEvent const &e)
   
   switch(new_mode) {
     case WEBASTO_MODE_PARKING_HEATER:
-      if (new_mode == mode) { 
+      if (new_mode == fsm_mode) { 
         //transit<BLAH>();
       } else {
-        Log.error("Can't shutdown the wrong mode!  0x%02X != 0x%02X", e.mode, mode);
+        Log.error("Can't shutdown the wrong mode!  0x%02X != 0x%02X", e.mode, fsm_mode);
       }
       break;
     case WEBASTO_MODE_SUPPLEMENTAL_HEATER:
-      if (new_mode == mode) { 
+      if (new_mode == fsm_mode) { 
         //transit<BLAH>();
       } else {
-        Log.error("Can't shutdown the wrong mode!  0x%02X != 0x%02X", e.mode, mode);
+        Log.error("Can't shutdown the wrong mode!  0x%02X != 0x%02X", e.mode, fsm_mode);
       }
       break;
     case WEBASTO_MODE_VENTILATION:
@@ -257,13 +268,14 @@ void WebastoControlFSM::react(ShutdownEvent const &e)
       break;
     default:
       Log.error("Received an unsupported mode: 0x%02X", e.mode);
-      mode = old_mode;
+      fsm_mode = old_mode;
       break;
   }
 }
 
 void WebastoControlFSM::react(AddTimeEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   Log.notice("AddTimeEvent: mode 0x%02X, %d minutes", e.mode, e.minutes);
   int new_mode = e.mode;
   int minutes = e.minutes;
@@ -277,7 +289,7 @@ void WebastoControlFSM::react(AddTimeEvent const &e)
   }
 
   if (minutes) {
-    int index = mode - WEBASTO_MODE_PARKING_HEATER;
+    int index = fsm_mode - WEBASTO_MODE_PARKING_HEATER;
     int start_time = time_start_ms[index];
     time_minutes[index] += minutes;
     kline_remaining_ms = time_minutes[index] * 60000 + start_time - millis();
@@ -288,17 +300,19 @@ void WebastoControlFSM::react(AddTimeEvent const &e)
 
 void WebastoControlFSM::react(IgnitionEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   ignitionOn = e.enable;
-  if (mode == WEBASTO_MODE_SUPPLEMENTAL_HEATER && !ignitionOn) {
+  if (fsm_mode == WEBASTO_MODE_SUPPLEMENTAL_HEATER && !ignitionOn) {
     //transit<BLAH>();
   }
 }
 
 void WebastoControlFSM::react(StartupEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   Log.notice("StartupEvent: mode 0x%02X", e.mode);
   int new_mode = e.mode;
-  int old_mode = mode;
+  int old_mode = fsm_mode;
   int minutes = e.minutes;
   
   if (new_mode == WEBASTO_MODE_DEFAULT) {
@@ -309,10 +323,10 @@ void WebastoControlFSM::react(StartupEvent const &e)
     }
   }
 
-  mode = new_mode;
+  fsm_mode = new_mode;
 
   if (minutes) {
-    int index = mode - WEBASTO_MODE_PARKING_HEATER;
+    int index = fsm_mode - WEBASTO_MODE_PARKING_HEATER;
     int start_time = millis();
     time_start_ms[index] = start_time;
     time_minutes[index] = minutes;
@@ -320,7 +334,7 @@ void WebastoControlFSM::react(StartupEvent const &e)
     globalTimer.register_timer(TIMER_TIMED_SHUT_DOWN, minutes * 60000, &fsmTimerCallback);
   }
   
-  switch(mode) {
+  switch(fsm_mode) {
     case WEBASTO_MODE_PARKING_HEATER:
       //transit<BLAH>();
       break;
@@ -345,7 +359,7 @@ void WebastoControlFSM::react(StartupEvent const &e)
       break;
     default:
       Log.error("Received an unsupported mode: 0x%02X", e.mode);
-      mode = old_mode;
+      fsm_mode = old_mode;
       break;
   }
 }
@@ -353,8 +367,9 @@ void WebastoControlFSM::react(StartupEvent const &e)
 
 void IdleState::entry()
 {
+  CoreMutex m(&fsm_mutex);
   Log.notice("Entering IdleState");
-  mode = 0;
+  fsm_mode = 0;
   ignitionOn = ignitionSenseSensor->get_value();
   for (int i = 0; i < 5; i ++) {
     time_start_ms[i] = 0;
@@ -363,16 +378,18 @@ void IdleState::entry()
 
 void IdleState::react(IgnitionEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   ignitionOn = e.enable;
-  if (mode == WEBASTO_MODE_SUPPLEMENTAL_HEATER && ignitionOn) {
+  if (fsm_mode == WEBASTO_MODE_SUPPLEMENTAL_HEATER && ignitionOn) {
     //transit<BLAH>();
   }
 }
 
 void IdleState::react(StartRunEvent const &e)
 {
+  CoreMutex m(&fsm_mutex);
   startRunSignalOn = e.enable;
-  if (mode == 0 && startRunSignalOn) {
+  if (fsm_mode == 0 && startRunSignalOn) {
     // we want to start up, but only if idle
     StartupEvent event;
     event.mode = WEBASTO_MODE_DEFAULT;
