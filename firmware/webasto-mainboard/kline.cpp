@@ -15,6 +15,7 @@
 #include "fram.h"
 #include "fuel_pump.h"
 #include "analog.h"
+#include "device_eeprom.h"
 
 #define KLINE_RX_MATCH_ADDR 0xF4
 #define KLINE_TX_ADDR       0x4F
@@ -415,45 +416,17 @@ uint8_t *kline_command_read_sensor(uint8_t sensornum)
 
 uint8_t *kline_command_read_stuff(uint8_t index)
 {
-  switch(index) {
-    case 0x01:
-      // Device ID Number
-      return kline_read_device_number();
-    case 0x02:
-      // Hardware Version
-      return kline_read_hardware_version();
-    case 0x03:
-      // Data set ID Number
-      return kline_read_data_set_number();
-    case 0x04:      
-      // Control Unit Build Date (DD MM YY)
-      return kline_read_control_unit_man_date();
-    case 0x05:
-      // Heater manufacture date (DD MM YY)
-      return kline_read_heater_man_date();
-    case 0x06:
-      // Telestart code
+  if (index > 0x00 && index <= 0x0D) {
+    device_info_t *info = get_device_info(index - 1);
+    if (!info) {
       return 0;
-    case 0x07:
-      // Customer ID Number (i.e. VW Part Number)
-      return kline_read_customer_id();
-    case 0x08:  // maybe 0x09?
-      // Serial Number
-      return kline_read_serial_number();
-    case 0x0A:
-      // W-Bus version (3.3 -> 0x33)
-      return kline_read_wbus_version();
-    case 0x0B:
-      // Device name
-      return kline_read_device_name();
-    case 0x0C:
-      // WBus Code - Flags of supported subsystems
-      return kline_read_subsystems_supported();
-    case 0x0D:
-      // Software ID (unsupported for now)
-      return 0;
-    default:
-      return 0;
+    }
+
+    uint8_t *buf = allocate_response(0x51, 5 + info->len, index);
+    memcpy(&buf[4], info->buf, info->len);
+    return buf;
+  } else {
+    return 0;
   }
 }  
 
@@ -804,56 +777,5 @@ uint8_t *kline_read_fuel_prewarming_sensor(void)
 uint8_t *kline_read_spark_transmission_sensor(void)
 {
   // This is only on gasoline models.  I have a diesel model.
-  return 0;
-}
-
-
-uint8_t *kline_read_device_number(void)
-{
-  return 0;
-}
-
-uint8_t *kline_read_hardware_version(void)
-{
-  return 0;
-}
-
-uint8_t *kline_read_data_set_number(void)
-{
-  return 0;
-}
-
-uint8_t *kline_read_control_unit_man_date(void)
-{
-  return 0;
-}
-
-uint8_t *kline_read_heater_man_date(void)
-{
-  return 0;
-}
-
-uint8_t *kline_read_customer_id(void)
-{
-  return 0;
-}
-
-uint8_t *kline_read_serial_number(void)
-{
-  return 0;
-}
-
-uint8_t *kline_read_wbus_version(void)
-{
-  return 0;
-}
-
-uint8_t *kline_read_device_name(void)
-{
-  return 0;
-}
-
-uint8_t *kline_read_subsystems_supported(void)
-{
   return 0;
 }

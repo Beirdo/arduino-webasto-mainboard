@@ -30,7 +30,6 @@ uint8_t *kline_clear_error_code_list(void);
 uint8_t *kline_get_co2(void);
 uint8_t *kline_set_co2(uint8_t value);
 
-
 uint8_t *kline_read_status_sensor(void);
 uint8_t *kline_read_subsystem_enabled_sensor(void);
 uint8_t *kline_read_fuel_param_sensor(void);
@@ -45,17 +44,5 @@ uint8_t *kline_read_temperature_thresh_sensor(void);
 uint8_t *kline_read_ventilation_duration_sensor(void);
 uint8_t *kline_read_fuel_prewarming_sensor(void);
 uint8_t *kline_read_spark_transmission_sensor(void);
-
-uint8_t *kline_read_device_number(void);
-uint8_t *kline_read_hardware_version(void);
-uint8_t *kline_read_data_set_number(void);
-uint8_t *kline_read_control_unit_man_date(void);
-uint8_t *kline_read_heater_man_date(void);
-uint8_t *kline_read_customer_id(void);
-uint8_t *kline_read_serial_number(void);
-uint8_t *kline_read_wbus_version(void);
-uint8_t *kline_read_device_name(void);
-uint8_t *kline_read_subsystems_supported(void);
-
 
 #endif
