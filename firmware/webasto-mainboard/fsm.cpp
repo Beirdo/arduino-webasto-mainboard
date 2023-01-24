@@ -27,6 +27,9 @@ int fuelPumpPeriodMs = 0;
 bool glowPlugInEnable = false;   // mutually exclusive with glowPlugOutEnable
 bool glowPlugOutEnable = false;  // mutually exclusive with glowPlugInEnable
 
+bool flameLed = false;
+bool operatingLed = false;
+
 int time_start_ms[5] = {0};
 int time_minutes[5] = {0};
 time_sensor_t ventilation_duration = {0};
@@ -55,6 +58,15 @@ void init_state_machine(void)
   pinMode(PIN_START_RUN, INPUT);
 
   // Set output pins as outputs
+
+  flameLed = false;
+  pinMode(PIN_FLAME_LED, OUTPUT);
+  digitalWrite(PIN_FLAME_LED, flameLed);
+
+  operatingLed = false;
+  pinMode(PIN_OPERATING_LED, OUTPUT);
+  digitalWrite(PIN_OPERATING_LED, operatingLed);
+
   // KLineEN handled in kline.cpp
 
   // this is an open drain output.  default is off = input with pullup
