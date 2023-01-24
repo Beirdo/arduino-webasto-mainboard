@@ -4,6 +4,7 @@
 #include "tinyfsm.hpp"
 #include "fsm_events.h"
 #include "fuel_pump.h"
+#include "fram.h"
 
 class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
 {
@@ -64,12 +65,14 @@ extern bool glowPlugOutEnable;  // mutually exclusive with glowPlugInEnable
 
 extern int time_start_ms[5];
 extern int time_minutes[5];
-extern timerItem_t *timer[5];
+extern time_sensor_t ventilation_duration;
 
 extern int kline_remaining_ms;
 
+extern WebastoControlFSM fsm;
+
 
 void set_open_drain_pin(int pinNum, int value);
-void fsmTimerShutdownCallback(int timer_id, int delay);
+void fsmTimerCallback(int timer_id, int delay);
 
 #endif

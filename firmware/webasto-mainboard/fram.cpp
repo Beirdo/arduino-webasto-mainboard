@@ -4,14 +4,18 @@
 #include <string.h>
 #include <I2C_eeprom.h>
 #include <ArduinoLog.h>
+#include <CoreMutex.h>
 
 #include "project.h"
 #include "sensor_eeprom.h"
 #include "fram.h"
+#include "analog.h"
+#include "fsm.h"
 
 fram_data_t fram_data;
 bool fram_dirty = false;
 I2C_eeprom *fram;
+mutex_t fram_mutex;
 
 int fram_lengths[] = {
   sizeof(struct fram_v1_s),
@@ -41,6 +45,7 @@ void initalize_fram_data(uint8_t version, uint8_t *buf)
 
 void init_fram(void) 
 {
+  mutex_init(&fram_mutex);
   memset(&fram_data, 0xFF, sizeof(fram_data));
 
   int max_fram_data = -1;
@@ -116,6 +121,7 @@ void init_fram(void)
 
 void update_fram(void)
 {
+  CoreMutex m(&fram_mutex);
   if (!fram_dirty) {
     return;
   }
@@ -131,6 +137,8 @@ void update_fram(void)
 
 int write_to_fram(uint8_t *buf, int len, int offset)
 {
+  CoreMutex m(&fram_mutex);
+
   int version = fram_data.current.version;
   int maxlen = fram_lengths[version - 1];
   uint8_t *target = (uint8_t *)&fram_data;
@@ -138,6 +146,7 @@ int write_to_fram(uint8_t *buf, int len, int offset)
   if (len + offset >= maxlen) {
     return 0;
   }
+
   memcpy(&target[offset], buf, len);
   fram_dirty = true;
   return len;
@@ -145,7 +154,74 @@ int write_to_fram(uint8_t *buf, int len, int offset)
 
 void upgrade_fram_version(fram_data_t *data)
 {
+  CoreMutex m(&fram_mutex);
+
   Log.notice("Upgrading onboard FRAM contents from version %d to version %d", fram_data.current.version, CURRENT_FRAM_VERSION);
   /* Currently no upgrade paths to implement */
   fram_dirty = true;
+}
+
+void fram_lock(void)
+{
+  mutex_enter_blocking(&fram_mutex);
+}
+
+void fram_unlock(void)
+{
+  mutex_exit(&fram_mutex);  
+}
+
+void fram_clear_error_list(void)
+{
+  CoreMutex m(&fram_mutex);
+
+  fram_data.current.error_list_count = 0;
+  fram_dirty = true;
+}
+
+void fram_add_error(uint8_t code)
+{
+  CoreMutex m(&fram_mutex);
+
+  int error_list_len = fram_data.current.error_list_count;
+
+  int i;
+  for (i = 0; i < error_list_len; i++) {
+    if (fram_data.current.error_list[i].code == code) {
+      break;
+    }
+  }
+
+  int index = i;
+  error_list_item_t *item = &fram_data.current.error_list[index];
+  
+  if (i == error_list_len) {
+    if (error_list_len == MAX_ERROR_COUNT) {
+      return;   // overflow... maybe should do LRU cache?
+    }
+    memset(item, 0x00, sizeof(error_list_item_t));
+    item->code = code;
+    fram_data.current.error_list_count++;
+  }
+
+  item->count++;
+  item->status = 0x01;    // Stored
+  item->state = (fsm.getStateNum() << 8);   // Todo:  get from FSM
+  item->temperature = (uint8_t)(((externalTempSensor->get_value() / 50) + 1) / 2 + 50);
+  item->vbat = batteryVoltageSensor->get_value();
+  memcpy((char *)&item->operating_time, (char *)&fram_data.current.total_working_duration, sizeof(time_sensor_t));
+
+  fram_dirty = true;  
+}
+
+void fram_write_co2(uint8_t value)
+{
+  CoreMutex m(&fram_mutex);
+
+  if (fram_data.current.minimum_co2 == 0x00) {
+    fram_data.current.minimum_co2 = 0xFF;
+  }
+  fram_data.current.current_co2 = value;
+  fram_data.current.minimum_co2 = min(value, fram_data.current.minimum_co2);
+  fram_data.current.maximum_co2 = max(value, fram_data.current.maximum_co2);
 }

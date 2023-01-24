@@ -10,6 +10,7 @@ void kline_send_response(klinePacket_t *respPacket);
 void kline_send_next_packet(void);
 void process_kline(void);
 klinePacket_t *kline_rx_dispatch(klinePacket_t *packet, uint8_t cmd);
+uint8_t *allocate_response(uint8_t command, uint8_t len, uint8_t subcommand = 0);
 
 uint8_t *kline_command_shutdown(void);
 uint8_t *kline_command_timed_start(uint8_t mode, uint8_t minutes);
@@ -27,7 +28,7 @@ uint8_t *kline_get_error_code_details(uint8_t index);
 uint8_t *kline_clear_error_code_list(void);
 
 uint8_t *kline_get_co2(void);
-uint8_t *kline_set_co2(uint8_t index, uint8_t value);
+uint8_t *kline_set_co2(uint8_t value);
 
 
 uint8_t *kline_read_status_sensor(void);

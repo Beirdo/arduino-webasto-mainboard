@@ -8,7 +8,6 @@ class IdleState : public WebastoControlFSM
 {
   public:
     void entry();
-    void react(StartupEvent       const &e);
     void react(IgnitionEvent      const &e);
     void react(StartRunEvent      const &e);
 

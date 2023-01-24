@@ -9,6 +9,7 @@
 #include "fuel_pump.h"
 #include "global_timer.h"
 #include "webasto.h"
+#include "fram.h"
 
 int mode = 0;
 bool ignitionOn;
@@ -27,6 +28,7 @@ bool glowPlugOutEnable = false;  // mutually exclusive with glowPlugInEnable
 
 int time_start_ms[5] = {0};
 int time_minutes[5] = {0};
+time_sensor_t ventilation_duration = {0};
 
 int kline_remaining_ms = 0;
 
@@ -292,25 +294,7 @@ void WebastoControlFSM::react(IgnitionEvent const &e)
   }
 }
 
-void IdleState::entry()
-{
-  Log.notice("Entering IdleState");
-  mode = 0;
-  ignitionOn = ignitionSenseSensor->get_value();
-  for (int i = 0; i < 5; i ++) {
-    time_start_ms[i] = 0;
-  }
-}
-
-void fsmTimerCallback(int timer_id, int delay)
-{
-  TimerEvent event;
-  event.value = delay;
-  event.timerId = timer_id;
-  WebastoControlFSM::dispatch(event);
-}
-
-void IdleState::react(StartupEvent const &e)
+void WebastoControlFSM::react(StartupEvent const &e)
 {
   Log.notice("StartupEvent: mode 0x%02X", e.mode);
   int new_mode = e.mode;
@@ -367,6 +351,16 @@ void IdleState::react(StartupEvent const &e)
 }
 
 
+void IdleState::entry()
+{
+  Log.notice("Entering IdleState");
+  mode = 0;
+  ignitionOn = ignitionSenseSensor->get_value();
+  for (int i = 0; i < 5; i ++) {
+    time_start_ms[i] = 0;
+  }
+}
+
 void IdleState::react(IgnitionEvent const &e)
 {
   ignitionOn = e.enable;
@@ -389,4 +383,14 @@ void IdleState::react(StartRunEvent const &e)
   }
 }
 
+void fsmTimerCallback(int timer_id, int delay)
+{
+  TimerEvent event;
+  event.value = delay;
+  event.timerId = timer_id;
+  WebastoControlFSM::dispatch(event);
+}
+
 FSM_INITIAL_STATE(WebastoControlFSM, IdleState)
+
+WebastoControlFSM fsm;
