@@ -7,6 +7,9 @@
 #define I2C0_CLK 400000
 
 
+// I2C Addresses
+#define I2C_ADDR_SERLCD   0x7F
+
 // GPIO map on the sensor boards
 #define PCA9501_WRITE_EN  0x80
 #define PCA9501_A2        0x40
@@ -64,6 +67,8 @@
 #define PIN_VEHICLE_FAN_RELAY 14
 #define PIN_ALERT_BUZZER      15
 #define PIN_EMERGENCY_STOP    16
+#define PIN_USE_USB           17
+#define PIN_ONBOARD_LED       25
 #define PIN_FLAME_LED         26
 #define PIN_OPERATING_LED     27
 

@@ -8,6 +8,7 @@ Libraries:
 - Queue by SMFSW <xgarmanbozlax@gmail.com> - v1.11.0
 - I2C\_EEPROM by Rob Tillaart <rob.tillaart@gmail.com> - v1.7.1
 - ArduinoLog by Thijs Elenbaas - v1.1.1
+- SparkFun SerLCD Arduino Library by Gaston R. Willams & Nathan Seidle - v1.0.9
 
 The board to use is then the "Raspberry Pi Pico"
 
