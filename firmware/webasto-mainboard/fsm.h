@@ -40,6 +40,7 @@ class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
     void react(FuelPumpEvent              const &);
     void react(VehicleFanEvent            const &);
     void react(LockdownEvent              const &);
+    void react(OverheatEvent              const &);
 
     uint8_t getStateNum(void) { return _state_num; };
 

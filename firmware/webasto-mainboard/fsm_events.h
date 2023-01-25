@@ -40,6 +40,7 @@ struct FlameoutEvent      : tinyfsm::Event {
   bool resetCount;
 };
 struct RestartEvent       : tinyfsm::Event { };
+struct OverheatEvent      : tinyfsm::Event { };
 
 struct ModeChangeEvent    : tinyfsm::Event {
   int mode;
