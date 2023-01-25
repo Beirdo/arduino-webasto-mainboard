@@ -45,7 +45,7 @@ void setup() {
   Wire.begin();
 
   // put your setup code here, to run once:
-  //init_eeprom();
+  init_eeprom();
   //init_fram();
   //init_analog();
   //init_kline();
