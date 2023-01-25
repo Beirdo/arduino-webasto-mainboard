@@ -15,20 +15,21 @@ class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
     virtual void react(TimerEvent         const &);
     
     virtual void react(FlameDetectEvent   const &);
-    virtual void react(IgnitionEvent      const &);
-    virtual void react(StartRunEvent      const &);
     virtual void react(EmergencyStopEvent const &);
     virtual void react(CoolantTempEvent   const &);
     virtual void react(OutdoorTempEvent   const &);
     virtual void react(ExhaustTempEvent   const &);
     virtual void react(InternalTempEvent  const &);
-    virtual void reach(BatteryLevelEvent  const &);
-    
-    virtual void react(FlameoutEvent      const &);
-    virtual void react(RestartEvent       const &);
-    virtual void react(ShutdownEvent      const &);
-    virtual void react(StartupEvent       const &);
-    virtual void react(AddTimeEvent       const &);
+    virtual void react(BatteryLevelEvent  const &);
+
+    void react(RestartEvent               const &);
+    void react(ShutdownEvent              const &);
+    void react(StartupEvent               const &);
+    void react(FlameoutEvent              const &);
+    void react(AddTimeEvent               const &);
+
+    void react(IgnitionEvent              const &);
+    void react(StartRunEvent              const &);
 
     void react(GlowPlugInEnableEvent      const &);
     void react(GlowPlugOutEnableEvent     const &);
@@ -38,6 +39,7 @@ class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
     void react(GlowPlugOutEvent           const &);
     void react(FuelPumpEvent              const &);
     void react(VehicleFanEvent            const &);
+    void react(LockdownEvent              const &);
 
     uint8_t getStateNum(void) { return _state_num; };
 
@@ -49,12 +51,15 @@ class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
 };
 
 extern int fsm_mode;
+extern bool batteryLow;
+extern bool supplementalEnabled;
+
 extern bool ignitionOn;
 extern bool startRunSignalOn;
 
-extern bool combustionFanOn;
 extern bool circulationPumpOn;
 
+extern int combustionFanPercent;
 extern int vehicleFanPercent;
 extern int glowPlugPercent;
 extern bool fuelPumpOn;
@@ -63,11 +68,10 @@ extern int fuelPumpPeriodMs;
 extern bool glowPlugInEnable;   // mutually exclusive with glowPlugOutEnable
 extern bool glowPlugOutEnable;  // mutually exclusive with glowPlugInEnable
 
-extern int time_start_ms[5];
-extern int time_minutes[5];
 extern time_sensor_t ventilation_duration;
 
-extern int kline_remaining_ms;
+extern int flameOutCount;
+
 extern mutex_t fsm_mutex;
 
 extern WebastoControlFSM fsm;
@@ -75,5 +79,8 @@ extern WebastoControlFSM fsm;
 
 void set_open_drain_pin(int pinNum, int value);
 void fsmTimerCallback(int timer_id, int delay);
+void fsmCommonReact(TimerEvent const&);
+void kickRunTimer(void);
+void increment_minutes(time_sensor_t *time);
 
 #endif

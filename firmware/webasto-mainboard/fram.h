@@ -34,8 +34,8 @@ struct fram_v1_s {
   uint8_t serial_num[32];
   time_sensor_t burn_duration_parking_heater[4];
   time_sensor_t burn_duration_supplemental_heater[4];
-  time_sensor_t working_duration_parking_heater[4];
-  time_sensor_t working_duration_supplemental_heater[4];
+  time_sensor_t working_duration_parking_heater;
+  time_sensor_t working_duration_supplemental_heater;
   uint16_t start_counter_parking_heater;
   uint16_t start_counter_supplemental_heater;
   uint16_t counter_emergency_shutdown;
@@ -48,6 +48,7 @@ struct fram_v1_s {
   uint8_t current_co2;
   uint8_t minimum_co2;
   uint8_t maximum_co2;
+  uint8_t lockdown;
 };
 
 typedef union {

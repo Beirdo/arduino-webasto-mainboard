@@ -592,7 +592,7 @@ uint8_t *kline_read_subsystem_enabled_sensor(void)
   
   uint8_t *buf = allocate_response(0x50, 5, 0x03);
   uint8_t flags = 0x00;
-  flags |= (combustionFanOn ? 0x01 : 0x00);
+  flags |= (combustionFanPercent ? 0x01 : 0x00);
   flags |= (glowPlugOutEnable ? 0x02 : 0x00);
   flags |= (fuelPumpTimer.getBurnPower() ? 0x04 : 0x00);
   flags |= (circulationPumpOn ? 0x08 : 0x00);
@@ -699,22 +699,16 @@ uint8_t *kline_read_burning_duration_sensor(void)
 
 uint8_t *kline_read_operating_duration_sensor(void)
 {
-  uint8_t *buf = allocate_response(0x50, 28, 0x0B);
+  uint8_t *buf = allocate_response(0x50, 10, 0x0B);
 
   CoreMutex m(&fram_mutex);  
 
-  int index = 4;
-  for (int i = 0; i < 4; i++) {
-    buf[index++] = HIBYTE(fram_data.current.working_duration_parking_heater[i].hours);
-    buf[index++] = LOBYTE(fram_data.current.working_duration_parking_heater[i].hours);
-    buf[index++] = fram_data.current.working_duration_parking_heater[i].minutes;
-  }
-  
-  for (int i = 0; i < 4; i++) {
-    buf[index++] = HIBYTE(fram_data.current.working_duration_supplemental_heater[i].hours);
-    buf[index++] = LOBYTE(fram_data.current.working_duration_supplemental_heater[i].hours);
-    buf[index++] = fram_data.current.working_duration_supplemental_heater[i].minutes;
-  }
+  buf[4] = HIBYTE(fram_data.current.working_duration_parking_heater.hours);
+  buf[5] = LOBYTE(fram_data.current.working_duration_parking_heater.hours);
+  buf[6] = fram_data.current.working_duration_parking_heater.minutes;
+  buf[7] = HIBYTE(fram_data.current.working_duration_supplemental_heater.hours);
+  buf[8] = LOBYTE(fram_data.current.working_duration_supplemental_heater.hours);
+  buf[9] = fram_data.current.working_duration_supplemental_heater.minutes;
 
   return buf;
 }
@@ -741,7 +735,7 @@ uint8_t *kline_read_subsystem_status_sensor(void)
   uint8_t *buf = allocate_response(0x50, 9, 0x0F);
   buf[4] = (uint8_t)glowPlugPercent;
   buf[5] = fuelPumpTimer.getFuelPumpFrequencyKline();
-  buf[6] = (uint8_t)(combustionFanOn ? 100 : 0);
+  buf[6] = (uint8_t)combustionFanPercent;
   buf[7] = 0x00;    // Unknown
   buf[8] = (uint8_t)(circulationPumpOn ? 100 : 0);
   return buf;

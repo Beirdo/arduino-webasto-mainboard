@@ -62,6 +62,7 @@
 #define PIN_GLOW_PLUG_OUT     12
 #define PIN_FUEL_PUMP         13
 #define PIN_VEHICLE_FAN_RELAY 14
+#define PIN_ALERT_BUZZER      15
 #define PIN_EMERGENCY_STOP    16
 #define PIN_FLAME_LED         26
 #define PIN_OPERATING_LED     27
@@ -73,5 +74,21 @@ inline int clamp(int value, int minval, int maxval)
 
 #define HIBYTE(x)   ((uint8_t)(((int)(x) >> 8) & 0xFF))
 #define LOBYTE(x)   ((uint8_t)(((int)(x) & 0xFF)))
+
+#define SUPPLEMENTAL_MIN_TEMP   -2000   // -20C
+#define SUPPLEMENTAL_MAX_TEMP   1000    // 10C
+
+#define BATTERY_LOW_THRESHOLD   10000   // 10V
+
+#define MAX_FLAMEOUT_COUNT      2
+
+#define FLAME_DETECT_THRESHOLD  800     // 800 mOhm... just guessing for now.
+
+#define COOLANT_MIN_THRESHOLD   400     // 40C
+#define COOLANT_MAX_THRESHOLD   9900    // 99C - too hot!!!
+
+#define EXHAUST_MAX_TEMP        35000   // 350C - too hot!!
+
+#define INTERNAL_MAX_TEMP       9500    // 95C - hot enough
 
 #endif

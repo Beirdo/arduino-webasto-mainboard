@@ -12,11 +12,12 @@ struct EmergencyStopEvent       : BooleanEvent { };
 struct GlowPlugInEnableEvent    : BooleanEvent { };
 struct GlowPlugOutEnableEvent   : BooleanEvent { };
 struct CirculationPumpEvent     : BooleanEvent { };
-struct CombustionFanEvent       : BooleanEvent { };
+struct LockdownEvent            : BooleanEvent { };
 
 struct IntegerEvent       : tinyfsm::Event {
   int value;
 };
+struct CombustionFanEvent : IntegerEvent { };
 struct GlowPlugOutEvent   : IntegerEvent { };
 struct FuelPumpEvent      : IntegerEvent { };
 struct VehicleFanEvent    : IntegerEvent { };
@@ -31,14 +32,19 @@ struct TimerEvent         : IntegerEvent {
   int timerId;
 };
 
-struct FlameoutEvent      : tinyfsm::Event { };
+struct FlameoutEvent      : tinyfsm::Event { 
+  bool resetCount;
+};
 struct RestartEvent       : tinyfsm::Event { };
 
 struct ModeChangeEvent    : tinyfsm::Event {
   int mode;
   int minutes;
 };
-struct ShutdownEvent      : ModeChangeEvent { };
+struct ShutdownEvent      : ModeChangeEvent { 
+  bool emergency;
+  bool lockdown;  
+};
 struct StartupEvent       : ModeChangeEvent { };
 struct AddTimeEvent       : ModeChangeEvent { };
 
