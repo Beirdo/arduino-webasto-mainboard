@@ -20,7 +20,6 @@ void setup() {
 
   if (digitalRead(PIN_USE_USB)) {
     Serial.begin(115200);
-    delay(10000);
     Log.begin(LOG_LEVEL_VERBOSE, &Serial);
     digitalWrite(PIN_ONBOARD_LED, HIGH);
   } else {
@@ -34,8 +33,11 @@ void setup() {
   }
 
   Log.setSuffix(sendCRLF);
-  delay(10);
+  delay(1000);
+  Log.notice("Rebooted.");
 
+  init_device_eeprom();
+  
   Log.notice("Starting I2C0");
   Wire.setSDA(PIN_I2C0_SDA);
   Wire.setSCL(PIN_I2C0_SCL);
@@ -44,7 +46,6 @@ void setup() {
 
   // put your setup code here, to run once:
   //init_eeprom();
-  //init_device_eeprom();
   //init_fram();
   //init_analog();
   //init_kline();
@@ -56,7 +57,7 @@ void loop() {
   int topOfLoop = millis();
 
   // put your main code here, to run repeatedly:
-  //update_device_eeprom();
+  update_device_eeprom();
   //update_fram();
   //update_analog();
   //process_kline();

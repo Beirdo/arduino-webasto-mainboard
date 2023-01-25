@@ -51,6 +51,7 @@ void init_device_eeprom(void)
 {
   uint8_t checksum;
 
+  Log.notice("Reading device info from onboard EEPROM");
   EEPROM.begin(EEPROM_SIZE);
   EEPROM.get(0, checksum);
   EEPROM.get(1, device_length);
@@ -110,6 +111,7 @@ void init_device_eeprom(void)
 void update_device_eeprom(void)
 {
   if (device_info_dirty && device_info_valid) {
+    Log.notice("Writing back dirty cache to internal EEPROM");    
     uint8_t checksum = 0x00;
 
     EEPROM.begin(EEPROM_SIZE);
