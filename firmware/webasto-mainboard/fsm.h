@@ -62,8 +62,7 @@ extern bool circulationPumpOn;
 extern int combustionFanPercent;
 extern int vehicleFanPercent;
 extern int glowPlugPercent;
-extern bool fuelPumpOn;
-extern int fuelPumpPeriodMs;
+extern float fuelNeedRequested;
 
 extern bool glowPlugInEnable;   // mutually exclusive with glowPlugOutEnable
 extern bool glowPlugOutEnable;  // mutually exclusive with glowPlugInEnable
@@ -71,6 +70,9 @@ extern bool glowPlugOutEnable;  // mutually exclusive with glowPlugInEnable
 extern time_sensor_t ventilation_duration;
 
 extern int flameOutCount;
+
+extern int exhaustTempPreBurn;
+extern int exhaustTempStable;
 
 extern mutex_t fsm_mutex;
 

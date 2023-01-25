@@ -84,11 +84,37 @@ inline int clamp(int value, int minval, int maxval)
 
 #define FLAME_DETECT_THRESHOLD  800     // 800 mOhm... just guessing for now.
 
-#define COOLANT_MIN_THRESHOLD   400     // 40C
-#define COOLANT_MAX_THRESHOLD   9900    // 99C - too hot!!!
-
+#define EXHAUST_PURGE_THRESHOLD 12500   // 125C
+#define EXHAUST_IDLE_THRESHOLD  20000   // 200C
 #define EXHAUST_MAX_TEMP        35000   // 350C - too hot!!
+#define EXHAUST_TEMP_RISE       1500    // 15C
 
 #define INTERNAL_MAX_TEMP       9500    // 95C - hot enough
+
+#define WINTER_TEMP_THRESHOLD   1000    // 10C
+
+#define PRIMING_LOW_THRESHOLD  -1000    // -10C
+#define PRIMING_HIGH_THRESHOLD  2000    //  20C
+
+#define COOLANT_COLD_THRESHOLD  4000    // 40C
+#define COOLANT_MIN_THRESHOLD   5500    // 55C
+#define COOLANT_TARGET_TEMP     6500    // 65C
+#define COOLANT_IDLE_THRESHOLD  7500    // 75C
+#define COOLANT_MAX_THRESHOLD   8500    // 85C - too hot!!!
+
+#define THROTTLE_HIGH_FUEL(x)   (double)((x) <= WINTER_TEMP_THRESHOLD ? 1.8 : 1.6)
+#define THROTTLE_HIGH_FAN       90
+
+#define THROTTLE_STEADY_FUEL    (double)(1.3)
+#define THROTTLE_STEADY_FAN     65
+
+#define THROTTLE_LOW_FUEL       (double)(0.83)
+#define THROTTLE_LOW_FAN        55
+
+#define THROTTLE_IDLE_FUEL      (double)(0.6)
+#define THROTTLE_IDLE_FAN       30
+
+#define START_FUEL(x)           (double)((x) <= WINTER_TEMP_THRESHOLD ? 1.2 : 1.0)
+#define START_FAN               40
 
 #endif

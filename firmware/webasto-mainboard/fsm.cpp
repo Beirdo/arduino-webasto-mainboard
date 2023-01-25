@@ -15,6 +15,7 @@
 int fsm_mode = 0;
 bool batteryLow = false;
 bool supplementalEnabled = false;
+bool priming = false;
 bool lockdown;
 bool ignitionOn;
 bool startRunSignalOn;
@@ -24,8 +25,7 @@ bool circulationPumpOn = false;
 int combustionFanPercent = 0;
 int vehicleFanPercent = 0;
 int glowPlugPercent = 0;
-bool fuelPumpOn = false;
-int fuelPumpPeriodMs = 0;
+float fuelNeedRequested = 0.0;
 
 bool glowPlugInEnable = false;   // mutually exclusive with glowPlugOutEnable
 bool glowPlugOutEnable = false;  // mutually exclusive with glowPlugInEnable
@@ -36,6 +36,9 @@ bool operatingLed = false;
 time_sensor_t ventilation_duration = {0};
 
 int flameOutCount = 0;
+int exhaustTempPreBurn = 0;
+int exhaustTempStable = 0;
+
 
 mutex_t fsm_mutex;
 
@@ -100,7 +103,7 @@ void init_state_machine(void)
 
   // Setup is in the FuelPumpTimer class
   FuelPumpEvent e6;
-  e6.value = 0;
+  e6.value = 0.0;
   WebastoControlFSM::dispatch(e6);
 
   pinMode(PIN_VEHICLE_FAN_RELAY, OUTPUT);
@@ -168,8 +171,15 @@ void WebastoControlFSM::react(VehicleFanEvent const &e)
 
 void WebastoControlFSM::react(FuelPumpEvent const &e)
 {
-  int value = clamp(e.value, 0, MAX_RATED_POWER);
-  fuelPumpTimer.setBurnPower(value);
+  CoreMutex m(&fsm_mutex);
+  if (e.value == 0.0) {
+    fuelNeedRequested = 0.0;
+  } else if (priming) {
+    fuelNeedRequested = clamp(e.value, MIN_FUEL_NEED, MAX_FUEL_NEED_PRIMING);
+  } else {
+    fuelNeedRequested = clamp(e.value, MIN_FUEL_NEED, MAX_FUEL_NEED_BURNING);
+  }
+  fuelPumpTimer.setFuelNeed(fuelNeedRequested);
 }
 
 void WebastoControlFSM::react(TimerEvent const &e)
@@ -319,7 +329,7 @@ void WebastoControlFSM::react(FlameoutEvent const &e)
 
 void WebastoControlFSM::react(RestartEvent const &e)
 {
-  transit<StandbyState>();
+  transit<PurgingState>();
 }
 
 
@@ -482,11 +492,11 @@ void WebastoControlFSM::react(StartupEvent const &e)
   
   switch(fsm_mode) {
     case WEBASTO_MODE_PARKING_HEATER:
-      transit<StandbyState>();
+      transit<PurgingState>();
       break;
     case WEBASTO_MODE_SUPPLEMENTAL_HEATER:
       if (ignitionOn && supplementalEnabled) {
-        transit<StandbyState>();
+        transit<PurgingState>();
       }
       break;
     case WEBASTO_MODE_VENTILATION:
@@ -530,13 +540,48 @@ void IdleState::entry()
   }
 }
 
+
+void PurgingState::entry()
+{
+  int exhaustTemp = exhaustTempSensor->get_value();
+
+  if (exhaustTemp > EXHAUST_PURGE_THRESHOLD) {
+    // Turn on Combustion Fan at 80%
+    CombustionFanEvent e1;
+    e1.value = 80;
+    dispatch(e1);    
+
+    // Stay in this state for 3s
+    globalTimer.register_timer(TIMER_STAGE_COMPLETE, 5000, &fsmTimerCallback);
+  } else {
+    transit<StandbyState>();
+  }
+}
+
+void PurgingState::react(TimerEvent const &e)
+{
+  switch (e.timerId) {
+    case TIMER_STAGE_COMPLETE:
+      transit<StandbyState>();
+      break;
+    default:
+      fsmCommonReact(e);
+      break;
+  }
+}
+
+
 void StandbyState::entry()
 {
   kickRunTimer();
 
-  // Turn on the combustion fan - 100%  
+  CoreMutex m(&fsm_mutex);
+
+  exhaustTempPreBurn = exhaustTempSensor->get_value();
+
+  // Turn on the combustion fan - 70%  
   CombustionFanEvent e1;
-  e1.value = 100;
+  e1.value = 70;
   dispatch(e1);    
 
   // Turn on the circulation pump
@@ -557,7 +602,6 @@ void StandbyState::entry()
   // Stay in this state for 30s
   globalTimer.register_timer(TIMER_STAGE_COMPLETE, 30000, &fsmTimerCallback);
 
-  CoreMutex m(&fsm_mutex);
   CoreMutex m1(&fram_mutex);
 
   if (fsm_mode == WEBASTO_MODE_PARKING_HEATER) {
@@ -586,14 +630,19 @@ void StandbyState::react(TimerEvent const &e)
 
 void PrefuelState::entry()
 {
-  // Turn off Combustion Fan
+  CoreMutex m(&fsm_mutex);
+
+  priming = true;
+
+  // Turn on Combustion Fan at 15%
   CombustionFanEvent e1;
-  e1.value = 0;
+  e1.value = 15;
   dispatch(e1);    
 
-  // Turn on Fuel Pump at 1000W - will give about 80mL of fuel in 3s
+  // Turn on Fuel Pump to prime
   FuelPumpEvent e2;
-  e2.value = 1000;
+  int exhaustTemp = exhaustTempSensor->get_value();
+  e2.value = double(map(exhaustTemp, PRIMING_LOW_THRESHOLD, PRIMING_HIGH_THRESHOLD, 3500, 2000)) / 1000.0;
   dispatch(e2);
 
   // Stay in this state for 3s
@@ -604,7 +653,7 @@ void PrefuelState::react(TimerEvent const &e)
 {
   switch (e.timerId) {
     case TIMER_STAGE_COMPLETE:
-      transit<InitialRampUpState>();
+      transit<FuelOffState>();
       break;
     default:
       fsmCommonReact(e);
@@ -613,41 +662,24 @@ void PrefuelState::react(TimerEvent const &e)
 }
 
 
-void InitialRampUpState::entry()
+void FuelOffState::entry()
 {
-  // Turn on Combustion Fan - 40%
-  CombustionFanEvent e1;
-  e1.value = 40;
-  dispatch(e1);    
+  CoreMutex m(&fsm_mutex);
 
-  // Turn on Fuel Pump at 2000W - first ramp
-  FuelPumpEvent e2;
-  e2.value = 2000;
-  dispatch(e2);
+  priming = false;
 
-  // Stay in this ramp for 28s
-  globalTimer.register_timer(TIMER_RAMP_STEP, 28000, &fsmTimerCallback);
+  // Turn off Fuel Pump
+  FuelPumpEvent event;
+  event.value = 0.0;
+  dispatch(event);
+
+  // Stay in this stage for 54s
+  globalTimer.register_timer(TIMER_STAGE_COMPLETE, 54000, &fsmTimerCallback);
 }
 
-void InitialRampUpState::react(TimerEvent const &e)
+void FuelOffState::react(TimerEvent const &e)
 {
   switch (e.timerId) {
-    case TIMER_RAMP_STEP:
-      {
-        // Turn on Combustion Fan - 70%
-        CombustionFanEvent e1;
-        e1.value = 70;
-        dispatch(e1);    
-
-        // Turn on Fuel Pump at 3000W - second ramp
-        FuelPumpEvent e2;
-        e2.value = 3000;
-        dispatch(e2);
-
-        // Stay in this ramp for 28s
-        globalTimer.register_timer(TIMER_STAGE_COMPLETE, 28000, &fsmTimerCallback);
-      }
-      break;
     case TIMER_STAGE_COMPLETE:
       transit<StabilizationState>();
       break;
@@ -659,40 +691,25 @@ void InitialRampUpState::react(TimerEvent const &e)
 
 void StabilizationState::entry()
 {
-  // Leave Combustion Fan, Fuel Pump, Glow Plug and Circulation Pump alone!
+  CoreMutex m(&fsm_mutex);
+
+  exhaustTempStable = exhaustTempSensor->get_value();
+
+  // Shutdown the glow plug
+  GlowPlugOutEnableEvent e1;
+  e1.enable = false;
+  dispatch(e1);
+
+  GlowPlugOutEvent e2;
+  e2.value = 0;
+  dispatch(e2);
+
+  // Leave Combustion Fan, Fuel Pump and Circulation Pump alone!
   // Stay in this stage for 15s
-  globalTimer.register_timer(TIMER_RAMP_STEP, 15000, &fsmTimerCallback);
+  globalTimer.register_timer(TIMER_STAGE_COMPLETE, 2000, &fsmTimerCallback);
 }
 
 void StabilizationState::react(TimerEvent const &e)
-{
-  switch (e.timerId) {
-    case TIMER_STAGE_COMPLETE:
-      transit<SecondRampUpState>();
-      break;
-    default:
-      fsmCommonReact(e);
-      break;
-  }
-}
-
-void SecondRampUpState::entry()
-{
-  // Turn on Combustion Fan - 80%
-  CombustionFanEvent e1;
-  e1.value = 80;
-  dispatch(e1);    
-
-  // Turn on Fuel Pump at max power (5200W)
-  FuelPumpEvent e2;
-  e2.value = MAX_RATED_POWER;
-  dispatch(e2);
-
-  // Stay in this state for 50s
-  globalTimer.register_timer(TIMER_STAGE_COMPLETE, 50000, &fsmTimerCallback);
-}
-
-void SecondRampUpState::react(TimerEvent const &e)
 {
   switch (e.timerId) {
     case TIMER_STAGE_COMPLETE:
@@ -706,40 +723,42 @@ void SecondRampUpState::react(TimerEvent const &e)
 
 void TestBurnState::entry()
 {
-  // Turn on Combustion Fan - 100%
-  CombustionFanEvent e1;
-  e1.value = 100;
-  dispatch(e1);    
+  CoreMutex m(&fsm_mutex);
 
-  // Turn off the Glow Plug
-  GlowPlugOutEnableEvent e2;
-  e2.enable = false;
+  FuelPumpEvent e1;
+  e1.value = START_FUEL(exhaustTempStable);
+  dispatch(e1);
+
+  CombustionFanEvent e2;
+  if (combustionFanPercent < START_FAN) {
+    e2.value = combustionFanPercent + 1;
+    globalTimer.register_timer(TIMER_FUEL_FAN_DELTA, 333, &fsmTimerCallback);
+  } else {
+    e2.value = START_FAN;
+  }
   dispatch(e2);
-
-  // And set the value to 0% too
-  GlowPlugOutEvent e3;
-  e3.value = 0;
-  dispatch(e3);
 
   // Stay in this state for 15s
   globalTimer.register_timer(TIMER_STAGE_COMPLETE, 15000, &fsmTimerCallback);
 }
 
-void TestBurnState::react(FlameDetectEvent const &e)
-{
-  CoreMutex m(&fsm_mutex);
-
-  if (e.value < FLAME_DETECT_THRESHOLD) {
-    // OK, this means our flame must be out, there's not enough heat here
-    FlameoutEvent e1;
-    e1.resetCount = false;
-    dispatch(e1);
-  }
-}
-
 void TestBurnState::react(TimerEvent const &e)
 {
   switch (e.timerId) {
+    case TIMER_FUEL_FAN_DELTA:
+      {
+        CoreMutex m(&fsm_mutex);
+
+        CombustionFanEvent event;
+        if (combustionFanPercent < START_FAN) {
+          event.value = combustionFanPercent + 1;
+          globalTimer.register_timer(TIMER_FUEL_FAN_DELTA, 333, &fsmTimerCallback);
+        } else {
+          event.value = START_FAN;
+        }
+        dispatch(event);
+      }
+      break;
     case TIMER_STAGE_COMPLETE:
       transit<FlameMeasureState>();
       break;
@@ -756,35 +775,11 @@ void FlameMeasureState::entry()
   e1.enable = true;
   dispatch(e1);
 
-  // Stay in this state for 30s
-  globalTimer.register_timer(TIMER_STAGE_COMPLETE, 30000, &fsmTimerCallback);
+  // Stay in this state for 20s
+  globalTimer.register_timer(TIMER_STAGE_COMPLETE, 20000, &fsmTimerCallback);
 }
 
-void FlameMeasureState::react(TimerEvent const &e)
-{
-  switch (e.timerId) {
-    case TIMER_STAGE_COMPLETE:
-      transit<AutoBurnState>();
-      break;
-    default:
-      fsmCommonReact(e);
-      break;
-  }
-}
-
-
-void AutoBurnState::entry()
-{
-  // Turn off the Flame Sensor
-  GlowPlugInEnableEvent e1;
-  e1.enable = false;
-  dispatch(e1);
-
-  // Stay in this state for 15s
-  globalTimer.register_timer(TIMER_STAGE_COMPLETE, 15000, &fsmTimerCallback);
-}
-
-void AutoBurnState::react(FlameDetectEvent const &e)
+void FlameMeasureState::react(FlameDetectEvent const &e)
 {
   CoreMutex m(&fsm_mutex);
 
@@ -796,11 +791,138 @@ void AutoBurnState::react(FlameDetectEvent const &e)
   }
 }
 
-void AutoBurnState::react(TimerEvent const &e)
+void FlameMeasureState::react(TimerEvent const &e)
 {
   switch (e.timerId) {
     case TIMER_STAGE_COMPLETE:
-      transit<FlameMeasureState>();
+      {
+        CoreMutex m(&fsm_mutex);
+
+        int exhaustTemp = exhaustTempSensor->get_value();
+        int flameSensor = flameDetectorSensor->get_value();
+
+        if (exhaustTemp - exhaustTempStable >= EXHAUST_TEMP_RISE || flameSensor > FLAME_DETECT_THRESHOLD) {
+          transit<AutoBurnState>();
+        } else {
+          globalTimer.register_timer(TIMER_STAGE_RETRY, 20000, &fsmTimerCallback);
+        }
+      }    
+      break;
+    case TIMER_STAGE_RETRY:
+      {
+        CoreMutex m(&fsm_mutex);
+
+        int exhaustTemp = exhaustTempSensor->get_value();
+        int flameSensor = flameDetectorSensor->get_value();
+
+        if (exhaustTemp - exhaustTempStable >= EXHAUST_TEMP_RISE || flameSensor > FLAME_DETECT_THRESHOLD) {
+          transit<AutoBurnState>();
+        } else {
+          // Need a restart over here!
+          FlameoutEvent event;
+          event.resetCount = false;
+          dispatch(event);          
+        }
+      }    
+    default:
+      fsmCommonReact(e);
+      break;
+  }
+}
+
+void AutoBurnState::entry()
+{
+  // Turn off the Flame Sensor
+  GlowPlugInEnableEvent e1;
+  e1.enable = false;
+  dispatch(e1);
+
+  // Stay in this state for 15s
+  globalTimer.register_timer(TIMER_STAGE_COMPLETE, 15000, &fsmTimerCallback);
+  globalTimer.register_timer(TIMER_FUEL_FAN_DELTA, 500, &fsmTimerCallback);
+}
+
+void AutoBurnState::react(TimerEvent const &e)
+{
+  switch (e.timerId) {
+    case TIMER_FUEL_FAN_DELTA:
+      {
+        CoreMutex m(&fsm_mutex);
+
+        int coolantTemp = coolantTempSensor->get_value();
+        int externalTemp = externalTempSensor->get_value();
+        int exhaustTemp = exhaustTempSensor->get_value();
+
+        int fanRequest = combustionFanPercent;
+        double fuelRequest = fuelNeedRequested;
+
+        if (coolantTemp <= COOLANT_COLD_THRESHOLD) {  // 40C
+          if (fanRequest < THROTTLE_HIGH_FAN) {
+            fanRequest++;
+          }
+
+          if (fuelRequest < THROTTLE_HIGH_FUEL(externalTemp)) {
+            fuelRequest++;
+          }
+        } else if (coolantTemp >= COOLANT_IDLE_THRESHOLD || exhaustTemp > EXHAUST_IDLE_THRESHOLD) {
+          fanRequest = THROTTLE_IDLE_FAN;
+          fuelRequest = THROTTLE_IDLE_FUEL;
+        } else {
+          int fanTarget;
+          double fuelTarget;
+
+          if (coolantTemp < COOLANT_MIN_THRESHOLD) {
+            fuelTarget = THROTTLE_HIGH_FUEL(externalTemp);
+            fanTarget = THROTTLE_HIGH_FAN;
+          }
+
+          if (coolantTemp >= COOLANT_MIN_THRESHOLD && coolantTemp < COOLANT_TARGET_TEMP) {
+            fuelTarget = THROTTLE_STEADY_FUEL;
+            fanTarget = THROTTLE_STEADY_FAN;
+          }
+
+          if (coolantTemp >= COOLANT_TARGET_TEMP && coolantTemp < COOLANT_IDLE_THRESHOLD) {
+            fuelTarget = THROTTLE_LOW_FUEL;
+            fanTarget = THROTTLE_LOW_FAN;
+          }
+
+          if (fuelRequest < fuelTarget) {
+            fuelRequest += 0.01;
+          } else if (fuelRequest > fuelTarget) {
+            fuelRequest -= 0.01;
+          }
+
+          if (fanRequest < fanTarget) {
+            fanRequest += 1;            
+          } else if (fanRequest > fanTarget) {
+            fanRequest -= 1;
+          }
+        }
+
+        CombustionFanEvent e1;
+        e1.value = fanRequest;
+        dispatch(e1);
+
+        FuelPumpEvent e2;
+        e2.value = fuelRequest;
+        dispatch(e2);
+
+        globalTimer.register_timer(TIMER_FUEL_FAN_DELTA, 500, &fsmTimerCallback);
+      }
+      break;
+    case TIMER_STAGE_COMPLETE:
+      {
+        int coolantTemp = coolantTempSensor->get_value();
+        int exhaustTemp = exhaustTempSensor->get_value();
+
+        if (exhaustTemp > 4000 && coolantTemp > exhaustTemp) {
+          FlameoutEvent event;
+          event.resetCount = true;
+          dispatch(event);
+        } else {
+          transit<FlameMeasureState>();
+        }
+      }
       break;
     default:
       fsmCommonReact(e);

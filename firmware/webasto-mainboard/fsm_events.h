@@ -19,7 +19,6 @@ struct IntegerEvent       : tinyfsm::Event {
 };
 struct CombustionFanEvent : IntegerEvent { };
 struct GlowPlugOutEvent   : IntegerEvent { };
-struct FuelPumpEvent      : IntegerEvent { };
 struct VehicleFanEvent    : IntegerEvent { };
 struct CoolantTempEvent   : IntegerEvent { };
 struct OutdoorTempEvent   : IntegerEvent { };
@@ -31,6 +30,11 @@ struct BatteryLevelEvent  : IntegerEvent { };
 struct TimerEvent         : IntegerEvent {
   int timerId;
 };
+
+struct DoubleEvent       : tinyfsm::Event {
+  double value;
+};
+struct FuelPumpEvent      : DoubleEvent { };
 
 struct FlameoutEvent      : tinyfsm::Event { 
   bool resetCount;

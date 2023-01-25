@@ -14,6 +14,16 @@ class IdleState : public WebastoControlFSM
 
 };
 
+class PurgingState : public WebastoControlFSM
+{
+  public:
+    void entry();
+    void react(TimerEvent const &e);
+
+  protected:
+    uint8_t state_num = 0x23;
+};
+
 class StandbyState : public WebastoControlFSM
 {
   public:
@@ -34,14 +44,14 @@ class PrefuelState : public WebastoControlFSM
     uint8_t state_num = 0x2D;
 };
 
-class InitialRampUpState : public WebastoControlFSM
+class FuelOffState : public WebastoControlFSM
 {
   public:
     void entry();
     void react(TimerEvent const &e);
 
   protected:
-    uint8_t state_num = 0x26;
+    uint8_t state_num = 0x3e;
 };
 
 class StabilizationState : public WebastoControlFSM
@@ -54,22 +64,11 @@ class StabilizationState : public WebastoControlFSM
     uint8_t state_num = 0x25;
 };
 
-class SecondRampUpState : public WebastoControlFSM
-{
-  public:
-    void entry();
-    void react(TimerEvent const &e);
-
-  protected:
-    uint8_t state_num = 0x3F;
-};
-
 class TestBurnState : public WebastoControlFSM
 {
   public:
     void entry();
     void react(TimerEvent       const &e);
-    void react(FlameDetectEvent const &e);
 
   protected:
     uint8_t state_num = 0x40;
@@ -80,6 +79,7 @@ class FlameMeasureState : public WebastoControlFSM
   public:
     void entry();
     void react(TimerEvent const &e);
+    void react(FlameDetectEvent const &e);
 
   protected:
     uint8_t state_num = 0x11;
@@ -90,7 +90,6 @@ class AutoBurnState : public WebastoControlFSM
   public:
     void entry();
     void react(TimerEvent       const &e);
-    void react(FlameDetectEvent const &e);
 
   protected:
     uint8_t state_num = 0x41;

@@ -13,7 +13,11 @@
 #define MAX_RATED_POWER         5200    // Stated rating for my Thermatop C
 #define FUEL_PUMP_DOSE_ML       22
 
-#define FUEL_PUMP_PULSE_LEN     30      // ms high for the pulse
+#define MIN_FUEL_NEED           (double)(0.6)     // At idle - about 1300W
+#define MAX_FUEL_NEED_BURNING   (double)(2.464)   // MAX rated power of 5200W
+#define MAX_FUEL_NEED_PRIMING   (double)(3.5)     // for priming only. - about 7200W!
+
+#define FUEL_PUMP_PULSE_LEN     9       // ms high for the pulse
 #define FUEL_PUMP_MIN_PERIOD  (DIESEL_VOL_COMB_ENERGY * FUEL_PUMP_DOSE_ML / MAX_RATED_POWER)
 #define FUEL_PUMP_MAX_PERIOD  (DIESEL_VOL_COMB_ENERGY * FUEL_PUMP_DOSE_ML / MIN_POWER)
 
@@ -36,6 +40,7 @@ class FuelPumpTimer {
     uint8_t getFuelPumpFrequencyKline(void);
     void setBurnPower(int watts);
     int getBurnPower(void);
+    void setFuelNeed(double need);
 
   protected:
     void setPeriod(int periodMs);

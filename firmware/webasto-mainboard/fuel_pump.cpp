@@ -54,6 +54,17 @@ void FuelPumpTimer::setBurnPower(int watts) {
   setPeriod(periodMs);
 }
 
+void FuelPumpTimer::setFuelNeed(double need) {
+  if(need == 0.0) {
+    setPeriod(0);
+  }
+
+  double numerator = double(DIESEL_VOL_COMB_ENERGY * FUEL_PUMP_DOSE_ML);
+  double denominator = double(FUEL_PUMP_PULSE_LEN) + double(1000 * FUEL_PUMP_DOSE_ML) / (double(60) * need);
+  double periodMs = numerator / denominator;
+  setPeriod(int(periodMs));
+}
+
 int FuelPumpTimer::getBurnPower(void) 
 {
   // The density of diesel is between 820-845mg/ml.  We will use 832.5mg/ml for our calculations
