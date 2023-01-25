@@ -10,6 +10,8 @@
 #include "fram.h"
 #include "device_eeprom.h"
 
+void sendCRLF(Print *output, int level);
+
 void setup() {
   pinMode(PIN_ONBOARD_LED, OUTPUT);
 
@@ -31,9 +33,10 @@ void setup() {
     digitalWrite(PIN_ONBOARD_LED, LOW);
   }
 
+  Log.setSuffix(sendCRLF);
   delay(10);
 
-  Log.notice("Starting I2C0\n");
+  Log.notice("Starting I2C0");
   Wire.setSDA(PIN_I2C0_SDA);
   Wire.setSCL(PIN_I2C0_SCL);
   Wire.setClock(I2C0_CLK);
@@ -50,6 +53,8 @@ void setup() {
 }
 
 void loop() {
+  int topOfLoop = millis();
+
   // put your main code here, to run repeatedly:
   //update_device_eeprom();
   //update_fram();
@@ -60,6 +65,23 @@ void loop() {
   static bool led = true;
   led = !led;
   digitalWrite(PIN_ONBOARD_LED, led);  
-  delay(100);
+  
+  int elapsed = millis() - topOfLoop;
+  if (elapsed >= 100) {
+    Log.warning("Main loop > 100ms (%dms)", elapsed);
+  }
+
+  int delayMs = clamp(100 - elapsed, 1, 100);
+  delay(delayMs);
   rp2040.wdt_reset();
+}
+
+void sendCRLF(Print *output, int level)
+{
+  if (level > LOG_LEVEL_VERBOSE) {
+    return;
+  }
+  output->print('\n');
+  output->print('\r');
+  output->flush();
 }
