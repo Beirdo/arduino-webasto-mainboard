@@ -120,6 +120,12 @@ void WebastoControlFSM::react(GlowPlugInEnableEvent const &e)
 {
   CoreMutex m(&fsm_mutex);
   
+  LedChangeEvent e0;
+  e0.operatingChange = false;
+  e0.flameChange = true;
+  e0.enable = e.enable;
+  dispatch(e0);
+
   glowPlugInEnable = e.enable;
   if (glowPlugInEnable && glowPlugOutEnable) {
     glowPlugOutEnable = false;
@@ -132,12 +138,39 @@ void WebastoControlFSM::react(GlowPlugOutEnableEvent const &e)
 {
   CoreMutex m(&fsm_mutex);
   
+  LedChangeEvent e0;
+  e0.operatingChange = false;
+  e0.flameChange = true;
+  e0.enable = false;
+  dispatch(e0);
+
   glowPlugOutEnable = e.enable;
   if (glowPlugOutEnable && glowPlugInEnable) {
     glowPlugInEnable = false;
     set_open_drain_pin(PIN_GLOW_PLUG_IN_EN, glowPlugInEnable);
   }
   set_open_drain_pin(PIN_GLOW_PLUG_OUT_EN, glowPlugOutEnable);
+}
+
+void WebastoControlFSM::react(LedChangeEvent const &e)
+{
+  CoreMutex m(&fsm_mutex);
+
+  int pin;
+  bool *store;
+  
+  if (e.operatingChange) {
+    pin = PIN_OPERATING_LED;
+    store = &operatingLed;
+  } else if (e.flameChange) {
+    pin = PIN_FLAME_LED;
+    store = &flameLed;
+  } else {
+    return;
+  }
+
+  *store = e.enable;
+  digitalWrite(pin, e.enable);
 }
 
 void WebastoControlFSM::react(CirculationPumpEvent const &e)
@@ -523,6 +556,12 @@ void WebastoControlFSM::react(StartupEvent const &e)
 
   fsm_mode = new_mode;
 
+  LedChangeEvent e0;
+  e0.operatingChange = true;
+  e0.flameChange = false;
+  e0.enable = true;
+  dispatch(e0);
+
   if (minutes) {
     globalTimer.register_timer(TIMER_TIMED_SHUT_DOWN, minutes * 60000, &fsmTimerCallback);
   }
@@ -563,6 +602,13 @@ void IdleState::entry()
   CoreMutex m(&fsm_mutex);
 
   Log.notice("Entering IdleState");
+
+  LedChangeEvent e0;
+  e0.operatingChange = true;
+  e0.flameChange = false;
+  e0.enable = false;
+  dispatch(e0);
+
   fsm_mode = 0;
   batteryLow = false;
   ignitionOn = ignitionSenseSensor->get_value();
@@ -579,6 +625,8 @@ void IdleState::entry()
 
 void PurgingState::entry()
 {
+  CoreMutex m(&fsm_mutex);
+
   int exhaustTemp = exhaustTempSensor->get_value();
 
   if (exhaustTemp > EXHAUST_PURGE_THRESHOLD) {

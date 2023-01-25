@@ -13,6 +13,10 @@ struct GlowPlugInEnableEvent    : BooleanEvent { };
 struct GlowPlugOutEnableEvent   : BooleanEvent { };
 struct CirculationPumpEvent     : BooleanEvent { };
 struct LockdownEvent            : BooleanEvent { };
+struct LedChangeEvent           : BooleanEvent {
+  bool operatingChange;
+  bool flameChange;
+};
 
 struct IntegerEvent       : tinyfsm::Event {
   int value;
