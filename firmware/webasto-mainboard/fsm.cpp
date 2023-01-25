@@ -11,6 +11,7 @@
 #include "global_timer.h"
 #include "webasto.h"
 #include "fram.h"
+#include "beeper.h"
 
 int fsm_mode = 0;
 bool batteryLow = false;
@@ -576,7 +577,6 @@ void IdleState::entry()
   }
 }
 
-
 void PurgingState::entry()
 {
   int exhaustTemp = exhaustTempSensor->get_value();
@@ -584,7 +584,7 @@ void PurgingState::entry()
   if (exhaustTemp > EXHAUST_PURGE_THRESHOLD) {
     // Turn on Combustion Fan at 80%
     CombustionFanEvent e1;
-    e1.value = 80;
+    e1.value = PURGE_FAN;
     dispatch(e1);    
 
     // Stay in this state for 3s
@@ -1022,6 +1022,24 @@ void CooldownState::react(TimerEvent const &e)
 void LockdownState::entry()
 {
   Log.warning("Entering lockdown mode.  Toggle EmergencyStop to clear");
+  beeper.register_beeper(10, 500, 500);
+  globalTimer.register_timer(TIMER_RESTART_BEEPS, 20000, &fsmTimerCallback);
+}
+
+void LockdownState::react(TimerEvent const &e)
+{
+  CoreMutex m(&fsm_mutex);
+
+  switch (e.timerId) {
+    case TIMER_RESTART_BEEPS:
+      beeper.register_beeper(10, 500, 500);
+      globalTimer.register_timer(TIMER_RESTART_BEEPS, 20000, &fsmTimerCallback);
+      break;
+
+    default:
+      fsmCommonReact(e);
+      break;
+  }
 }
 
 

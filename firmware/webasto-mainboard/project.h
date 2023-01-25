@@ -117,4 +117,6 @@ inline int clamp(int value, int minval, int maxval)
 #define START_FUEL(x)           (double)((x) <= WINTER_TEMP_THRESHOLD ? 1.2 : 1.0)
 #define START_FAN               40
 
+#define PURGE_FAN               80
+
 #endif

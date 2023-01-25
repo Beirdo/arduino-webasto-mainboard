@@ -11,6 +11,7 @@
 #include "fram.h"
 #include "analog.h"
 #include "fsm.h"
+#include "beeper.h"
 
 fram_data_t fram_data;
 bool fram_dirty = false;
@@ -181,6 +182,8 @@ void fram_clear_error_list(void)
 void fram_add_error(uint8_t code)
 {
   CoreMutex m(&fram_mutex);
+
+  beeper.register_beeper(1, 250, 250);
 
   int error_list_len = fram_data.current.error_list_count;
 

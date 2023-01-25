@@ -109,6 +109,7 @@ class LockdownState : public WebastoControlFSM
 {
   public:
     void entry();
+    void react(TimerEvent const &e);
 
   protected:
     uint8_t state_num = 0x28;
