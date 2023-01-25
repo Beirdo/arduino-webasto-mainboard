@@ -115,5 +115,14 @@ class LockdownState : public WebastoControlFSM
     uint8_t state_num = 0x28;
 };
 
+class EmergencyOffState : public WebastoControlFSM
+{
+  public:
+    void entry();
+
+  protected:
+    uint8_t state_num = 0x02;
+};
+
 
 #endif

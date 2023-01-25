@@ -33,7 +33,6 @@ void initalize_fram_data(uint8_t version, uint8_t *buf)
         memset(buf, 0x00, sizeof(fram_data));
         struct fram_v1_s *data = (struct fram_v1_s *)buf;
         data->version = 1;
-        strncpy((char *)data->serial_num, "serialnum", sizeof(data->serial_num));
         data->checksum = eeprom_checksum(buf, fram_lengths[0]);
         fram_dirty = true;
       }

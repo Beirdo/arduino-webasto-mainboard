@@ -31,7 +31,6 @@ typedef struct {
 struct fram_v1_s {
   uint8_t version;
   uint8_t checksum;
-  uint8_t serial_num[32];
   time_sensor_t burn_duration_parking_heater[4];
   time_sensor_t burn_duration_supplemental_heater[4];
   time_sensor_t working_duration_parking_heater;

@@ -338,7 +338,7 @@ void WebastoControlFSM::react(ShutdownEvent const &e)
   }
 
   if (e.emergency) {
-    // transit<EmergencyOffState>();
+    transit<EmergencyOffState>();
     return;
   }
 
@@ -556,6 +556,19 @@ void StandbyState::entry()
 
   // Stay in this state for 30s
   globalTimer.register_timer(TIMER_STAGE_COMPLETE, 30000, &fsmTimerCallback);
+
+  CoreMutex m(&fsm_mutex);
+  CoreMutex m1(&fram_mutex);
+
+  if (fsm_mode == WEBASTO_MODE_PARKING_HEATER) {
+    fram_data.current.start_counter_parking_heater++;
+    fram_data.current.total_start_counter++;
+    fram_dirty = true;
+  } else if (fsm_mode == WEBASTO_MODE_SUPPLEMENTAL_HEATER) {
+    fram_data.current.start_counter_supplemental_heater++;
+    fram_data.current.total_start_counter++;
+    fram_dirty = true;
+  }
 }
 
 
@@ -810,7 +823,7 @@ void CooldownState::entry()
   e2.value = 100;
   dispatch(e2);
 
-  // Ensure the circulation pump is on
+  // Ensure the circulation pump is off
   CirculationPumpEvent e3;
   e3.enable = false;
   dispatch(e3);
@@ -852,6 +865,50 @@ void LockdownState::entry()
 {
   Log.warning("Entering lockdown mode.  Toggle EmergencyStop to clear");
 }
+
+
+void EmergencyOffState::entry()
+{
+  // Shut off the fuel pump
+  FuelPumpEvent e1;
+  e1.value = 0;
+  dispatch(e1);
+
+  // Turn off the combustion fan
+  CombustionFanEvent e2;
+  e2.value = 0;
+  dispatch(e2);
+
+  // Ensure the circulation pump is off
+  CirculationPumpEvent e3;
+  e3.enable = false;
+  dispatch(e3);
+
+  // Make sure to shut off the glow plug
+  GlowPlugOutEnableEvent e4;
+  e4.enable = false;
+  dispatch(e4);
+  
+  // Make sure to shut off the flame sensor
+  GlowPlugInEnableEvent e5;
+  e5.enable = false;
+  dispatch(e5);
+
+  // Shut off the vehicle fan
+  VehicleFanEvent e6;
+  e6.value = 0;
+  dispatch(e6);
+
+  LockdownEvent e7;
+  e7.enable = true;
+  dispatch(e7);
+
+  CoreMutex m(&fram_mutex);
+
+  fram_data.current.counter_emergency_shutdown++;
+  fram_dirty = true;
+}
+
 
 
 void fsmTimerCallback(int timer_id, int delay)
