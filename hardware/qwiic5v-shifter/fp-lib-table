@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name "Beirdo")(type "KiCad")(uri "${KIPRJMOD}/library/Beirdo/footprints.pretty")(options "")(descr ""))
+  (lib (name "UltraLibrarian")(type "KiCad")(uri "${KIPRJMOD}/library/UltraLibrarian/footprints.pretty")(options "")(descr ""))
+)
