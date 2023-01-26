@@ -7,14 +7,16 @@
 #include "project.h"
 #include "sensor_eeprom.h"
 
-const char *capabilities_names[7] = {
+const char *capabilities_names[] = {
   "external temperature",
   "battery voltage",
   "coolant temperature",
   "exhaust temperature",
   "ignition sense",
   "internal temperature",
-  "flame detector",  
+  "flame detector", 
+  "start/run sense",
+  "emergency stop sense", 
 };
 
 int eeprom_lengths[] = {

@@ -38,7 +38,7 @@ extern int eeprom_lengths[];
 #define CAPABILITIES_EXHAUST_TEMP     0x08
 #define CAPABILITIES_IGNITION_SOURCE  0x10
 
-extern const char *capabilities_names[7];
+extern const char *capabilities_names[];
 extern eeprom_data_t eeprom_data[8];
 extern void *eeprom_devices[8];
 

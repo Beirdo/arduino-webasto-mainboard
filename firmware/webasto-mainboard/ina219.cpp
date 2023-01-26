@@ -8,6 +8,11 @@
 
 void INA219Source::init(void)
 {
+  if (!_connected) {
+    _valid = false;
+    return;
+  }
+
   if (_bits >= _min_bits && _bits <= _max_bits) {
     _valid = true;
   }

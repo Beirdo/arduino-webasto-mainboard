@@ -5,8 +5,8 @@
 
 class InternalADCSource : public AnalogSourceBase {
   public:
-    InternalADCSource(int channel, int bits, int mult = 0, int div_ = 0) : 
-        AnalogSourceBase(0x00, bits, mult, div_)
+    InternalADCSource(int index, int channel, int bits, int mult = 0, int div_ = 0) : 
+        AnalogSourceBase(index, 0x00, bits, mult, div_)
     {
       _channel = channel;
     };

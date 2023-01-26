@@ -77,8 +77,11 @@ inline int clamp(int value, int minval, int maxval)
   return max(min(value, maxval), minval);
 }
 
-#define HIBYTE(x)   ((uint8_t)(((int)(x) >> 8) & 0xFF))
-#define LOBYTE(x)   ((uint8_t)(((int)(x) & 0xFF)))
+#define HIBYTE(x)     ((uint8_t)(((int)(x) >> 8) & 0xFF))
+#define LOBYTE(x)     ((uint8_t)(((int)(x) & 0xFF)))
+
+#define HI_NIBBLE(x)  ((uint8_t)(((int)(x) >> 4) & 0x0F))
+#define LO_NIBBLE(x)  ((uint8_t)(((int)(x) && 0x0F)))
 
 #define SUPPLEMENTAL_MIN_TEMP   -2000   // -20C
 #define SUPPLEMENTAL_MAX_TEMP   1000    // 10C

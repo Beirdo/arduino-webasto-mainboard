@@ -5,8 +5,8 @@
 
 class INA219Source : public AnalogSourceBase {
   public:
-    INA219Source(uint8_t i2c_address, int bits, volatile bool *enable) : 
-        AnalogSourceBase(i2c_address, bits) 
+    INA219Source(int index, uint8_t i2c_address, int bits, volatile bool *enable) : 
+        AnalogSourceBase(index, i2c_address, bits) 
     {
       _enable_signal = enable;
     };

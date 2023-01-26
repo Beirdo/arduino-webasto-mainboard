@@ -9,6 +9,7 @@
 #include "global_timer.h"
 #include "fram.h"
 #include "device_eeprom.h"
+#include "display.h"
 
 void sendCRLF(Print *output, int level);
 
@@ -33,7 +34,7 @@ void setup() {
   }
 
   Log.setSuffix(sendCRLF);
-  delay(1000);
+  delay(10000);
   Log.notice("Rebooted.");
 
   init_device_eeprom();
@@ -47,10 +48,11 @@ void setup() {
   // put your setup code here, to run once:
   init_eeprom();
   //init_fram();
-  //init_analog();
+  init_analog();
   //init_kline();
+  init_display();
 
-  rp2040.wdt_begin(500);
+  // rp2040.wdt_begin(500);
 }
 
 void loop() {
@@ -59,8 +61,9 @@ void loop() {
   // put your main code here, to run repeatedly:
   update_device_eeprom();
   //update_fram();
-  //update_analog();
+  update_analog();
   //process_kline();
+  update_display();
   //globalTimer.tick();
 
   static bool led = true;
@@ -74,7 +77,7 @@ void loop() {
 
   int delayMs = clamp(100 - elapsed, 1, 100);
   delay(delayMs);
-  rp2040.wdt_reset();
+  // rp2040.wdt_reset();
 }
 
 void sendCRLF(Print *output, int level)

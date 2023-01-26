@@ -43,15 +43,11 @@ class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
     void react(OverheatEvent              const &);
     void react(LedChangeEvent             const &);
 
-    uint8_t getStateNum(void) { return _state_num; };
-
     virtual void entry(void)  { };
     void exit(void)  { };
-
-  protected:
-    uint8_t _state_num;
 };
 
+extern uint8_t fsm_state;
 extern int fsm_mode;
 extern bool batteryLow;
 extern bool supplementalEnabled;
@@ -78,7 +74,7 @@ extern int exhaustTempStable;
 
 extern mutex_t fsm_mutex;
 
-extern WebastoControlFSM fsm;
+// extern WebastoControlFSM fsm;
 
 
 void set_open_drain_pin(int pinNum, int value);

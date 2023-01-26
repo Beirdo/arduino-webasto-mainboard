@@ -13,6 +13,7 @@
 #include "fram.h"
 #include "beeper.h"
 
+uint8_t fsm_state = 0x00;
 int fsm_mode = 0;
 bool batteryLow = false;
 bool supplementalEnabled = false;
@@ -601,6 +602,7 @@ void IdleState::entry()
 {
   CoreMutex m(&fsm_mutex);
 
+  fsm_state = _state_num;
   Log.notice("Entering IdleState");
 
   LedChangeEvent e0;
@@ -627,6 +629,7 @@ void PurgingState::entry()
 {
   CoreMutex m(&fsm_mutex);
 
+  fsm_state = _state_num;
   int exhaustTemp = exhaustTempSensor->get_value();
 
   if (exhaustTemp > EXHAUST_PURGE_THRESHOLD) {
@@ -657,10 +660,12 @@ void PurgingState::react(TimerEvent const &e)
 
 void StandbyState::entry()
 {
+  
   kickRunTimer();
 
   CoreMutex m(&fsm_mutex);
 
+  fsm_state = _state_num;
   exhaustTempPreBurn = exhaustTempSensor->get_value();
 
   // Turn on the combustion fan - 70%  
@@ -716,6 +721,7 @@ void PrefuelState::entry()
 {
   CoreMutex m(&fsm_mutex);
 
+  fsm_state = _state_num;
   priming = true;
 
   // Turn on Combustion Fan at 15%
@@ -750,6 +756,7 @@ void FuelOffState::entry()
 {
   CoreMutex m(&fsm_mutex);
 
+  fsm_state = _state_num;
   priming = false;
 
   // Turn off Fuel Pump
@@ -777,6 +784,7 @@ void StabilizationState::entry()
 {
   CoreMutex m(&fsm_mutex);
 
+  fsm_state = _state_num;
   exhaustTempStable = exhaustTempSensor->get_value();
 
   // Shutdown the glow plug
@@ -809,6 +817,7 @@ void TestBurnState::entry()
 {
   CoreMutex m(&fsm_mutex);
 
+  fsm_state = _state_num;
   FuelPumpEvent e1;
   e1.value = START_FUEL(exhaustTempStable);
   dispatch(e1);
@@ -854,6 +863,10 @@ void TestBurnState::react(TimerEvent const &e)
 
 void FlameMeasureState::entry()
 {
+  CoreMutex m(&fsm_mutex);
+
+  fsm_state = _state_num;  
+
   // Turn on the Flame Sensor
   GlowPlugInEnableEvent e1;
   e1.enable = true;
@@ -916,6 +929,10 @@ void FlameMeasureState::react(TimerEvent const &e)
 
 void AutoBurnState::entry()
 {
+  CoreMutex m(&fsm_mutex);
+
+  fsm_state = _state_num;  
+
   // Turn off the Flame Sensor
   GlowPlugInEnableEvent e1;
   e1.enable = false;
@@ -1017,6 +1034,9 @@ void AutoBurnState::react(TimerEvent const &e)
 
 void CooldownState::entry()
 {
+  CoreMutex m(&fsm_mutex);
+
+  fsm_state = _state_num;  
   int currentPower = fuelPumpTimer.getBurnPower();
 
   // Shut off the fuel pump
@@ -1069,6 +1089,9 @@ void CooldownState::react(TimerEvent const &e)
 
 void LockdownState::entry()
 {
+  CoreMutex m(&fsm_mutex);
+
+  fsm_state = _state_num;  
   Log.warning("Entering lockdown mode.  Toggle EmergencyStop to clear");
   beeper.register_beeper(10, 500, 500);
   globalTimer.register_timer(TIMER_RESTART_BEEPS, 20000, &fsmTimerCallback);
@@ -1093,6 +1116,10 @@ void LockdownState::react(TimerEvent const &e)
 
 void EmergencyOffState::entry()
 {
+  CoreMutex m(&fsm_mutex);
+
+  fsm_state = _state_num;  
+
   // Shut off the fuel pump
   FuelPumpEvent e1;
   e1.value = 0;
@@ -1129,7 +1156,7 @@ void EmergencyOffState::entry()
 
   fram_add_error(0x5F);
 
-  CoreMutex m(&fram_mutex);
+  CoreMutex m1(&fram_mutex);
   
   fram_data.current.counter_emergency_shutdown++;
   fram_dirty = true;
@@ -1238,4 +1265,4 @@ void fsmCommonReact(TimerEvent const &e)
 
 FSM_INITIAL_STATE(WebastoControlFSM, IdleState)
 
-WebastoControlFSM fsm;
+//WebastoControlFSM fsm;

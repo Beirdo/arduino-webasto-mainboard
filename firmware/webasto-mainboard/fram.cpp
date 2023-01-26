@@ -206,9 +206,10 @@ void fram_add_error(uint8_t code)
     fram_data.current.error_list_count++;
   }
 
+  CoreMutex m1(&fsm_mutex);
   item->count++;
   item->status = 0x01;    // Stored
-  item->state = (fsm.getStateNum() << 8);   // Todo:  get from FSM
+  item->state = (fsm_state << 8);
   item->temperature = (uint8_t)(((externalTempSensor->get_value() / 50) + 1) / 2 + 50);
   item->vbat = batteryVoltageSensor->get_value();
   memcpy((char *)&item->operating_time, (char *)&fram_data.current.total_working_duration, sizeof(time_sensor_t));

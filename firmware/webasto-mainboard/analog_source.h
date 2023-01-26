@@ -12,13 +12,14 @@
 
 class AnalogSourceBase {
   public:
-    AnalogSourceBase(uint8_t i2c_address, int bits, int mult = 0, int div_ = 0);
+    AnalogSourceBase(int index, uint8_t i2c_address, int bits, int mult = 0, int div_ = 0);
     virtual void init(void) = 0;
     void update(void);
-    inline int32_t get_value(void) { return _value; };
+    inline int32_t get_value(void) { return ((_value == UNUSED_READING || _value == DISABLED_READING) ? 0 : _value); };
     virtual void feedback(int index) = 0;
 
   protected:
+    int _index;
     bool _valid;
     uint8_t _i2c_address;
     uint8_t _bits;
@@ -26,7 +27,7 @@ class AnalogSourceBase {
     int32_t _readings[ADC_AVG_WINDOW];
     int _tail;
     int32_t _prev_value;
-    int32_t _value;
+    int32_t _value = 0;
     mutex_t _i2c_mutex;
     int _mult;
     int _div;

@@ -14,11 +14,11 @@
 void init_analog(void);
 void update_analog(void);
 
-extern DS2482Source *externalTempSensor;
-extern ADS7823Source *batteryVoltageSensor;
-extern MCP96L01Source *coolantTempSensor;
-extern MCP96L01Source *exhaustTempSensor;
-extern PCA9501DigitalSource *ignitionSenseSensor;
+extern AnalogSourceBase *externalTempSensor;
+extern AnalogSourceBase *batteryVoltageSensor;
+extern AnalogSourceBase *coolantTempSensor;
+extern AnalogSourceBase *exhaustTempSensor;
+extern AnalogSourceBase *ignitionSenseSensor;
 extern InternalADCSource *internalTempSensor;
 extern INA219Source *flameDetectorSensor;
 extern InternalGPIODigitalSource *startRunSensor;

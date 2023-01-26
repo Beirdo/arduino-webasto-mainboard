@@ -5,10 +5,12 @@
 #include <cxxabi.h>
 
 #include "analog_source.h"
+#include "sensor_eeprom.h"
 
 
-AnalogSourceBase::AnalogSourceBase(uint8_t i2c_address, int bits, int mult, int div_)
+AnalogSourceBase::AnalogSourceBase(int index, uint8_t i2c_address, int bits, int mult, int div_)
 {
+  _index = index;
   _valid = false;
   _i2c_address = i2c_address;
   _bits = bits;
@@ -26,14 +28,18 @@ AnalogSourceBase::AnalogSourceBase(uint8_t i2c_address, int bits, int mult, int 
   
   mutex_init(&_i2c_mutex);
 
-  _connected = i2c_is_connected();
-
-  int status;
-  _classname = abi::__cxa_demangle(typeid(this).name(), 0, 0, &status);
-  if (_connected) {
-    Log.notice("Found sensor (%s) at I2C 0x02X", _classname, _i2c_address);
+  if (_i2c_address == 0xFF) {
+    _connected = false;
+  } else if (_i2c_address == 0x00) {
+    _connected = true;
   } else {
-    Log.error("No sensor (%s) at I2C 0x02X", _classname, _i2c_address);
+    _connected = i2c_is_connected();
+  }
+
+  if (_connected) {
+    Log.notice("Found sensor (%s) at I2C %X", capabilities_names[_index], _i2c_address);
+  } else {
+    Log.error("No sensor (%s) at I2C %X", capabilities_names[_index], _i2c_address);
   }
 }
 

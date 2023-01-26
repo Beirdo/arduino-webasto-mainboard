@@ -660,7 +660,7 @@ uint8_t *kline_read_state_sensor(void)
   uint8_t *buf = allocate_response(0x50, 10, 0x07);
 
   mutex_enter_blocking(&fsm_mutex);
-  buf[4] = fsm.getStateNum();
+  buf[4] = fsm_state;
   mutex_exit(&fsm_mutex);
 
   buf[5] = 0x00;                // Operating state state number ???
