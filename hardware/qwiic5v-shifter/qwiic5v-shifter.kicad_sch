@@ -904,6 +904,11 @@
     (uuid ffdf38f7-2ada-474f-9bc4-82f3ae878b81)
   )
 
+  (text "5V @ 300mA" (at 188.976 75.946 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid da7b2057-7775-4aca-bbb6-3652e4dac941)
+  )
+
   (global_label "SCL5V" (shape bidirectional) (at 127.127 135.763 0) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify left))
     (uuid 010f3abf-eeab-41dd-a312-c849f6674a68)
