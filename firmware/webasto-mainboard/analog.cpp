@@ -100,9 +100,13 @@ void update_analog(void)
 {
   // Now update() the suckers
   for (int i = 0; i < OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT; i++) {
+#ifdef VERBOSE_LOGGING
     Log.notice("Updating %s sensor", capabilities_names[i]);
+#endif
     sensors[i]->update();
-    //Log.notice("Feeding back %s sensor to FSM", capabilities_names[i]);
-    //sensors[i]->feedback(i);
+#ifdef VERBOSE_LOGGING
+    Log.notice("Feeding back %s sensor to FSM", capabilities_names[i]);
+#endif
+    sensors[i]->feedback(i);
   }
 }

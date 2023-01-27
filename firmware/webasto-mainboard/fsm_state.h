@@ -4,6 +4,16 @@
 #include "tinyfsm.hpp"
 #include "fsm.h"
 
+class StartupState : public WebastoControlFSM
+{
+  public:
+    void entry();
+    void react(TimerEvent const &e);
+  protected:
+    const static uint8_t _state_num = 0x00;
+
+};
+
 class IdleState : public WebastoControlFSM
 {
   public:

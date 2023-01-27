@@ -155,14 +155,3 @@ int32_t DS2482Source::convert(int32_t reading)
 
   return reading;
 }
-
-void DS2482Source::feedback(int index)
-{
-  if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > 100) {
-    if (index == 0) {
-      OutdoorTempEvent event;
-      event.value = (int)_value;
-      WebastoControlFSM::dispatch(event);
-    }
-  }
-}

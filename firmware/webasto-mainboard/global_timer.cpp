@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <pico.h>
+#include <ArduinoLog.h>
 #include <CoreMutex.h>
 
 #include "global_timer.h"
@@ -18,6 +19,8 @@ void GlobalTimer::register_timer(int timer_id, int delay_ms, timer_callback cb)
   if (delay_ms <= 0 || !cb) {
     return;
   }
+
+  Log.notice("Registering timer: %d -> %dms", timer_id, delay_ms);
   
   timerItem_t *item = (timerItem_t *)malloc(sizeof(timerItem_t));
 
@@ -83,7 +86,8 @@ void GlobalTimer::insert_item(timerItem_t *item, bool locked)
   if (!locked) {
     mutex_enter_blocking(&_mutex);
   }
-  
+
+  Log.notice("Inserting item, key: %d", key);  
   if (!_head) {
     _head = item;
   } else {
@@ -112,7 +116,7 @@ void GlobalTimer::insert_item(timerItem_t *item, bool locked)
 
 void GlobalTimer::adjust_timer(int timer_id, int delay_ms)
 {
-  mutex_enter_blocking(&_mutex);
+  CoreMutex m(&_mutex);
 
   timerItem_t *item = remove_item(timer_id);
 
@@ -120,13 +124,11 @@ void GlobalTimer::adjust_timer(int timer_id, int delay_ms)
     item->target_ms += delay_ms;
     insert_item(item);
   }
-
-  mutex_exit(&_mutex);
 }
 
 int GlobalTimer::get_remaining_time(int timer_id)
 {
-  mutex_enter_blocking(&_mutex);
+  CoreMutex m(&_mutex);
 
   timerItem_t *item = find_item(timer_id);
   int remaining = 0;
@@ -135,7 +137,6 @@ int GlobalTimer::get_remaining_time(int timer_id)
     remaining = max(0, item->target_ms - millis());
   }
 
-  mutex_exit(&_mutex);
   return remaining;
 }
 
@@ -154,14 +155,17 @@ void GlobalTimer::tick(void)
   for (curr = _head; curr; curr = curr->next) {
     if (curr->target_ms <= now) {
       _head = curr->next;
-      (*curr->cb)(curr->timer_id, now - curr->start_ms);
     }
   }
+  mutex_exit(&_mutex);  
 
   timerItem_t *next;
   for (curr = old_head; curr && curr != _head; curr = next) {
+      int elapsed = now - curr->start_ms;
+      Log.notice("Calling callback: %d, %dms", curr->timer_id, elapsed);
+      (*curr->cb)(curr->timer_id, elapsed);
+
       next = curr->next;
       free(curr);
   }
-  mutex_exit(&_mutex);  
 }

@@ -6,10 +6,9 @@
 class PCA9501DigitalSource : public AnalogSourceBase {
   public:
     PCA9501DigitalSource(int index, uint8_t i2c_address, uint8_t bitmask) : 
-        AnalogSourceBase(index, i2c_address, 1) {_bitmask = bitmask;};
+        AnalogSourceBase(index, 0, i2c_address, 1) {_bitmask = bitmask;};
     
     void init(void);
-    void feedback(int index);
   protected:
     int32_t read_device(void);
     int32_t convert(int32_t reading);

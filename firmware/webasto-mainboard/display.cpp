@@ -125,11 +125,11 @@ void Display::printDigits(int x, int y, int value, int count, uint8_t suffix, bo
   if (negative) {
     count--;
     if (x < MAX_COLUMNS) {
-      _cache[y][x++] = '-';
+      _cache[y][x++] = ' ';
       _dirty = true;
     }
   }
-
+  
   int limit = 1;
   for (int i = 0; i < count - 1; i++) {
     limit *= 10;
@@ -140,6 +140,11 @@ void Display::printDigits(int x, int y, int value, int count, uint8_t suffix, bo
     if (digit || nonZero || i == 1) {
       // skip leading zeros.
       if (digit) {
+        if (!nonZero && negative) {
+          _cache[y][x - 1] = '-';
+          _dirty = true;
+        }
+
         nonZero = true;
       }
 
@@ -226,40 +231,32 @@ void update_display(void) {
   int state = fsm_state;
   display->printLabel(0, 0, "State:");
   display->printState(7, 0, state);
-  Log.notice("State: %02x", state);
-
+ 
   display->printLabel(10, 0, "P:");
   display->printWatts(13, 0, fuelPumpTimer.getBurnPower());
-  Log.notice("Power: %dW", fuelPumpTimer.getBurnPower());
-
+ 
   display->printLabel(0, 1, "Fl:");
   display->printMilliohms(4, 1, flameDetectorSensor->get_value());
-  Log.notice("Flame: %dmOhm", flameDetectorSensor->get_value());
-
+ 
   display->printLabel(10, 1, "Fan:");
   display->printPercent(15, 1, combustionFanPercent);
-  Log.notice("Fan: %d%%", combustionFanPercent);
-
+ 
   int temp = internalTempSensor->get_value();
   display->printLabel(0, 2, "I:");
   display->printTemperature(2, 2, temp);
-  Log.notice("Internal: %d.%dC", abs(temp) / 100, temp % 100);
-
+ 
   temp = externalTempSensor->get_value();
   display->printLabel(10, 2, "O:");
   display->printTemperature(12, 2, temp);
-  Log.notice("External: %d.%dC", abs(temp) / 100, temp % 100);
-
+ 
   temp = coolantTempSensor->get_value();
   display->printLabel(0, 3, "C:");
   display->printTemperature(2, 3, temp);
-  Log.notice("Coolant: %d.%dC", abs(temp) / 100, temp % 100);
-
+ 
   temp = exhaustTempSensor->get_value();
   display->printLabel(10, 3, "E:");
   display->printTemperature(12, 3, temp);
-  Log.notice("Exhaust: %d.%dC", abs(temp) / 100, temp % 100);
-
+ 
   display->update();
   display->log();
 }

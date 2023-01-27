@@ -72,9 +72,8 @@ extern int flameOutCount;
 extern int exhaustTempPreBurn;
 extern int exhaustTempStable;
 
+extern bool fsm_init;
 extern mutex_t fsm_mutex;
-
-// extern WebastoControlFSM fsm;
 
 
 void set_open_drain_pin(int pinNum, int value);
@@ -82,5 +81,6 @@ void fsmTimerCallback(int timer_id, int delay);
 void fsmCommonReact(TimerEvent const&);
 void kickRunTimer(void);
 void increment_minutes(time_sensor_t *time);
+void init_fsm(void);
 
 #endif

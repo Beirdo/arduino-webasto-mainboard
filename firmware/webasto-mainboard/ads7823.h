@@ -6,9 +6,8 @@
 class ADS7823Source : public AnalogSourceBase {
   public:
     ADS7823Source(int index, uint8_t i2c_address, int bits, int mult, int div_) :
-      AnalogSourceBase(index, i2c_address, bits, mult, div_) {};
+      AnalogSourceBase(index, 100, i2c_address, bits, mult, div_) {};
     void init(void);
-    void feedback(int index);
   protected:
     int32_t read_device(void);
 

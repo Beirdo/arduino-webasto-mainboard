@@ -25,6 +25,7 @@ enum {
   TIMER_FUEL_FAN_DELTA,
   TIMER_BEEPER,
   TIMER_RESTART_BEEPS,
+  TIMER_FSM_STARTUP,
 };
 
 class GlobalTimer {

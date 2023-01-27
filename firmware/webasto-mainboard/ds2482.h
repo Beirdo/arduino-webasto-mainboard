@@ -5,9 +5,9 @@
 
 class DS2482Source : public AnalogSourceBase {
   public:
-    DS2482Source(int index, uint8_t i2c_address, int bits) : AnalogSourceBase(index, i2c_address, bits) {};
+    DS2482Source(int index, uint8_t i2c_address, int bits) : 
+      AnalogSourceBase(index, 100, i2c_address, bits) {};
     void init(void);
-    void feedback(int index);
   protected:
     int32_t read_device(void);
     void wait_for_1wire(uint32_t poll_us);

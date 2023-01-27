@@ -28,14 +28,3 @@ int32_t PCA9501DigitalSource::convert(int32_t reading)
   // Normalize to 0/1 regardless of bitmask
   return !(!reading);
 }
-
-void PCA9501DigitalSource::feedback(int index)
-{
-  if (_prev_value != _value) {
-    if (index == 4) {
-      IgnitionEvent event;
-      event.enable = (bool)_value;
-      WebastoControlFSM::dispatch(event);
-    }
-  }
-}

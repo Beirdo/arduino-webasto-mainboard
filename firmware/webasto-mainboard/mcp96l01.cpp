@@ -90,18 +90,3 @@ int32_t MCP96L01Source::convert(int32_t reading)
   reading /= 16;
   return reading;
 }
-
-void MCP96L01Source::feedback(int index)
-{
-  if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > 100) {
-    if (index == 2) {
-      CoolantTempEvent event;
-      event.value = (int)_value;
-      WebastoControlFSM::dispatch(event);    
-    } else if (index == 3) {
-      ExhaustTempEvent event;
-      event.value = (int)_value;
-      WebastoControlFSM::dispatch(event);
-    }
-  }
-}

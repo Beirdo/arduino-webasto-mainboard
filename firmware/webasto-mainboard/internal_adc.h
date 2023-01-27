@@ -6,13 +6,12 @@
 class InternalADCSource : public AnalogSourceBase {
   public:
     InternalADCSource(int index, int channel, int bits, int mult = 0, int div_ = 0) : 
-        AnalogSourceBase(index, 0x00, bits, mult, div_)
+        AnalogSourceBase(index, 100, 0x00, bits, mult, div_)
     {
       _channel = channel;
     };
     
     void init(void);
-    void feedback(int index); 
   protected:
     int32_t read_device(void);
     int32_t convert(int32_t reading);

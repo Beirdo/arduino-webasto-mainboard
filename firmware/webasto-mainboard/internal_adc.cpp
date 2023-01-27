@@ -2,8 +2,8 @@
 #include <pico.h>
 #include <ArduinoLog.h>
 
+#include "project.h"
 #include "internal_adc.h"
-#include "fsm.h"
 
 void InternalADCSource::init(void)
 {
@@ -28,10 +28,12 @@ int32_t InternalADCSource::read_device(void)
     return 0;
   }
 
+#ifdef VERBOSE_LOGGING
   Log.notice("Reading Internal ADC Channel %d", _channel);
+#endif
   if (_channel == 4) {
-    float temp = analogReadTemp(2.048);
-    Log.notice("Raw reading: %d", (int32_t)(temp * 100.0));
+    float vref = mainboardDetected ? 2.048 : 3.3;
+    float temp = analogReadTemp(vref);
     return (int32_t)(temp * 100.0);
   }
 
@@ -46,15 +48,4 @@ int32_t InternalADCSource::convert(int32_t reading)
   }
 
   return AnalogSourceBase::convert(reading);
-}
-
-void InternalADCSource::feedback(int index)
-{
-  if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > 100) {
-    if (index == 5) {
-      InternalTempEvent event;
-      event.value = (int)_value;
-      WebastoControlFSM::dispatch(event);
-    }
-  }
 }

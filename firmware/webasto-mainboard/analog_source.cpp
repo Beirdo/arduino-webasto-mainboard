@@ -6,9 +6,9 @@
 
 #include "analog_source.h"
 #include "sensor_eeprom.h"
+#include "fsm.h"
 
-
-AnalogSourceBase::AnalogSourceBase(int index, uint8_t i2c_address, int bits, int mult, int div_)
+AnalogSourceBase::AnalogSourceBase(int index, int feedback_threshold, uint8_t i2c_address, int bits, int mult, int div_)
 {
   _index = index;
   _valid = false;
@@ -25,6 +25,7 @@ AnalogSourceBase::AnalogSourceBase(int index, uint8_t i2c_address, int bits, int
   _mult = mult;
   _div = div_;
   _prev_value = UNUSED_READING;
+  _feedback_threshold = feedback_threshold;
   
   mutex_init(&_i2c_mutex);
 
@@ -55,7 +56,6 @@ void AnalogSourceBase::update(void)
   raw_value = read_device();
   scaled_value = convert(raw_value);
   append_value(scaled_value);
-  _prev_value = _value;
   _value = filter();
 }
 
@@ -63,9 +63,9 @@ int32_t AnalogSourceBase::filter(void)
 {
   int32_t accumulator = 0;  
   int count = 0;
-  int32_t min_reading = (int32_t)0xFFFFFFFF;
+  int32_t min_reading = (int32_t)0x7FFFFFFF;
   int min_index = -1;
-  int32_t max_reading = (int32_t)0x7FFFFFFF;
+  int32_t max_reading = (int32_t)0x80000000;
   int max_index = -1;
   int32_t value;
 
@@ -82,13 +82,46 @@ int32_t AnalogSourceBase::filter(void)
     }
   }
 
-  for (int i = 0, count = 0; i < ADC_AVG_WINDOW; i++) {
-    value = _readings[i];
-    if (value != UNUSED_READING && i != min_index && i != max_index) {
-      accumulator += value;
-      count++;
-    }
+#ifdef VERBOSE_LOGGING
+  if (min_index != -1) {
+    Log.notice("Min: %d -> %d", min_index, _readings[min_index]);
   }
+
+  if (max_index != -1) {
+    Log.notice("Max: %d -> %d", max_index, _readings[max_index]);
+  }
+#endif
+
+  for (int i = 0; i < ADC_AVG_WINDOW; i++) {
+    value = _readings[i];
+#ifdef VERBOSE_LOGGING
+    Log.notice("Reading %d: %d", i, value);
+#endif
+    if (value == UNUSED_READING) {
+      continue;            
+    }
+    
+    if (i == min_index) {
+#ifdef VERBOSE_LOGGING
+      Log.notice("Discarding min: %d -> %d", i, value);
+#endif
+      continue;
+    }    
+
+    if (i == max_index) {
+#ifdef VERBOSE_LOGGING
+      Log.notice("Discarding max: %d -> %d", i, value);
+#endif
+      continue;
+    }
+
+    accumulator += value;
+    count++;
+  }
+
+#ifdef VERBOSE_LOGGING
+  Log.notice("Accumulator: %d, Count: %d", accumulator, count);  
+#endif
 
   if (!count) {
     return 0;
@@ -167,4 +200,83 @@ int32_t AnalogSourceBase::convert(int32_t reading)
   value *= _mult;
   value /= _div;
   return value;
+}
+
+
+void AnalogSourceBase::feedback(int index)
+{
+  if (!fsm_init) {
+    return;
+  }
+
+  if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > _feedback_threshold) {
+    switch(index) {
+      case 0:
+        {
+          OutdoorTempEvent event;
+          event.value = (int)_value;
+          WebastoControlFSM::dispatch(event);
+        }
+        break;
+      case 1:
+        {
+          BatteryLevelEvent event;
+          event.value = _value;
+          WebastoControlFSM::dispatch(event);
+        }
+        break;
+      case 2:
+        {
+          CoolantTempEvent event;
+          event.value = (int)_value;
+          WebastoControlFSM::dispatch(event);    
+        }
+        break;
+      case 3:
+        {
+          ExhaustTempEvent event;
+          event.value = (int)_value;
+          WebastoControlFSM::dispatch(event);
+        }
+        break;
+      case 4:
+        {        
+          IgnitionEvent event;
+          event.enable = (bool)_value;
+          WebastoControlFSM::dispatch(event);
+        }
+        break;
+      case 5:
+        {
+          InternalTempEvent event;
+          event.value = (int)_value;
+          WebastoControlFSM::dispatch(event);
+        }
+        break;
+      case 6:
+        {
+          FlameDetectEvent event;
+          event.value = (int)_value;
+          WebastoControlFSM::dispatch(event);
+        }
+        break;
+      case 7:
+        {
+          StartRunEvent event;
+          event.enable = (bool)_value;
+          WebastoControlFSM::dispatch(event);
+        }
+        break;
+      case 8:
+        {
+          EmergencyStopEvent event;
+          event.enable = (bool)_value;
+          WebastoControlFSM::dispatch(event);
+        }
+        break;
+      default:
+        break;
+    }
+    _prev_value = _value;
+ }
 }

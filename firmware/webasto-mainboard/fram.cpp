@@ -46,7 +46,7 @@ void initalize_fram_data(uint8_t version, uint8_t *buf)
 void init_fram(void) 
 {
   mutex_init(&fram_mutex);
-  memset(&fram_data, 0xFF, sizeof(fram_data));
+  memset(&fram_data, 0x00, sizeof(fram_data));
 
   int max_fram_data = -1;
   int min_fram_data = CY15E004J_DEVICE_SIZE + 1;
@@ -60,7 +60,7 @@ void init_fram(void)
   if (!fram->begin()) {
     delete fram;
     fram = 0;
-    Log.error("No onboard FRAM at address 0x%02X", CY15E004J_I2C_ADDR);
+    Log.error("No onboard FRAM at address %X", CY15E004J_I2C_ADDR);
     return;
   }
 
@@ -122,7 +122,7 @@ void init_fram(void)
 void update_fram(void)
 {
   CoreMutex m(&fram_mutex);
-  if (!fram_dirty) {
+  if (!fram_dirty || !fram) {
     return;
   }
   

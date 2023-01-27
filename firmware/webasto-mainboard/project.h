@@ -68,6 +68,7 @@
 #define PIN_ALERT_BUZZER      15
 #define PIN_EMERGENCY_STOP    16
 #define PIN_USE_USB           17
+#define PIN_BOARD_SENSE       22  // LOW = mainboard there, HIGH = just the Pico 
 #define PIN_ONBOARD_LED       25
 #define PIN_FLAME_LED         26
 #define PIN_OPERATING_LED     27
@@ -81,7 +82,7 @@ inline int clamp(int value, int minval, int maxval)
 #define LOBYTE(x)     ((uint8_t)(((int)(x) & 0xFF)))
 
 #define HI_NIBBLE(x)  ((uint8_t)(((int)(x) >> 4) & 0x0F))
-#define LO_NIBBLE(x)  ((uint8_t)(((int)(x) && 0x0F)))
+#define LO_NIBBLE(x)  ((uint8_t)(((int)(x) & 0x0F)))
 
 #define SUPPLEMENTAL_MIN_TEMP   -2000   // -20C
 #define SUPPLEMENTAL_MAX_TEMP   1000    // 10C
@@ -126,5 +127,7 @@ inline int clamp(int value, int minval, int maxval)
 #define START_FAN               40
 
 #define PURGE_FAN               80
+
+extern bool mainboardDetected;
 
 #endif

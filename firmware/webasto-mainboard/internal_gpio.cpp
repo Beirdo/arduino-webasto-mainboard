@@ -14,8 +14,13 @@ void InternalGPIODigitalSource::init(void)
 
 int32_t InternalGPIODigitalSource::read_device(void)
 {
-  int value = digitalRead(PIN_START_RUN);
-  return value;  
+  if (mainboardDetected) {
+    return digitalRead(_pin);
+  } else if (_active_low) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 int32_t InternalGPIODigitalSource::convert(int32_t reading)
@@ -25,20 +30,5 @@ int32_t InternalGPIODigitalSource::convert(int32_t reading)
     return !reading;
   } else {
     return !(!reading);
-  }
-}
-  
-void InternalGPIODigitalSource::feedback(int index)
-{
-  if (_prev_value == UNUSED_READING || _prev_value != _value) {
-    if (index == 8) {
-      StartRunEvent event;
-      event.enable = (bool)_value;
-      WebastoControlFSM::dispatch(event);
-    } else if (index == 9) {
-      EmergencyStopEvent event;
-      event.enable = (bool)_value;
-      WebastoControlFSM::dispatch(event);
-    }
   }
 }

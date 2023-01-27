@@ -11,11 +11,6 @@ void DummySource::init(void)
   _connected = true;
 }
 
-void DummySource::feedback(int index)
-{
-  // Sorry, FSM...  this sensor is missing
-}
-
 int32_t DummySource::read_device(void)
 {
   return 0;
@@ -23,6 +18,5 @@ int32_t DummySource::read_device(void)
 
 int32_t DummySource::convert(int32_t reading)
 {
-  (void)reading;
-  return 0;
+  return reading;
 }
