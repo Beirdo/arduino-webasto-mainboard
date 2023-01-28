@@ -13,7 +13,7 @@
 
 class Display {
   public:
-    Display(uint8_t i2c_address);
+    Display(uint8_t i2c_address, int cols, int rows);
     void update();
     void log();
     void clearLine(int y);
@@ -25,14 +25,23 @@ class Display {
     void printLabel(int x, int y, const char *str);
 
   protected:
-    uint8_t printHexNibble(uint8_t nibble);
+    uint16_t getHexDigit(uint8_t nibble);
+    inline int getOffset(int x, int y) { return y * _columns + x; };
+    inline bool isOffsetInRow(int offset, int y) 
+    { 
+      int _min = getOffset(0, y);
+      int _max = getOffset(_columns, y);
+      return offset >= _min && offset < _max;
+    }
     void printDigits(int x, int y, int value, int count, uint8_t suffix = 0x00, bool nonZero = false);
 
     SerLCD _lcd;
     uint8_t _i2c_address;
-    uint8_t _cache[MAX_ROWS][MAX_COLUMNS + 1];
-    uint8_t _display[MAX_ROWS][MAX_COLUMNS + 1];
-    bool _dirty;
+    int _columns;
+    int _rows;
+    uint16_t *_cache;
+    uint16_t *_display;
+    bool *_dirty;
     bool _connected;
     mutex_t _mutex;
 };

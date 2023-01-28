@@ -13,23 +13,26 @@
 #include "analog.h"
 #include "fuel_pump.h"
 
-Display::Display(uint8_t i2c_address) : _i2c_address(i2c_address) 
+Display::Display(uint8_t i2c_address, int columns, int rows) : 
+  _i2c_address(i2c_address), _columns(columns), _rows(rows) 
 {
   Wire.begin();
   Wire.beginTransmission(_i2c_address);
   _connected = (Wire.endTransmission() == 0);
 
-  memset(&_cache, 0x20, MAX_ROWS * MAX_COLUMNS);
-  memset(&_display, 0x20, MAX_ROWS * MAX_COLUMNS);
-
-  for (int i = 0; i < MAX_ROWS; i++) {
-    _cache[i][MAX_COLUMNS] = 0;
-    _display[i][MAX_COLUMNS] = 0;
-  }
-
-  _dirty = false;
+  int len = _columns * _rows;
+  _cache = new uint16_t[len];
+  _display = new uint16_t[len];
+  _dirty = new bool[_rows];
 
   mutex_init(&_mutex);
+
+  for (int i = 0; i < _rows; i++ ) {
+    clearLine(i);
+    _dirty[i] = false;
+  }
+
+  memcpy(_display, _cache, len * 2);
 
   if (!_connected) {
     Log.warning("No SerLCD connected at I2C0/0x%X", _i2c_address);
@@ -57,33 +60,43 @@ void Display::update(void)
   int cursorX, cursorY;
   int x, y;
 
-  for (y = 0; y < MAX_ROWS; y++) {
-    for (x = 0; x < MAX_COLUMNS; x++) {
-      if (_cache[y][x] != _display[y][x]) {
+  for (y = 0; y < _rows; y++) {
+    if (!_dirty[y]) {
+      continue;
+    }
+
+    for (x = 0; x < _columns; x++) {
+      int offset = getOffset(x, y);
+      if (_cache[offset] != _display[offset]) {
         if (cursorX != x || cursorY != y) {
           _lcd.setCursor(x, y);
           cursorX = x;
           cursorY = y;
         }
 
-        _lcd.write(_cache[y][x]);
-        _display[y][x] = _cache[y][x];
+        _lcd.write(_cache[offset]);
+        _display[offset] = _cache[offset];
         cursorX++;
       }
     }
+
+    _dirty[y] = false;    
   }
-  _dirty = false;
 }
 
 void Display::clearLine(int y)
 {
   CoreMutex m(&_mutex);
 
-  memset(&_cache[y], 0x20, MAX_COLUMNS);
-  _dirty = true;
+  uint16_t *buf = &_cache[getOffset(0, y)];
+
+  for (int i = 0; i < _columns; i++) {
+    *(buf++) = 0x0020;
+  }
+  _dirty[y] = true;
 }
 
-uint8_t Display::printHexNibble(uint8_t nibble)
+uint16_t Display::getHexDigit(uint8_t nibble)
 {
   nibble &= 0x0F;
 
@@ -96,20 +109,21 @@ uint8_t Display::printHexNibble(uint8_t nibble)
 
 void Display::printState(int x, int y, uint8_t state)
 {
-  if (y < 0 || y >= MAX_ROWS || x < 0) {
+  if (y < 0 || y >= _rows || x < 0) {
     return;
   }
 
   CoreMutex m(&_mutex);
 
-  if (x < MAX_COLUMNS) {
-    _cache[y][x++] = printHexNibble(HI_NIBBLE(state));
-    _dirty = true;
+  int offset = getOffset(x, y);
+  if (isOffsetInRow(offset, y)) {
+    _cache[offset++] = getHexDigit(HI_NIBBLE(state));
+    _dirty[y] = true;
   }
 
-  if (x < MAX_COLUMNS) {
-    _cache[y][x++] = printHexNibble(LO_NIBBLE(state));
-    _dirty = true;
+  if (isOffsetInRow(offset, y)) {
+    _cache[offset++] = getHexDigit(LO_NIBBLE(state));
+    _dirty[y] = true;
   }
 }
 
@@ -119,14 +133,15 @@ void Display::printDigits(int x, int y, int value, int count, uint8_t suffix, bo
     return;
   }
 
+  int offset = getOffset(x, y);
   bool negative = (value < 0);
 
   value = abs(value);
   if (negative) {
     count--;
-    if (x < MAX_COLUMNS) {
-      _cache[y][x++] = ' ';
-      _dirty = true;
+    if (isOffsetInRow(offset, y)) {
+      _cache[offset++] = (uint16_t)' ';
+      _dirty[y] = true;
     }
   }
   
@@ -135,31 +150,31 @@ void Display::printDigits(int x, int y, int value, int count, uint8_t suffix, bo
     limit *= 10;
   }
 
-  for (int i = limit; i != 0 && x < MAX_COLUMNS; i /= 10, x++) {
+  for (int i = limit; i != 0 && isOffsetInRow(offset, y); i /= 10, offset++) {
     int digit = (value / i) % 10;
     if (digit || nonZero || i == 1) {
       // skip leading zeros.
       if (digit) {
         if (!nonZero && negative) {
-          _cache[y][x - 1] = '-';
-          _dirty = true;
+          _cache[offset - 1] = (uint16_t)'-';
+          _dirty[y] = true;
         }
 
         nonZero = true;
       }
 
-      _cache[y][x] = 0x30 + digit;
-      _dirty = true;
+      _cache[offset] = (uint16_t)(0x30 + digit);
+      _dirty[y] = true;
     } else {
-      _cache[y][x] = ' ';
-      _dirty = true;
+      _cache[offset] = (uint16_t)' ';
+      _dirty[y] = true;
     }
   }
 
   if (suffix) {
-    if (x < MAX_COLUMNS) {
-      _cache[y][x++] = suffix;
-      _dirty = true;
+    if (isOffsetInRow(offset, y)) {
+      _cache[offset++] = (uint16_t)suffix;
+      _dirty[y] = true;
     }
   }
 }
@@ -202,25 +217,39 @@ void Display::printLabel(int x, int y, const char *str)
 
   CoreMutex m(&_mutex);
 
-  for ( ; *str && x < MAX_COLUMNS; str++, x++) {
-    _cache[y][x] = *str;
-    _dirty = true;
+  int offset = getOffset(x, y);
+  for ( ; *str && isOffsetInRow(offset, y); str++, offset++) {
+    _cache[offset] = (uint16_t)*str;
+    _dirty[y] = true;
   }
 }
 
 void Display::log(void) 
 {
   CoreMutex m(&_mutex);
-  for (int i = 0; i < MAX_ROWS; i++) {
-    Log.notice("Line %d - |%s|", i, _cache[i]);
+
+  int len = (_columns + 1) * _rows;
+  uint8_t *buf = new uint8_t[len];
+  memset(buf, 0x00, len);
+  
+  int offset = 0;
+
+  for (int y = 0; y < _rows; y++, offset++) {
+    for (int x = 0; x < _columns; x++, offset++) {
+      uint16_t word = _cache[getOffset(x, y)];
+      buf[offset] = word < 256 ? (uint8_t)word : 0x00FF;
+    }
+    Log.notice("Line %d - |%s|", y, &buf[offset - _columns]);
   }
+  
+  delete [] buf;
 }
 
 
 Display *display = 0;
 
 void init_display(void) {
-  display = new Display(I2C_ADDR_SERLCD);
+  display = new Display(I2C_ADDR_SERLCD, MAX_COLUMNS, MAX_ROWS);
 }
 
 void update_display(void) {
