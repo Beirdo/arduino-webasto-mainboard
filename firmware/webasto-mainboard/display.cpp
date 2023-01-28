@@ -101,7 +101,7 @@ uint16_t Display::getHexDigit(uint8_t nibble)
   }
 }
 
-void Display::printState(int x, int y, uint8_t state)
+void Display::printHexByte(int x, int y, uint8_t data)
 {
   if (y < 0 || y >= _rows || x < 0) {
     return;
@@ -111,19 +111,19 @@ void Display::printState(int x, int y, uint8_t state)
 
   int offset = getOffset(x, y);
   if (isOffsetInRow(offset, y)) {
-    _cache[offset++] = getHexDigit(HI_NIBBLE(state));
+    _cache[offset++] = getHexDigit(HI_NIBBLE(data));
     _dirty[y] = true;
   }
 
   if (isOffsetInRow(offset, y)) {
-    _cache[offset++] = getHexDigit(LO_NIBBLE(state));
+    _cache[offset++] = getHexDigit(LO_NIBBLE(data));
     _dirty[y] = true;
   }
 }
 
 void Display::printDigits(int x, int y, int value, int count, uint8_t suffix, bool nonZero)
 {
-  if (y < 0 || y >= MAX_ROWS || x < 0 || count < 0 || count > 6) {
+  if (y < 0 || y >= _rows || x < 0 || count < 0 || count > 6) {
     return;
   }
 
@@ -205,7 +205,7 @@ void Display::printMilliohms(int x, int y, int milliohms)
 
 void Display::printLabel(int x, int y, const char *str)
 {
-  if (y < 0 || y >= MAX_ROWS || x < 0 || !str) {
+  if (y < 0 || y >= _rows || x < 0 || !str) {
     return;
   }
 
@@ -263,34 +263,39 @@ void update_display_oled(void) {
 
   Log.notice("Starting display->update");
 
-  int state = fsm_state;
   display->printLabel(0, 0, "State:");
-  display->printState(7, 0, state);
+  display->printHexByte(8, 0, fsm_state);
+
+  display->printLabel(11, 0, "Mode:");
+  display->printHexByte(19, 0, fsm_mode);
  
-  display->printLabel(10, 0, "P:");
-  display->printWatts(13, 0, fuelPumpTimer.getBurnPower());
+  display->printLabel(0, 1, "Burn Power:");
+  display->printWatts(16, 1, fuelPumpTimer.getBurnPower());
  
-  display->printLabel(0, 1, "Fl:");
-  display->printMilliohms(4, 1, flameDetectorSensor->get_value());
+  display->printLabel(0, 2, "Flame PTC:");
+  display->printMilliohms(15, 2, flameDetectorSensor->get_value());
  
-  display->printLabel(10, 1, "Fan:");
-  display->printPercent(15, 1, combustionFanPercent);
+  display->printLabel(0, 3, "CF:");
+  display->printPercent(6, 3, combustionFanPercent);
+
+  display->printLabel(11, 3, "VF:");
+  display->printPercent(17, 3, vehicleFanPercent);
  
   int temp = internalTempSensor->get_value();
-  display->printLabel(0, 2, "I:");
-  display->printTemperature(2, 2, temp);
+  display->printLabel(0, 4, "Internal:");
+  display->printTemperature(13, 4, temp);
  
   temp = externalTempSensor->get_value();
-  display->printLabel(10, 2, "O:");
-  display->printTemperature(12, 2, temp);
+  display->printLabel(0, 5, "Outdoors:");
+  display->printTemperature(13, 5, temp);
  
   temp = coolantTempSensor->get_value();
-  display->printLabel(0, 3, "C:");
-  display->printTemperature(2, 3, temp);
+  display->printLabel(0, 6, "Coolant:");
+  display->printTemperature(13, 6, temp);
  
   temp = exhaustTempSensor->get_value();
-  display->printLabel(10, 3, "E:");
-  display->printTemperature(12, 3, temp);
+  display->printLabel(0, 7, "Exhaust:");
+  display->printTemperature(13, 7, temp);
  
   display->update();
   display->log();
@@ -303,7 +308,7 @@ void update_display_serlcd(void) {
 
   int state = fsm_state;
   display->printLabel(0, 0, "State:");
-  display->printState(7, 0, state);
+  display->printHexByte(7, 0, state);
  
   display->printLabel(10, 0, "P:");
   display->printWatts(13, 0, fuelPumpTimer.getBurnPower());

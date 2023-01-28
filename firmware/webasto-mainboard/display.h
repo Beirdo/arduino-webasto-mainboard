@@ -16,7 +16,7 @@ class Display {
     void update();
     void log();
     void clearLine(int y);
-    void printState(int x, int y, uint8_t state);
+    void printHexByte(int x, int y, uint8_t data);
     void printWatts(int x, int y, int burnPower);
     void printPercent(int x, int y, int percent);
     void printTemperature(int x, int y, int millivolts);

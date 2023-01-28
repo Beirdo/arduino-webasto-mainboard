@@ -72,7 +72,7 @@ void setup() {
   //init_kline();
   init_display();
 
-  // rp2040.wdt_begin(500);
+  rp2040.wdt_begin(500);
 }
 
 void setup1(void) 
@@ -87,15 +87,18 @@ void setup1(void)
 }
 
 void loop() {
-  delay(1000);
+  static int display_count = 0;
   int topOfLoop = millis();
+  display_count++;
 
   // put your main code here, to run repeatedly:
   update_device_eeprom();
   update_fram();
   update_analog();
   //process_kline();
-  update_display();
+  if (display_count % 10 == 1) {
+    update_display();
+  }
 
   static bool led = true;
   led = !led;
@@ -108,7 +111,7 @@ void loop() {
 
   int delayMs = clamp(100 - elapsed, 1, 100);
   delay(delayMs);
-  // rp2040.wdt_reset();
+  rp2040.wdt_reset();
 }
 
 void loop1(void)
