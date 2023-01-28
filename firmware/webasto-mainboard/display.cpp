@@ -2,7 +2,6 @@
 #include <pico.h>
 #include <Wire.h>
 #include <ArduinoLog.h>
-#include <SerLCD.h>
 #include <stdlib.h>
 #include <string.h>
 #include <CoreMutex.h>
@@ -12,10 +11,19 @@
 #include "fsm.h"
 #include "analog.h"
 #include "fuel_pump.h"
+#include "serlcd_display.h"
+#include "oled_display.h"
+
+void update_display_oled(void);
+void update_display_serlcd(void);
+void init_display_oled(void);
+void init_display_serlcd(void);
 
 Display::Display(uint8_t i2c_address, int columns, int rows) : 
   _i2c_address(i2c_address), _columns(columns), _rows(rows) 
 {
+  Log.notice("Attempting to connect to %dx%d display at I2C %X", _columns, _rows, _i2c_address);
+  
   Wire.begin();
   Wire.beginTransmission(_i2c_address);
   _connected = (Wire.endTransmission() == 0);
@@ -33,21 +41,6 @@ Display::Display(uint8_t i2c_address, int columns, int rows) :
   }
 
   memcpy(_display, _cache, len * 2);
-
-  if (!_connected) {
-    Log.warning("No SerLCD connected at I2C0/0x%X", _i2c_address);
-    return;
-  }
-
-  Log.notice("Found SerLCD at I2C0/0x%X", _i2c_address);
-  _lcd.begin(Wire, _i2c_address);
-  _lcd.noDisplay();
-  _lcd.noBlink();
-  _lcd.noCursor();
-  _lcd.clear();
-  _lcd.home();
-  _lcd.display();
-  _lcd.enableSystemMessages();
 }
 
 void Display::update(void)
@@ -69,12 +62,12 @@ void Display::update(void)
       int offset = getOffset(x, y);
       if (_cache[offset] != _display[offset]) {
         if (cursorX != x || cursorY != y) {
-          _lcd.setCursor(x, y);
+          setCursor(x, y);
           cursorX = x;
           cursorY = y;
         }
 
-        _lcd.write(_cache[offset]);
+        write(_cache[offset]);
         _display[offset] = _cache[offset];
         cursorX++;
       }
@@ -82,6 +75,7 @@ void Display::update(void)
 
     _dirty[y] = false;    
   }
+  display();
 }
 
 void Display::clearLine(int y)
@@ -249,10 +243,60 @@ void Display::log(void)
 Display *display = 0;
 
 void init_display(void) {
-  display = new Display(I2C_ADDR_SERLCD, MAX_COLUMNS, MAX_ROWS);
+  init_display_oled();
+}
+
+void init_display_oled(void) {
+  display = new OLEDDisplay(I2C_ADDR_OLED, 128, 64);
+}
+
+void init_display_serlcd(void) {
+  display = new SerLCDDisplay(I2C_ADDR_SERLCD, 20, 4);
 }
 
 void update_display(void) {
+  update_display_oled();
+}
+
+void update_display_oled(void) {
+  CoreMutex m(&fsm_mutex);
+
+  Log.notice("Starting display->update");
+
+  int state = fsm_state;
+  display->printLabel(0, 0, "State:");
+  display->printState(7, 0, state);
+ 
+  display->printLabel(10, 0, "P:");
+  display->printWatts(13, 0, fuelPumpTimer.getBurnPower());
+ 
+  display->printLabel(0, 1, "Fl:");
+  display->printMilliohms(4, 1, flameDetectorSensor->get_value());
+ 
+  display->printLabel(10, 1, "Fan:");
+  display->printPercent(15, 1, combustionFanPercent);
+ 
+  int temp = internalTempSensor->get_value();
+  display->printLabel(0, 2, "I:");
+  display->printTemperature(2, 2, temp);
+ 
+  temp = externalTempSensor->get_value();
+  display->printLabel(10, 2, "O:");
+  display->printTemperature(12, 2, temp);
+ 
+  temp = coolantTempSensor->get_value();
+  display->printLabel(0, 3, "C:");
+  display->printTemperature(2, 3, temp);
+ 
+  temp = exhaustTempSensor->get_value();
+  display->printLabel(10, 3, "E:");
+  display->printTemperature(12, 3, temp);
+ 
+  display->update();
+  display->log();
+}
+
+void update_display_serlcd(void) {
   CoreMutex m(&fsm_mutex);
 
   Log.notice("Starting display->update");

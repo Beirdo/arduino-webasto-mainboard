@@ -5,7 +5,6 @@
 #include <pico.h>
 #include <Wire.h>
 #include <ArduinoLog.h>
-#include <SerLCD.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,6 +24,10 @@ class Display {
     void printLabel(int x, int y, const char *str);
 
   protected:
+    virtual void setCursor(int x, int y) = 0;
+    virtual void write(uint16_t ch) = 0;
+    virtual void display(void) = 0;
+
     uint16_t getHexDigit(uint8_t nibble);
     inline int getOffset(int x, int y) { return y * _columns + x; };
     inline bool isOffsetInRow(int offset, int y) 
@@ -35,7 +38,6 @@ class Display {
     }
     void printDigits(int x, int y, int value, int count, uint8_t suffix = 0x00, bool nonZero = false);
 
-    SerLCD _lcd;
     uint8_t _i2c_address;
     int _columns;
     int _rows;
