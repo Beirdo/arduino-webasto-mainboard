@@ -87,14 +87,15 @@ void GlobalTimer::insert_item(timerItem_t *item, bool locked)
     mutex_enter_blocking(&_mutex);
   }
 
-  Log.notice("Inserting item, key: %d", key);  
+  Log.notice("Inserting item, key: %d", key);
+  item->next = 0;  
   if (!_head) {
     _head = item;
   } else {
     timerItem_t *curr, *prev;
     for (curr = _head, prev = 0; curr; prev = curr, curr = curr->next) {
       if (curr->target_ms > key) {
-        item->next = curr->next; 
+        item->next = curr;
         if (!prev) {
           _head = item;
         } else {
@@ -110,7 +111,7 @@ void GlobalTimer::insert_item(timerItem_t *item, bool locked)
   }
 
   if (!locked) {
-   mutex_exit(&_mutex);
+    mutex_exit(&_mutex);
   }
 }
 
@@ -151,21 +152,23 @@ void GlobalTimer::tick(void)
   _last_run = now;
 
   mutex_enter_blocking(&_mutex);
-  timerItem_t *curr, *old_head = _head;
+  timerItem_t *curr, *old_head = _head, *new_head;
   for (curr = _head; curr; curr = curr->next) {
-    if (curr->target_ms <= now) {
-      _head = curr->next;
-    }
+    if (curr->target_ms > now) {
+      break;
+    }            
+    _head = curr->next;
   }
+  new_head = _head;
   mutex_exit(&_mutex);  
 
   timerItem_t *next;
-  for (curr = old_head; curr && curr != _head; curr = next) {
-      int elapsed = now - curr->start_ms;
-      Log.notice("Calling callback: %d, %dms", curr->timer_id, elapsed);
-      (*curr->cb)(curr->timer_id, elapsed);
+  for (curr = old_head; curr && curr != new_head; curr = next) {
+    int elapsed = now - curr->start_ms;
+    Log.notice("Calling callback: %d, %dms", curr->timer_id, elapsed);
+    (*curr->cb)(curr->timer_id, elapsed);
 
-      next = curr->next;
-      free(curr);
+    next = curr->next;
+    free(curr);
   }
 }

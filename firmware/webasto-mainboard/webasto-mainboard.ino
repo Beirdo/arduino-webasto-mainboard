@@ -15,24 +15,30 @@
 
 bool mainboardDetected;
 mutex_t startup_mutex;
+mutex_t log_mutex;
 
 void sendCRLF(Print *output, int level);
+void sendCoreNum(Print *output, int level);
 
 void setup() {
   mutex_init(&startup_mutex);
+  mutex_init(&log_mutex);  
 
   CoreMutex m(&startup_mutex);
   
   pinMode(PIN_ONBOARD_LED, OUTPUT);
+  digitalWrite(PIN_ONBOARD_LED, HIGH);
 
   pinMode(PIN_USE_USB, INPUT_PULLUP);
   pinMode(PIN_BOARD_SENSE, INPUT_PULLUP);
   delay(2);
 
+  pinMode(PIN_I2C0_SCL, INPUT_PULLUP);
+  pinMode(PIN_I2C0_SDA, INPUT_PULLUP);
+
   if (digitalRead(PIN_USE_USB)) {
     Serial.begin(115200);
     Log.begin(LOG_LEVEL_VERBOSE, &Serial);
-    digitalWrite(PIN_ONBOARD_LED, HIGH);
   } else {
     Serial1.setTX(PIN_SERIAL1_TX);
     Serial1.setRX(PIN_SERIAL1_RX);
@@ -40,13 +46,15 @@ void setup() {
     Serial1.setRTS(PIN_SERIAL1_RTS);
     Serial1.begin(115200);
     Log.begin(LOG_LEVEL_VERBOSE, &Serial1);
-    digitalWrite(PIN_ONBOARD_LED, LOW);
   }
 
+  Log.setPrefix(sendCoreNum);
   Log.setSuffix(sendCRLF);
+
+  // Give user time to open a terminal to see first log messages
   delay(10000);
   Log.notice("Rebooted.");
-  Log.notice("Setting up Core 0");
+  Log.notice("Starting Core 0");
 
   mainboardDetected = !(digitalRead(PIN_BOARD_SENSE));
   if (mainboardDetected) {
@@ -65,11 +73,9 @@ void setup() {
   Wire.setClock(I2C0_CLK);
   Wire.begin();
 
-  // put your setup code here, to run once:
   init_eeprom();
   init_fram();
   init_analog();
-  //init_kline();
   init_display();
 
   rp2040.wdt_begin(500);
@@ -82,8 +88,9 @@ void setup1(void)
 
   CoreMutex m(&startup_mutex);
 
-  Log.notice("Starting Core1");
+  Log.notice("Starting Core 1");
   init_fsm();
+  //init_kline();
 }
 
 void loop() {
@@ -91,11 +98,11 @@ void loop() {
   int topOfLoop = millis();
   display_count++;
 
-  // put your main code here, to run repeatedly:
   update_device_eeprom();
   update_fram();
   update_analog();
-  //process_kline();
+
+  // We want screen updates every second.
   if (display_count % 10 == 1) {
     update_display();
   }
@@ -111,6 +118,7 @@ void loop() {
 
   int delayMs = clamp(100 - elapsed, 1, 100);
   delay(delayMs);
+  
   rp2040.wdt_reset();
 }
 
@@ -121,6 +129,7 @@ void loop1(void)
   int topOfLoop = millis();
 
   globalTimer.tick();
+  //process_kline();
 
   int elapsed = millis() - topOfLoop;
   if (elapsed >= 10) {
@@ -131,12 +140,29 @@ void loop1(void)
   delay(delayMs);
 }
 
+void sendCoreNum(Print *output, int level)
+{
+  if (level > LOG_LEVEL_VERBOSE) {
+    return;
+  }
+
+  mutex_enter_blocking(&log_mutex);
+  int coreNum = get_core_num();
+  output->print('C');  
+  output->print(coreNum == 1 ? '1' : '0');
+  output->print(':');
+  output->print(' ');
+}
+
 void sendCRLF(Print *output, int level)
 {
   if (level > LOG_LEVEL_VERBOSE) {
     return;
   }
+
   output->print('\n');
   output->print('\r');
   output->flush();
+  mutex_exit(&log_mutex);
 }
+

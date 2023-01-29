@@ -7,11 +7,13 @@
 class SerLCDDisplay : public Display {
   public:
     SerLCDDisplay(uint8_t i2c_address, int columns, int rows);
+    void updateDisplay(void);
 
   protected:
     void setCursor(int x, int y);
     void write(uint16_t ch);
     void display(void);
+    void clearDisplay(void);
     
     SerLCD _lcd;      
 };

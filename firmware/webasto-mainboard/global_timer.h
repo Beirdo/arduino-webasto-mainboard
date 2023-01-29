@@ -26,6 +26,7 @@ enum {
   TIMER_BEEPER,
   TIMER_RESTART_BEEPS,
   TIMER_FSM_STARTUP,
+  TIMER_OLED_LOGO,
 };
 
 class GlobalTimer {

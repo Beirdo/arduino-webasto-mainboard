@@ -8,9 +8,6 @@
 
 #include "display.h"
 #include "project.h"
-#include "fsm.h"
-#include "analog.h"
-#include "fuel_pump.h"
 #include "serlcd_display.h"
 #include "oled_display.h"
 
@@ -19,14 +16,15 @@ void update_display_serlcd(void);
 void init_display_oled(void);
 void init_display_serlcd(void);
 
+Display *display = 0;
+mutex_t display_mutex;
+
 Display::Display(uint8_t i2c_address, int columns, int rows) : 
   _i2c_address(i2c_address), _columns(columns), _rows(rows) 
 {
   Log.notice("Attempting to connect to %dx%d display at I2C %X", _columns, _rows, _i2c_address);
   
-  Wire.begin();
-  Wire.beginTransmission(_i2c_address);
-  _connected = (Wire.endTransmission() == 0);
+  isConnected();  
 
   int len = _columns * _rows;
   _cache = new uint16_t[len];
@@ -37,15 +35,31 @@ Display::Display(uint8_t i2c_address, int columns, int rows) :
 
   for (int i = 0; i < _rows; i++ ) {
     clearLine(i);
-    _dirty[i] = false;
+    clearMirrorLine(i);
+    _dirty[i] = true;
   }
+}
 
-  memcpy(_display, _cache, len * 2);
+Display::~Display(void)
+{
+  delete [] _cache;
+  delete [] _display;
+  delete [] _dirty;
+}
+
+volatile bool Display::isConnected(void)
+{
+  Wire.begin();
+  Wire.beginTransmission(_i2c_address);
+  int ret = Wire.endTransmission();
+  _connected = !ret;
+  // Log.notice("I2C Probe of %X - %d -> %d", _i2c_address, ret, _connected);
+  return (_connected);
 }
 
 void Display::update(void)
 {
-  if (!_connected || !_dirty) {
+  if (!isConnected() || !_dirty) {
     return;
   }
 
@@ -89,6 +103,20 @@ void Display::clearLine(int y)
   }
   _dirty[y] = true;
 }
+
+
+void Display::clearMirrorLine(int y)
+{
+  CoreMutex m(&_mutex);
+
+  uint16_t *buf = &_display[getOffset(0, y)];
+
+  for (int i = 0; i < _columns; i++) {
+    *(buf++) = 0x0020;
+  }
+  _dirty[y] = true;
+}
+
 
 uint16_t Display::getHexDigit(uint8_t nibble)
 {
@@ -220,6 +248,10 @@ void Display::printLabel(int x, int y, const char *str)
 
 void Display::log(void) 
 {
+  if (_connected) {
+    return;
+  }
+
   CoreMutex m(&_mutex);
 
   int len = (_columns + 1) * _rows;
@@ -239,102 +271,53 @@ void Display::log(void)
   delete [] buf;
 }
 
-
-Display *display = 0;
-
 void init_display(void) {
-  init_display_oled();
-}
+  if (!mutex_is_initialized(&display_mutex)) {
+    mutex_init(&display_mutex);
+  }  
 
-void init_display_oled(void) {
-  display = new OLEDDisplay(I2C_ADDR_OLED, 128, 64);
-}
+  CoreMutex m(&display_mutex);  
+  if (display) {
+    Log.error("WTF");
+    return;    
+  }
 
-void init_display_serlcd(void) {
+  Display *oledDisplay = new OLEDDisplay(I2C_ADDR_OLED, 128, 64);
+  if (oledDisplay && oledDisplay->isConnected()) {
+    Log.notice("OLED found");    
+    display = oledDisplay;
+    return;
+  }
+
   display = new SerLCDDisplay(I2C_ADDR_SERLCD, 20, 4);
+  if (!display || !display->isConnected()) {
+    Log.notice("Neither display -> just use the OLED for logging");
+    if (display) {
+      delete display;
+    }
+    display = oledDisplay;
+  } else {
+    Log.notice("SerLCD found");
+    delete oledDisplay;
+  }
 }
 
 void update_display(void) {
-  update_display_oled();
+  if (!display) {
+    init_display();
+  }
+
+  CoreMutex m(&display_mutex);
+
+  if (display) {
+    display->updateDisplay();
+  }
+
+  if (!display || !display->isConnected()) {
+    if (display) {
+      delete display;
+      display = 0;
+    }
+  }
 }
 
-void update_display_oled(void) {
-  CoreMutex m(&fsm_mutex);
-
-  Log.notice("Starting display->update");
-
-  display->printLabel(0, 0, "State:");
-  display->printHexByte(8, 0, fsm_state);
-
-  display->printLabel(11, 0, "Mode:");
-  display->printHexByte(19, 0, fsm_mode);
- 
-  display->printLabel(0, 1, "Burn Power:");
-  display->printWatts(16, 1, fuelPumpTimer.getBurnPower());
- 
-  display->printLabel(0, 2, "Flame PTC:");
-  display->printMilliohms(15, 2, flameDetectorSensor->get_value());
- 
-  display->printLabel(0, 3, "CF:");
-  display->printPercent(6, 3, combustionFanPercent);
-
-  display->printLabel(11, 3, "VF:");
-  display->printPercent(17, 3, vehicleFanPercent);
- 
-  int temp = internalTempSensor->get_value();
-  display->printLabel(0, 4, "Internal:");
-  display->printTemperature(13, 4, temp);
- 
-  temp = externalTempSensor->get_value();
-  display->printLabel(0, 5, "Outdoors:");
-  display->printTemperature(13, 5, temp);
- 
-  temp = coolantTempSensor->get_value();
-  display->printLabel(0, 6, "Coolant:");
-  display->printTemperature(13, 6, temp);
- 
-  temp = exhaustTempSensor->get_value();
-  display->printLabel(0, 7, "Exhaust:");
-  display->printTemperature(13, 7, temp);
- 
-  display->update();
-  display->log();
-}
-
-void update_display_serlcd(void) {
-  CoreMutex m(&fsm_mutex);
-
-  Log.notice("Starting display->update");
-
-  int state = fsm_state;
-  display->printLabel(0, 0, "State:");
-  display->printHexByte(7, 0, state);
- 
-  display->printLabel(10, 0, "P:");
-  display->printWatts(13, 0, fuelPumpTimer.getBurnPower());
- 
-  display->printLabel(0, 1, "Fl:");
-  display->printMilliohms(4, 1, flameDetectorSensor->get_value());
- 
-  display->printLabel(10, 1, "Fan:");
-  display->printPercent(15, 1, combustionFanPercent);
- 
-  int temp = internalTempSensor->get_value();
-  display->printLabel(0, 2, "I:");
-  display->printTemperature(2, 2, temp);
- 
-  temp = externalTempSensor->get_value();
-  display->printLabel(10, 2, "O:");
-  display->printTemperature(12, 2, temp);
- 
-  temp = coolantTempSensor->get_value();
-  display->printLabel(0, 3, "C:");
-  display->printTemperature(2, 3, temp);
- 
-  temp = exhaustTempSensor->get_value();
-  display->printLabel(10, 3, "E:");
-  display->printTemperature(12, 3, temp);
- 
-  display->update();
-  display->log();
-}
