@@ -210,6 +210,10 @@ void AnalogSourceBase::feedback(int index)
     return;
   }
 
+  if (_value == UNUSED_READING) {
+    return;
+  }  
+
   if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > _feedback_threshold) {
     switch(index) {
       case INDEX_EXTERNAL_TEMP:

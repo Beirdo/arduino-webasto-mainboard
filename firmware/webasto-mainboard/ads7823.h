@@ -10,6 +10,7 @@ class ADS7823Source : public AnalogSourceBase {
     void init(void);
   protected:
     int32_t read_device(void);
+    int32_t convert(int32_t reading);
 
     int _min_bits = 12;
     int _max_bits = 12;

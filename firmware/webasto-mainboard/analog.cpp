@@ -39,15 +39,16 @@ void init_analog(void)
 {
   Wire.begin();
 
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < OFFBOARD_SENSOR_COUNT; i++) {
     sensors[i] = new DummySource(i);
 
-    for (int j = 0; j < 8; j++) {
+    for (int j = 0; j < 8; j++) {      
       if (!eeprom_devices[j]) {
         continue;
       }
 
       uint8_t cap = eeprom_data[j].current.capabilities & (1 << i);
+
       if (!cap) {
         continue;
       }
@@ -59,9 +60,9 @@ void init_analog(void)
           sensors[i] = new DS2482Source(i, eeprom_data[j].current.addr_ds2482, 9);
           break;
         case INDEX_BATTERY_VOLTAGE:
+        case INDEX_COOLANT_TEMP:
           sensors[i] = new ADS7823Source(i, eeprom_data[j].current.addr_ads7823, 12, 19767, 4096);
           break;
-        case INDEX_COOLANT_TEMP:
         case INDEX_EXHAUST_TEMP:
           sensors[i] = new MCP96L01Source(i, eeprom_data[j].current.addr_mcp96l01, 16, TYPE_K, 4);
           break;
