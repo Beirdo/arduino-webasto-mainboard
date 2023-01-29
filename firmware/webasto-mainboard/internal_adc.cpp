@@ -16,7 +16,7 @@ void InternalADCSource::init(void)
     return;
   }
 
-  Log.error("Setting up InternalADC@%d", _channel);
+  Log.info("Setting up InternalADC@%d", _channel);
     
   // Set the resolution
   analogReadResolution(_bits);
@@ -32,7 +32,7 @@ int32_t InternalADCSource::read_device(void)
   Log.notice("Reading Internal ADC Channel %d", _channel);
 #endif
   if (_channel == 4) {
-    float vref = mainboardDetected ? 2.048 : 3.3;
+    float vref = mainboardDetected ? 3.0 : 3.3;
     float temp = analogReadTemp(vref);
     return (int32_t)(temp * 100.0);
   }
@@ -42,6 +42,16 @@ int32_t InternalADCSource::read_device(void)
 
 int32_t InternalADCSource::convert(int32_t reading)
 {
+  if (_channel == 3) {
+    // Wired to VSYS / 2 on the pico board itself
+    int vref = mainboardDetected ? 3000 : 3300;
+    int retval = (reading * vref * 2) / (1 << _bits);
+#ifdef VERBOSE_LOGGING
+    Log.notice("VSYS = %dmV", retval);
+#endif
+    return retval;
+  }
+
   if (_channel == 4) {
     // Already formatted this as part of conversion from float
     return reading;

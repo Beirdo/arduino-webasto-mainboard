@@ -17,6 +17,7 @@ const char *capabilities_names[] = {
   "flame detector", 
   "start/run sense",
   "emergency stop sense", 
+  "VSYS voltage",
 };
 
 int eeprom_lengths[] = {

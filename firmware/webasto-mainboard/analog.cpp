@@ -18,7 +18,7 @@
 #include "dummy.h"
 
 #define OFFBOARD_SENSOR_COUNT 5
-#define ONBOARD_SENSOR_COUNT  4
+#define ONBOARD_SENSOR_COUNT  5
 
 AnalogSourceBase *sensors[OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT];
 
@@ -32,6 +32,7 @@ InternalADCSource *internalTempSensor;
 INA219Source *flameDetectorSensor;
 InternalGPIODigitalSource *startRunSensor;
 InternalGPIODigitalSource *emergencyStopSensor;
+InternalADCSource *vsysVoltageSensor;
 
 
 void init_analog(void)
@@ -54,17 +55,17 @@ void init_analog(void)
       Log.notice("Found %s sensor on sensor board %d", capabilities_names[i], j);      
 
       switch(i) {
-        case 0:
+        case INDEX_EXTERNAL_TEMP:
           sensors[i] = new DS2482Source(i, eeprom_data[j].current.addr_ds2482, 9);
           break;
-        case 1:
+        case INDEX_BATTERY_VOLTAGE:
           sensors[i] = new ADS7823Source(i, eeprom_data[j].current.addr_ads7823, 12, 19767, 4096);
           break;
-        case 2:
-        case 3:
+        case INDEX_COOLANT_TEMP:
+        case INDEX_EXHAUST_TEMP:
           sensors[i] = new MCP96L01Source(i, eeprom_data[j].current.addr_mcp96l01, 16, TYPE_K, 4);
           break;
-        case 4:
+        case INDEX_IGNITION_SENSE:
           sensors[i] = new PCA9501DigitalSource(i, eeprom_data[j].current.addr_pca9501_gpio, PCA9501_VINN);
           break;
         default:
@@ -73,25 +74,30 @@ void init_analog(void)
     }
   }
 
-  externalTempSensor = sensors[0];
-  batteryVoltageSensor = sensors[1];
-  coolantTempSensor = sensors[2];
-  exhaustTempSensor = sensors[3];
-  ignitionSenseSensor = sensors[4];
+  externalTempSensor = sensors[INDEX_EXTERNAL_TEMP];
+  batteryVoltageSensor = sensors[INDEX_BATTERY_VOLTAGE];
+  coolantTempSensor = sensors[INDEX_COOLANT_TEMP];
+  exhaustTempSensor = sensors[INDEX_EXHAUST_TEMP];
+  ignitionSenseSensor = sensors[INDEX_IGNITION_SENSE];
 
-  internalTempSensor = new InternalADCSource(5, 4, 12);
-  flameDetectorSensor = new INA219Source(6, 0x4F, 12, &glowPlugInEnable);
-  startRunSensor = new InternalGPIODigitalSource(7, PIN_START_RUN);
-  emergencyStopSensor = new InternalGPIODigitalSource(8, PIN_EMERGENCY_STOP);
+  internalTempSensor = new InternalADCSource(INDEX_INTERNAL_TEMP, 4, 12);
+  flameDetectorSensor = new INA219Source(INDEX_FLAME_DETECTOR, 0x4F, 12, &glowPlugInEnable);
+  startRunSensor = new InternalGPIODigitalSource(INDEX_START_RUN, PIN_START_RUN);
+  emergencyStopSensor = new InternalGPIODigitalSource(INDEX_EMERGENCY_STOP, PIN_EMERGENCY_STOP);
+  vsysVoltageSensor = new InternalADCSource(INDEX_VSYS_VOLTAGE, 3, 12);
 
-  sensors[5] = internalTempSensor;
-  sensors[6] = flameDetectorSensor;  
-  sensors[7] = startRunSensor;
-  sensors[8] = emergencyStopSensor;
+  sensors[INDEX_INTERNAL_TEMP] = internalTempSensor;
+  sensors[INDEX_FLAME_DETECTOR] = flameDetectorSensor;  
+  sensors[INDEX_START_RUN] = startRunSensor;
+  sensors[INDEX_EMERGENCY_STOP] = emergencyStopSensor;
+  sensors[INDEX_VSYS_VOLTAGE] = vsysVoltageSensor;
 
   // Now init() the suckers
   for (int i = 0; i < OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT; i++) {
     Log.notice("Initializing %s sensor", capabilities_names[i]);
+    if (!sensors[i]) {
+      Log.error("Missing class for %s sensor", capabilities_names[i]);
+    }
     sensors[i]->init();
   }
 }
@@ -103,6 +109,9 @@ void update_analog(void)
 #ifdef VERBOSE_LOGGING
     Log.notice("Updating %s sensor", capabilities_names[i]);
 #endif
+    if (!sensors[i]) {
+      continue;
+    }
     sensors[i]->update();
 #ifdef VERBOSE_LOGGING
     Log.notice("Feeding back %s sensor to FSM", capabilities_names[i]);

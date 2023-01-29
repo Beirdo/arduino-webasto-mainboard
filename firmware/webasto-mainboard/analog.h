@@ -14,6 +14,19 @@
 void init_analog(void);
 void update_analog(void);
 
+enum {
+  INDEX_EXTERNAL_TEMP,
+  INDEX_BATTERY_VOLTAGE,
+  INDEX_COOLANT_TEMP,
+  INDEX_EXHAUST_TEMP,
+  INDEX_IGNITION_SENSE,
+  INDEX_INTERNAL_TEMP,
+  INDEX_FLAME_DETECTOR,
+  INDEX_START_RUN,
+  INDEX_EMERGENCY_STOP,
+  INDEX_VSYS_VOLTAGE,
+};
+
 extern AnalogSourceBase *externalTempSensor;
 extern AnalogSourceBase *batteryVoltageSensor;
 extern AnalogSourceBase *coolantTempSensor;
@@ -23,5 +36,6 @@ extern InternalADCSource *internalTempSensor;
 extern INA219Source *flameDetectorSensor;
 extern InternalGPIODigitalSource *startRunSensor;
 extern InternalGPIODigitalSource *emergencyStopSensor;
+extern InternalADCSource *vsysVoltageSensor;
 
 #endif

@@ -1979,7 +1979,7 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 914be402-bfcb-4929-acd7-05d766e1121c)
   )
-  (text "2.048V Reference" (at 175.26 119.126 0)
+  (text "3V Reference" (at 175.26 119.126 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid e1089685-f712-402e-9424-9ab2fdf1959f)
   )
@@ -2281,7 +2281,7 @@
     (property "Reference" "U3" (id 0) (at 175.26 112.9029 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Value" "LM4040DBZ-2.0" (id 1) (at 175.26 115.4429 90)
+    (property "Value" "LM4040DIM3-3.0" (id 1) (at 175.26 115.4429 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
     (property "Footprint" "Package_TO_SOT_SMD:SOT-23" (id 2) (at 177.8 114.173 0)
@@ -3418,7 +3418,7 @@
       (reference "U2") (unit 1) (value "Pico") (footprint "MCU_RaspberryPi_and_Boards:RPi_Pico_SMD_TH")
     )
     (path "/143f8243-5fcb-4fff-a95a-69314f42e1ca"
-      (reference "U3") (unit 1) (value "LM4040DBZ-2.0") (footprint "Package_TO_SOT_SMD:SOT-23")
+      (reference "U3") (unit 1) (value "LM4040DIM3-3.0") (footprint "Package_TO_SOT_SMD:SOT-23")
     )
     (path "/4eba7f3e-81ac-47cd-894e-cb117f012064/7d5664cc-3ac8-4dd4-a7f2-24069d83e2ea"
       (reference "U4") (unit 1) (value "MC33660BEFR2") (footprint "UltraLibrarian:MC33660BEFR2")

@@ -4,6 +4,7 @@
 #include <ArduinoLog.h>
 #include <cxxabi.h>
 
+#include "analog.h"
 #include "analog_source.h"
 #include "sensor_eeprom.h"
 #include "fsm.h"
@@ -211,63 +212,63 @@ void AnalogSourceBase::feedback(int index)
 
   if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > _feedback_threshold) {
     switch(index) {
-      case 0:
+      case INDEX_EXTERNAL_TEMP:
         {
           OutdoorTempEvent event;
           event.value = (int)_value;
           WebastoControlFSM::dispatch(event);
         }
         break;
-      case 1:
+      case INDEX_BATTERY_VOLTAGE:
         {
           BatteryLevelEvent event;
           event.value = _value;
           WebastoControlFSM::dispatch(event);
         }
         break;
-      case 2:
+      case INDEX_COOLANT_TEMP:
         {
           CoolantTempEvent event;
           event.value = (int)_value;
           WebastoControlFSM::dispatch(event);    
         }
         break;
-      case 3:
+      case INDEX_EXHAUST_TEMP:
         {
           ExhaustTempEvent event;
           event.value = (int)_value;
           WebastoControlFSM::dispatch(event);
         }
         break;
-      case 4:
+      case INDEX_IGNITION_SENSE:
         {        
           IgnitionEvent event;
           event.enable = (bool)_value;
           WebastoControlFSM::dispatch(event);
         }
         break;
-      case 5:
+      case INDEX_INTERNAL_TEMP:
         {
           InternalTempEvent event;
           event.value = (int)_value;
           WebastoControlFSM::dispatch(event);
         }
         break;
-      case 6:
+      case INDEX_FLAME_DETECTOR:
         {
           FlameDetectEvent event;
           event.value = (int)_value;
           WebastoControlFSM::dispatch(event);
         }
         break;
-      case 7:
+      case INDEX_START_RUN:
         {
           StartRunEvent event;
           event.enable = (bool)_value;
           WebastoControlFSM::dispatch(event);
         }
         break;
-      case 8:
+      case INDEX_EMERGENCY_STOP:
         {
           EmergencyStopEvent event;
           event.enable = (bool)_value;
