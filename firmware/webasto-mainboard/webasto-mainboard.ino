@@ -90,12 +90,16 @@ void setup1(void)
 
   Log.notice("Starting Core 1");
   init_fsm();
-  //init_kline();
+  init_kline();
 }
 
 void loop() {
   static int display_count = 0;
+
   int topOfLoop = millis();
+
+  digitalWrite(PIN_ONBOARD_LED, LOW);  
+
   display_count++;
 
   update_device_eeprom();
@@ -104,13 +108,10 @@ void loop() {
 
   // We want screen updates every second.
   if (display_count % 10 == 1) {
+    digitalWrite(PIN_ONBOARD_LED, HIGH);  
     update_display();
   }
 
-  static bool led = true;
-  led = !led;
-  digitalWrite(PIN_ONBOARD_LED, led);  
-  
   int elapsed = millis() - topOfLoop;
   if (elapsed >= 100) {
     Log.warning("Main loop > 100ms (%dms)", elapsed);
@@ -129,7 +130,7 @@ void loop1(void)
   int topOfLoop = millis();
 
   globalTimer.tick();
-  //process_kline();
+  process_kline();
 
   int elapsed = millis() - topOfLoop;
   if (elapsed >= 10) {
@@ -164,5 +165,28 @@ void sendCRLF(Print *output, int level)
   output->print('\r');
   output->flush();
   mutex_exit(&log_mutex);
+}
+
+void hexdump(const void* mem, uint32_t len, uint8_t cols) {
+    const char* src = (const char*)mem;
+    printf("\n[HEXDUMP] Address: %p len: 0x%lX (%ld)", src, len, len);
+    while (len > 0) {
+        uint32_t linesize = cols > len ? len : cols;
+        printf("\n[%p] 0x%04x: ", src, (int)(src - (const char*)mem));
+        for (uint32_t i = 0; i < linesize; i++) {
+            printf("%02x ", *(src + i));
+        }
+        printf("  ");
+        for (uint32_t i = linesize; i < cols; i++) {
+            printf("   ");
+        }
+        for (uint32_t i = 0; i < linesize; i++) {
+            unsigned char c = *(src + i);
+            putc(isprint(c) ? c : '.', stdout);
+        }
+        src += linesize;
+        len -= linesize;
+    }
+    printf("\n");
 }
 

@@ -34,6 +34,7 @@ cppQueue kline_tx_q(sizeof(klinePacket_t *), KLINE_FIFO_SIZE, FIFO);
 
 void init_kline(void)
 {
+  Log.notice("Configuring Serial2 for WBus");
   Serial2.setRX(PIN_SERIAL2_RX);
   Serial2.setTX(PIN_SERIAL2_TX);
   Serial2.begin(2400, SERIAL_8E1);
@@ -50,6 +51,7 @@ void send_break(void)
 {
   Serial2.end();
 
+  Log.notice("Sending a break on Serial2");
   // Send a break - may not be needed as we are the slave, not the master.
   digitalWrite(PIN_SERIAL2_TX, HIGH);
   pinMode(PIN_SERIAL2_TX, OUTPUT);
@@ -84,6 +86,10 @@ void kline_send_next_packet(void)
     return;
   }
 
+  if (kline_tx_q.isEmpty()) {
+    return;
+  }
+
   klinePacket_t *packet;
   kline_tx_q.pop(&packet);
 
@@ -92,10 +98,13 @@ void kline_send_next_packet(void)
   }
 
   int len = packet->len;
-  
+
+  Log.notice("Transmitting WBus response");
+  hexdump(packet->buf, len);
+
   tx_active = true;
   digitalWrite(PIN_KLINE_EN, HIGH);
-  // send_break();
+  // send_break();  ?? - I think as slave we don't need to.
   Serial2.write(packet->buf, len);
   digitalWrite(PIN_KLINE_EN, LOW);
   tx_active = false;
@@ -130,6 +139,7 @@ uint8_t *allocate_response(uint8_t command, uint8_t len, uint8_t subcommand)
 void process_kline(void)
 {
   if (Serial2.getBreakReceived()) {
+    Log.notice("Received break on Serial2");
     rx_active = true;
     kline_rx_tail = 0;
     Serial2.flush();
@@ -152,16 +162,19 @@ void process_kline(void)
     if (kline_rx_tail > 2) {
       int len = kline_rx_buffer[1] + 2;
       if (kline_rx_tail == len) {
+        Log.notice("Received WBus packet");        
         // Full frame received
         if (calc_kline_checksum(kline_rx_buffer, len)) {
           // Bad checksum.  Turf it.  Wait for new break
+          Log.warning("Received packet had bad checksum.  Discarding");
           rx_active = false;
           Serial2.flush();
           continue;          
         }
 
         uint8_t *buf = (uint8_t *)malloc(len);
-        memcpy(buf, (const void *)kline_rx_buffer, len);                
+        memcpy(buf, (const void *)kline_rx_buffer, len);               
+
         klinePacket_t *packet = (klinePacket_t *)malloc(sizeof(klinePacket_t));
         packet->buf = buf;
         packet->len = len;
@@ -178,6 +191,9 @@ void process_kline(void)
     if (!packet) {
       continue;
     }
+
+    Log.notice("Processing WBus packet");
+    hexdump(packet->buf, packet->len);    
 
     uint8_t cmd = packet->buf[2];
     klinePacket_t *respPacket = kline_rx_dispatch(packet, cmd);

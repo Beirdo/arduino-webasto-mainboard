@@ -74,11 +74,6 @@
 #define PIN_FLAME_LED         26
 #define PIN_OPERATING_LED     27
 
-inline int clamp(int value, int minval, int maxval)
-{
-  return max(min(value, maxval), minval);
-}
-
 #define HIBYTE(x)     ((uint8_t)(((int)(x) >> 8) & 0xFF))
 #define LOBYTE(x)     ((uint8_t)(((int)(x) & 0xFF)))
 
@@ -130,5 +125,13 @@ inline int clamp(int value, int minval, int maxval)
 #define PURGE_FAN               80
 
 extern bool mainboardDetected;
+
+extern void hexdump(const void* mem, uint32_t len, uint8_t cols = 16);
+
+inline int clamp(int value, int minval, int maxval)
+{
+  return max(min(value, maxval), minval);
+}
+
 
 #endif
