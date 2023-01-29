@@ -43,9 +43,9 @@ int32_t InternalADCSource::read_device(void)
 int32_t InternalADCSource::convert(int32_t reading)
 {
   if (_channel == 3) {
-    // Wired to VSYS / 2 on the pico board itself
+    // Wired to VSYS / 3 on the pico board itself
     int vref = mainboardDetected ? 3000 : 3300;
-    int retval = (reading * vref * 2) / (1 << _bits);
+    int retval = (reading * vref * 3) / (1 << _bits);
 #ifdef VERBOSE_LOGGING
     Log.notice("VSYS = %dmV", retval);
 #endif
