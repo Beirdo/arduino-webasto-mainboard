@@ -1,0 +1,5 @@
+(sym_lib_table
+  (lib (name "SparkFun-Connectors")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/SparkFun-KiCad-Libraries/Libraries/SparkFun-Connectors.kicad_sym")(options "")(descr ""))
+  (lib (name "MCU_RaspberryPi_and_Boards")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/KiCad-RP-Pico/RP-Pico Libraries/MCU_RaspberryPi_and_Boards.kicad_sym")(options "")(descr ""))
+  (lib (name "SSD1306-128x64_OLED")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/KiCad-SSD1306-128x64/library/SSD1306-128x64_OLED.kicad_sym")(options "")(descr ""))
+)
