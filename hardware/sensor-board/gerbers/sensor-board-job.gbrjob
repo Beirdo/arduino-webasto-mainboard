@@ -3,15 +3,15 @@
     "GenerationSoftware": {
       "Vendor": "KiCad",
       "Application": "Pcbnew",
-      "Version": "6.0.2+dfsg-1"
+      "Version": "(6.0.10)"
     },
-    "CreationDate": "2023-01-29T17:25:44-05:00"
+    "CreationDate": "2023-01-29T23:27:27-05:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
       "Name": "sensor-board",
       "GUID": "73656e73-6f72-42d6-926f-6172642e6b69",
-      "Revision": "rev?"
+      "Revision": "v1.0"
     },
     "Size": {
       "X": 59.35,
