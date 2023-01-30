@@ -2924,7 +2924,7 @@
     (property "Value" "Screw_Terminal_01x02" (id 1) (at 259.08 62.9919 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "" (id 2) (at 256.159 60.452 0)
+    (property "Footprint" "TerminalBlock:TerminalBlock_Altech_AK300-2_P5.00mm" (id 2) (at 256.159 60.452 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 256.159 60.452 0)
@@ -3984,7 +3984,7 @@
     (uuid f43d542b-9e51-43f6-abab-b13ad18f0eab)
     (property "Reference" "D1" (id 0) (at 116.7765 103.251 0))
     (property "Value" "LED" (id 1) (at 116.7765 105.791 0))
-    (property "Footprint" "UltraLibrarian:355010RFT" (id 2) (at 115.189 110.109 0)
+    (property "Footprint" "LED_THT:LED_D3.0mm" (id 2) (at 115.189 110.109 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 115.189 110.109 0)
@@ -4112,7 +4112,7 @@
       (reference "#PWR032") (unit 1) (value "GND") (footprint "")
     )
     (path "/f43d542b-9e51-43f6-abab-b13ad18f0eab"
-      (reference "D1") (unit 1) (value "LED") (footprint "UltraLibrarian:355010RFT")
+      (reference "D1") (unit 1) (value "LED") (footprint "LED_THT:LED_D3.0mm")
     )
     (path "/5b49dbbc-6d9b-40fe-9cc9-73d9104b1539"
       (reference "F1") (unit 1) (value "8A 30V") (footprint "Fuse:Fuse_Littelfuse_372_D8.50mm")
