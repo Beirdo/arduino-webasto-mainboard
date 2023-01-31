@@ -5,6 +5,13 @@
   )
 
   (paper "A4")
+  (title_block
+    (title "ATX Power Fixture")
+    (date "2023-01-31")
+    (rev "1.0")
+    (company "Gavin Hurlbut")
+  )
+
   (layers
     (0 "F.Cu" signal)
     (1 "In1.Cu" signal)

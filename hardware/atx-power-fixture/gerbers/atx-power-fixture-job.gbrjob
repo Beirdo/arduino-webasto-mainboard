@@ -5,13 +5,13 @@
       "Application": "Pcbnew",
       "Version": "6.0.2+dfsg-1"
     },
-    "CreationDate": "2023-01-30T12:45:33-05:00"
+    "CreationDate": "2023-01-31T13:49:02-05:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
       "Name": "atx-power-fixture",
       "GUID": "6174782d-706f-4776-9572-2d6669787475",
-      "Revision": "rev?"
+      "Revision": "1.0"
     },
     "Size": {
       "X": 117.9,
