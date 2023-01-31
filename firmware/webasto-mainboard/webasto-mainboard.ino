@@ -76,6 +76,7 @@ void setup() {
   init_eeprom();
   init_fram();
   init_analog();
+  delay(100);
   init_display();
 
   rp2040.wdt_begin(500);

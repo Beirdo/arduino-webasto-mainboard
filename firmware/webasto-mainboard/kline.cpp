@@ -100,7 +100,7 @@ void kline_send_next_packet(void)
   int len = packet->len;
 
   Log.notice("Transmitting WBus response");
-  hexdump(packet->buf, len);
+  hexdump(packet->buf, len, 16);
 
   tx_active = true;
   digitalWrite(PIN_KLINE_EN, HIGH);
@@ -193,7 +193,7 @@ void process_kline(void)
     }
 
     Log.notice("Processing WBus packet");
-    hexdump(packet->buf, packet->len);    
+    hexdump(packet->buf, packet->len, 16);    
 
     uint8_t cmd = packet->buf[2];
     klinePacket_t *respPacket = kline_rx_dispatch(packet, cmd);

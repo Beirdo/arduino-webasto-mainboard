@@ -25,11 +25,11 @@ void DS2482Source::init(void)
   }
 
   if (!_valid){
-    Log.error("DS18B20/DS2482@0x%02X/I2C not configured correctly", _i2c_address);
+    Log.error("DS18B20/DS2482@%X/I2C not configured correctly", _i2c_address);
     return;
   }
 
-  Log.notice("Setting up DS18B20/DS2482@0x%02X/I2C", _i2c_address);
+  Log.notice("Setting up DS18B20/DS2482@%X/I2C", _i2c_address);
 
   // Reset the DS2482 I2c to 1Wire bridge
   i2c_write_register(0xF0, 0, true);

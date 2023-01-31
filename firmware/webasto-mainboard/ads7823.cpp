@@ -52,11 +52,11 @@ void ADS7823Source::init(void) {
   }
 
   if (!_valid) {
-    Log.error("ADS7823@0x%02X/I2C is not configured correctly", _i2c_address);
+    Log.error("ADS7823@%0X/I2C is not configured correctly", _i2c_address);
     return;
   }
 
-  Log.notice("Setting up ADS7823@0x%02X/I2C", _i2c_address);
+  Log.notice("Setting up ADS7823@%X/I2C", _i2c_address);
   // This ADC doesn't even have a control register.  Cool.
 }
 
@@ -79,16 +79,9 @@ int32_t ADS7823Source::read_device(void) {
 int32_t ADS7823Source::convert(int32_t reading) {
   if (_index == INDEX_COOLANT_TEMP) {
     int resistance = reading * 10000 / (4096 - reading);
-    unsigned long t1 = micros();
-    int retval = _thermistor->lookup(resistance);
-    unsigned long t2 = micros();
-    int retval2 = _thermistor->calculate(resistance);
-    unsigned long t3 = micros();
-    Log.notice("Lookup: %d in %dus, Calculate: %d in %dus", retval, t2 - t1, retval2, t3 - t2);
-
-    float error = ((double)retval - (double)retval2) / (double)retval2 * 100.0;
-    Log.notice("Error: %f%%", error);
-    return retval2;
+    int retval = _thermistor->lookup(resistance);       // Takes ~ 10us, < 1% error
+    // int retval2 = _thermistor->calculate(resistance);   // Takes ~ 650us
+    return retval;
   } else {
     int retval = AnalogSourceBase::convert(reading);
     return retval;

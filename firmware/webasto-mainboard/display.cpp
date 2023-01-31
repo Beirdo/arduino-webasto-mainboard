@@ -17,6 +17,9 @@ mutex_t display_mutex;
 Display::Display(uint8_t i2c_address, int columns, int rows) : 
   _i2c_address(i2c_address), _columns(columns), _rows(rows) 
 {
+  mutex_init(&_mutex);
+
+  CoreMutex m(&_mutex);
   Log.notice("Attempting to connect to %dx%d display at I2C %X", _columns, _rows, _i2c_address);
   
   isConnected();  
@@ -25,8 +28,6 @@ Display::Display(uint8_t i2c_address, int columns, int rows) :
   _cache = new uint16_t[len];
   _display = new uint16_t[len];
   _dirty = new bool[_rows];
-
-  mutex_init(&_mutex);
 
   for (int i = 0; i < _rows; i++ ) {
     clearLine(i);

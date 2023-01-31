@@ -12,11 +12,11 @@ void MCP96L01Source::init(void)
   }
 
   if (!_valid){
-    Log.error("MCP96L01@0x%02X/I2C not configured correctly", _i2c_address);
+    Log.error("MCP96L01@%X/I2C not configured correctly", _i2c_address);
     return;
   }
 
-  Log.notice("Setting up MCP96L01@0x%02X/I2C", _i2c_address);
+  Log.notice("Setting up MCP96L01@%X/I2C", _i2c_address);
 
   // Set the thermocouple type and filter coefficient bits
   i2c_write_register(0x05, ((_type << 4) & 0x70) | (_filter_bits & 0x07));

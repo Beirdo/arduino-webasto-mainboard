@@ -26,11 +26,13 @@ NTCThermistor::NTCThermistor(int t0, int t1, int r0, int r1, const int *table, i
   // (T0 - T) / (T * T0) = (1/beta) ln(R/R0)
   // beta = T * T0 * ln(R/R0) / (T0 - T)
 
-  _beta = t * _t0 * log(r / r0) / (t0 - t);
+  _beta = t * _t0 * log(r / _r0) / (_t0 - t);
 }
 
 int32_t NTCThermistor::lookup(int rth)
 {
+  // This takes about 10us on the RP2040, and is less than 1% error from the calculation below
+  //
   // look up the resistor value in the table (indexed by degC, with an offset)
   // Find which two readings we fall between and treat it as a piecewise linear mapping
   // between the closest two readings.
@@ -59,10 +61,12 @@ int32_t NTCThermistor::lookup(int rth)
 
 int32_t NTCThermistor::calculate(int rth)
 {
+  // This takes about 650us on the RP2040
+  //
   // using the beta equation:
   // 1/T = 1/T0 + (1/beta) ln(R/R0)
   //
   // Solving now for T, then converting to deg C, and then to 1/100C:
-  double rhs = (1.0 / _t0) * (1.0 / _beta) * log((double)rth / _r0);
+  double rhs = (1.0 / _t0) + (1.0 / _beta) * log((double)rth / _r0);
   return (int32_t)(((1.0 / rhs) - 273.15) * 100.0);
 }

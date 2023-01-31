@@ -13,9 +13,11 @@
 OLEDDisplay::OLEDDisplay(uint8_t i2c_address, int width, int height) :
   Display(i2c_address, width/6, height/8), _width(width), _height(height)
 {
+  CoreMutex m(&_mutex);
   _initialized = false;
   _ssd1306 = 0;
-  if (!_connected) {
+  
+  if (!isConnected()) {
     Log.warning("No OLED connected at I2C0/%X", _i2c_address);
     return;
   }

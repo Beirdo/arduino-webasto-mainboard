@@ -115,7 +115,7 @@ void init_eeprom(void)
       upgrade_eeprom_version(&eeprom_data[i]);        
     }    
 
-    Log.notice("Found v%d Sensor Board at index %d with capabilities of 0x%02X", version, i, eeprom_data[i].current.capabilities);
+    Log.notice("Found v%d Sensor Board at index %d with capabilities of %X", version, i, eeprom_data[i].current.capabilities);
   }
 }
 
