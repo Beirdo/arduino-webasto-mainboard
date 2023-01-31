@@ -7,8 +7,9 @@
   (paper "USLetter")
   (title_block
     (title "Webasto Replacement Mainboard (Thermo Top C)")
-    (date "2023-01-18")
+    (date "2023-01-31")
     (rev "1.0")
+    (company "Gavin Hurlbut")
   )
 
   (layers
@@ -7103,7 +7104,7 @@
   (zone locked (net 0) (net_name "") (layer "F.Cu") (tstamp 64671ae7-44ed-4113-8095-1ebff11380e3) (name "PicoTP1") (hatch edge 0.508)
     (connect_pads (clearance 0))
     (min_thickness 0.254)
-    (keepout (tracks not_allowed) (vias not_allowed) (pads not_allowed) (copperpour not_allowed) (footprints not_allowed))
+    (keepout (tracks not_allowed) (vias not_allowed) (pads not_allowed ) (copperpour not_allowed) (footprints not_allowed))
     (fill (thermal_gap 0.508) (thermal_bridge_width 0.508))
     (polygon
       (pts
@@ -17606,7 +17607,7 @@
   (zone locked (net 0) (net_name "") (layer "F.Cu") (tstamp a7e712eb-1088-4dc8-ad3a-5de9e1013a2d) (name "PicoUSB") (hatch edge 0.508)
     (connect_pads (clearance 0))
     (min_thickness 0.254)
-    (keepout (tracks not_allowed) (vias not_allowed) (pads not_allowed) (copperpour not_allowed) (footprints not_allowed))
+    (keepout (tracks not_allowed) (vias not_allowed) (pads not_allowed ) (copperpour not_allowed) (footprints not_allowed))
     (fill (thermal_gap 0.508) (thermal_bridge_width 0.508))
     (polygon
       (pts
@@ -17620,7 +17621,7 @@
   (zone locked (net 0) (net_name "") (layer "F.Cu") (tstamp af605e64-db16-40a4-9cad-7ec05877644d) (name "Connectors") (hatch edge 0.508)
     (connect_pads (clearance 0))
     (min_thickness 0.254)
-    (keepout (tracks allowed) (vias allowed) (pads allowed) (copperpour allowed) (footprints not_allowed))
+    (keepout (tracks allowed) (vias allowed) (pads allowed ) (copperpour allowed) (footprints not_allowed))
     (fill (thermal_gap 0.508) (thermal_bridge_width 0.508))
     (polygon
       (pts
@@ -17634,7 +17635,7 @@
   (zone locked (net 0) (net_name "") (layer "F.Cu") (tstamp b2ef8eff-383d-44c4-9e67-d98f862692ff) (name "PicoTP2") (hatch edge 0.508)
     (connect_pads (clearance 0))
     (min_thickness 0.254)
-    (keepout (tracks not_allowed) (vias not_allowed) (pads not_allowed) (copperpour not_allowed) (footprints not_allowed))
+    (keepout (tracks not_allowed) (vias not_allowed) (pads not_allowed ) (copperpour not_allowed) (footprints not_allowed))
     (fill (thermal_gap 0.508) (thermal_bridge_width 0.508))
     (polygon
       (pts
@@ -20469,7 +20470,7 @@
   (zone locked (net 0) (net_name "") (layer "F.Cu") (tstamp fa6e8b52-e9e1-40be-82df-4bc9df0b59ce) (name "PicoTP3") (hatch edge 0.508)
     (connect_pads (clearance 0))
     (min_thickness 0.254)
-    (keepout (tracks not_allowed) (vias not_allowed) (pads not_allowed) (copperpour not_allowed) (footprints not_allowed))
+    (keepout (tracks not_allowed) (vias not_allowed) (pads not_allowed ) (copperpour not_allowed) (footprints not_allowed))
     (fill (thermal_gap 0.508) (thermal_bridge_width 0.508))
     (polygon
       (pts
