@@ -1,12 +1,12 @@
 %TF.GenerationSoftware,KiCad,Pcbnew,(6.0.10)*%
-%TF.CreationDate,2023-01-27T01:53:32-05:00*%
+%TF.CreationDate,2023-01-31T02:16:16-05:00*%
 %TF.ProjectId,webasto-mainboard,77656261-7374-46f2-9d6d-61696e626f61,1.0*%
 %TF.SameCoordinates,Original*%
 %TF.FileFunction,Soldermask,Top*%
 %TF.FilePolarity,Negative*%
 %FSLAX46Y46*%
 G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
-G04 Created by KiCad (PCBNEW (6.0.10)) date 2023-01-27 01:53:32*
+G04 Created by KiCad (PCBNEW (6.0.10)) date 2023-01-31 02:16:16*
 %MOMM*%
 %LPD*%
 G01*
@@ -445,7 +445,7 @@ D22*
 X136385000Y-103280000D03*
 %TD*%
 D40*
-%TO.C,D4*%
+%TO.C,D8*%
 X127932500Y-71550000D03*
 X128772500Y-71550000D03*
 %TD*%
@@ -471,7 +471,7 @@ X111072700Y-120175000D03*
 X122477300Y-120175000D03*
 %TD*%
 D42*
-%TO.C,D6*%
+%TO.C,D10*%
 X132460000Y-69320000D03*
 X129160000Y-69320000D03*
 %TD*%
