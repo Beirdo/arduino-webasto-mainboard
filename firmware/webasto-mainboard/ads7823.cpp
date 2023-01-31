@@ -6,6 +6,8 @@
 #include "analog.h"
 
 int32_t ntc_lookup_temperature_by_resistance(int resistance);
+int32_t ntc_calc_temperature_by_resistance(int resistance);
+
 
 void ADS7823Source::init(void) {
   if (_bits >= _min_bits && _bits <= _max_bits) {
@@ -40,8 +42,16 @@ int32_t ADS7823Source::read_device(void) {
 int32_t ADS7823Source::convert(int32_t reading) {
   if (_index == INDEX_COOLANT_TEMP) {
     int resistance = reading * 10000 / (4096 - reading);
+    unsigned long t1 = micros();
     int retval = ntc_lookup_temperature_by_resistance(resistance);
-    return retval;
+    unsigned long t2 = micros();
+    int retval2 = ntc_calc_temperature_by_resistance(resistance);
+    unsigned long t3 = micros();
+    Log.notice("Lookup: %d in %dus, Calculate: %d in %dus", retval, t2 - t1, retval2, t3 - t2);
+
+    float error = ((double)retval - (double)retval2) / (double)retval2 * 100.0;
+    Log.notice("Error: %f%%", error);
+    return retval2;
   } else {
     int retval = AnalogSourceBase::convert(reading);
     return retval;
@@ -92,4 +102,21 @@ int32_t ntc_lookup_temperature_by_resistance(int resistance)
     }
   }
   return UNUSED_READING;
+}
+
+int32_t ntc_calc_temperature_by_resistance(int resistance)
+{
+  // using the beta equation:
+  // 1/T = 1/T0 + (1/beta) ln(R/R0)
+  //
+  // Solving for beta with T = 50C (323.15K), T0 = 25C (298.15K), R = 3545, R0 = 10000 (table above)
+  // (T0 - T) / (T * T0) = (1/beta) ln(R/R0)
+  // beta = T * T0 * ln(R/R0) / (T0 - T)
+  //      = 323.15 * 298.15 * ln(3545 / 10000) / (298.15 - 323.15)
+  //      = 96347.1725 * -1.0370459 / (-25.0)
+  //      = 3996.6615
+  //
+  // Solving now for T, then converting to deg C, and then to 1/100C:
+  double rhs = (1.0 / 298.15) * (1.0 / 3996.6615) * log((double)resistance / 10000.0);
+  return (int32_t)(((1.0 / rhs) - 273.15) * 100.0);
 }

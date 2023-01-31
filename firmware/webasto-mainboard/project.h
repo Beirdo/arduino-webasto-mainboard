@@ -126,7 +126,7 @@
 
 extern bool mainboardDetected;
 
-extern void hexdump(const void* mem, uint32_t len, uint8_t cols = 16);
+extern void hexdump(const void* mem, uint32_t len, uint8_t cols);
 
 inline int clamp(int value, int minval, int maxval)
 {
