@@ -3,15 +3,15 @@
     "GenerationSoftware": {
       "Vendor": "KiCad",
       "Application": "Pcbnew",
-      "Version": "(6.0.10)"
+      "Version": "6.0.2+dfsg-1"
     },
-    "CreationDate": "2023-01-27T02:19:02-05:00"
+    "CreationDate": "2023-01-31T13:36:01-05:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
       "Name": "qwiic5v-shifter",
       "GUID": "71776969-6335-4762-9d73-686966746572",
-      "Revision": "rev?"
+      "Revision": "1.0"
     },
     "Size": {
       "X": 28.1,

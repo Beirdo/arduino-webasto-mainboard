@@ -4,6 +4,13 @@
 
   (paper "A4")
 
+  (title_block
+    (title "QWIIC 5V Shifter")
+    (date "2023-01-31")
+    (rev "1.0")
+    (company "Gavin Hurlbut")
+  )
+
   (lib_symbols
     (symbol "Device:C" (pin_numbers hide) (pin_names (offset 0.254)) (in_bom yes) (on_board yes)
       (property "Reference" "C" (id 0) (at 0.635 2.54 0)
