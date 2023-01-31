@@ -4,6 +4,13 @@
 
   (paper "A4")
 
+  (title_block
+    (title "QWIIC Interface Board")
+    (date "2023-01-31")
+    (rev "1.0")
+    (company "Gavin Hurlbut")
+  )
+
   (lib_symbols
     (symbol "Beirdo:BD9G341EFJ" (in_bom yes) (on_board yes)
       (property "Reference" "U" (id 0) (at -6.35 11.43 0)
