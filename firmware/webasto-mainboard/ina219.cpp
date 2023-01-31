@@ -3,7 +3,6 @@
 #include <ArduinoLog.h>
 
 #include "ina219.h"
-#include "fsm.h"
 
 
 void INA219Source::init(void)
@@ -18,11 +17,11 @@ void INA219Source::init(void)
   }
 
   if (!_valid){
-    Log.error("INA219@0x%02X/I2C not configured correctly", _i2c_address);
+    Log.error("INA219@%X/I2C not configured correctly", _i2c_address);
     return;
   }
 
-  Log.notice("Setting up INA219@0x%02X/I2C", _i2c_address);
+  Log.notice("Setting up INA219@%X/I2C", _i2c_address);
 
   // Send the chip a reset, clearing all values to factory defaults
   i2c_write_register_word(0x00, 0x8000);
@@ -90,8 +89,8 @@ int32_t INA219Source::read_device(void)
 int32_t INA219Source::convert(int32_t reading)
 {
   // Apply Ohms law to find resistance
-  int32_t current = 100;      // 100mA
-  int32_t voltage = reading;  // in mV
+  int32_t current = 100;      	   // 100mA
+  int32_t voltage = reading * 10;  // in mV
 
   int32_t resistance = voltage * 1000 / current;    // we want milli-ohm
   return resistance;
