@@ -128,9 +128,16 @@ extern bool mainboardDetected;
 
 extern void hexdump(const void* mem, uint32_t len, uint8_t cols);
 
-inline int clamp(int value, int minval, int maxval)
+inline T clamp<T>(T value, T minval, T maxval)
 {
   return max(min(value, maxval), minval);
+}
+
+inline T map<T>(T x, T in_min, T in_max, T out_min, T out_max)
+{
+  // the perfect map fonction, with constraining and float handling
+  x = clamp<T<(x, in_min, in_max);
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 

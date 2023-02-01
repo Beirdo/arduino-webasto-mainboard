@@ -40,7 +40,7 @@ int32_t NTCThermistor::lookup(int rth)
     return UNUSED_READING;
   }
 
-  rth = clamp(rth, _table[_count - 1], _table[0]);
+  rth = clamp<int>(rth, _table[_count - 1], _table[0]);
 
   if (rth == _table[0]) {
     return _offset * 100;
@@ -52,7 +52,7 @@ int32_t NTCThermistor::lookup(int rth)
 
   for (int i = 0; i < _count - 1; i++) {
     if (_table[i] >= rth && _table[i + 1] <= rth) {
-      return map(rth, _table[i], _table[i + 1], i * 100, (i + 1) * 100) + (_offset * 100);
+      return map<int>(rth, _table[i], _table[i + 1], i * 100, (i + 1) * 100) + (_offset * 100);
     }
   }
 

@@ -50,7 +50,7 @@ void FuelPumpTimer::setBurnPower(int watts) {
     setPeriod(0);
   }
 
-  int periodMs = clamp(DIESEL_VOL_COMB_ENERGY * FUEL_PUMP_DOSE_ML / watts, FUEL_PUMP_MIN_PERIOD, FUEL_PUMP_MAX_PERIOD);
+  int periodMs = clamp<int>(DIESEL_VOL_COMB_ENERGY * FUEL_PUMP_DOSE_ML / watts, FUEL_PUMP_MIN_PERIOD, FUEL_PUMP_MAX_PERIOD);
   setPeriod(periodMs);
 }
 

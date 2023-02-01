@@ -118,7 +118,7 @@ void loop() {
     Log.warning("Main loop > 100ms (%dms)", elapsed);
   }
 
-  int delayMs = clamp(100 - elapsed, 1, 100);
+  int delayMs = clamp<int>(100 - elapsed, 1, 100);
   delay(delayMs);
   
   rp2040.wdt_reset();
@@ -138,7 +138,7 @@ void loop1(void)
     Log.warning("Secondary loop > 10ms (%dms)", elapsed);
   }
 
-  int delayMs = clamp(10 - elapsed, 1, 10);
+  int delayMs = clamp<int>(10 - elapsed, 1, 10);
   delay(delayMs);
 }
 

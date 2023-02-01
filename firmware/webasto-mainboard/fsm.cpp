@@ -130,7 +130,7 @@ void WebastoControlFSM::react(CombustionFanEvent const &e)
   Log.notice("Received CombustionFanEvent: %d", e.value);
   CoreMutex m(&fsm_mutex);
   
-  combustionFanPercent = clamp(e.value, 0, 100);
+  combustionFanPercent = clamp<int>(e.value, 0, 100);
   analogWrite(PIN_COMBUSTION_FAN, combustionFanPercent * 255 / 100);
 }
 
@@ -143,7 +143,7 @@ void WebastoControlFSM::react(GlowPlugOutEvent const &e)
     return;
   } 
   
-  glowPlugPercent = clamp(e.value, 0, 100);
+  glowPlugPercent = clamp<int>(e.value, 0, 100);
   analogWrite(PIN_GLOW_PLUG_OUT, glowPlugPercent * 255 / 100);
 }
 
@@ -152,7 +152,7 @@ void WebastoControlFSM::react(VehicleFanEvent const &e)
   Log.notice("Received VehicleFanEvent: %d", e.value);
   CoreMutex m(&fsm_mutex);
   
-  vehicleFanPercent = clamp(e.value, 0, 100);
+  vehicleFanPercent = clamp<int>(e.value, 0, 100);
   analogWrite(PIN_VEHICLE_FAN_RELAY, vehicleFanPercent * 255 / 100);
 }
 
@@ -164,9 +164,9 @@ void WebastoControlFSM::react(FuelPumpEvent const &e)
   if (e.value == 0.0) {
     fuelNeedRequested = 0.0;
   } else if (priming) {
-    fuelNeedRequested = clamp(e.value, MIN_FUEL_NEED, MAX_FUEL_NEED_PRIMING);
+    fuelNeedRequested = clamp<int>(e.value, MIN_FUEL_NEED, MAX_FUEL_NEED_PRIMING);
   } else {
-    fuelNeedRequested = clamp(e.value, MIN_FUEL_NEED, MAX_FUEL_NEED_BURNING);
+    fuelNeedRequested = clamp<int>(e.value, MIN_FUEL_NEED, MAX_FUEL_NEED_BURNING);
   }
   fuelPumpTimer.setFuelNeed(fuelNeedRequested);
 }
@@ -221,7 +221,7 @@ void WebastoControlFSM::react(CoolantTempEvent const &e)
     dispatch(event);
   } else if (e.value > COOLANT_MIN_THRESHOLD && fsm_mode) {
     VehicleFanEvent event;
-    event.value = map(e.value, COOLANT_MIN_THRESHOLD, COOLANT_MAX_THRESHOLD, 10, 100);
+    event.value = map<int>(e.value, COOLANT_MIN_THRESHOLD, COOLANT_MAX_THRESHOLD, 10, 100);
     dispatch(event);
   }
 }
@@ -730,7 +730,7 @@ void PrefuelState::entry()
   // Turn on Fuel Pump to prime
   FuelPumpEvent e2;
   int exhaustTemp = exhaustTempSensor->get_value();
-  e2.value = double(map(exhaustTemp, PRIMING_LOW_THRESHOLD, PRIMING_HIGH_THRESHOLD, 3500, 2000)) / 1000.0;
+  e2.value = map<double>(exhaustTemp, PRIMING_LOW_THRESHOLD, PRIMING_HIGH_THRESHOLD, 3.5, 2.0);
   dispatch(e2);
 
   // Stay in this state for 3s
@@ -1067,7 +1067,7 @@ void CooldownState::entry()
   ventilation_duration.minutes = 0;
 
   // Stay in this state for 100s if at partial power, 175s at full power (gonna prorate)
-  int timeout = map(currentPower, MIN_POWER, MAX_RATED_POWER, 100000, 175000);
+  int timeout = map<int>(currentPower, MIN_POWER, MAX_RATED_POWER, 100000, 175000);
   globalTimer.register_timer(TIMER_STAGE_COMPLETE, timeout, &fsmTimerCallback);
 }
 
