@@ -255,6 +255,11 @@ klinePacket_t *kline_rx_dispatch(klinePacket_t *packet, uint8_t cmd)
       // Start for x minutes, boost on
       buf = kline_command_timed_start(WEBASTO_MODE_BOOST, packet->buf[3]);
       break;  
+      
+    case 0x26:
+      // Start for x minutes, coolng on
+      buf = kline_command_timed_start(WEBASTO_MODE_COOLING, packet->buf[3]);
+      break;  
 
     case 0x38:
       // Diagnostic message, unknown use
