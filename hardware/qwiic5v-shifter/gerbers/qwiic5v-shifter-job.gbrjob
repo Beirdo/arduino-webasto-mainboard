@@ -5,13 +5,13 @@
       "Application": "Pcbnew",
       "Version": "6.0.2+dfsg-1"
     },
-    "CreationDate": "2023-01-31T13:36:01-05:00"
+    "CreationDate": "2023-02-05T14:05:13-05:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
       "Name": "qwiic5v-shifter",
       "GUID": "71776969-6335-4762-9d73-686966746572",
-      "Revision": "1.0"
+      "Revision": "2.0"
     },
     "Size": {
       "X": 28.1,
@@ -24,8 +24,8 @@
   "DesignRules": [
     {
       "Layers": "Outer",
-      "PadToPad": 0.0,
-      "PadToTrack": 0.0,
+      "PadToPad": 0.2,
+      "PadToTrack": 0.2,
       "TrackToTrack": 0.2,
       "MinLineWidth": 0.25,
       "TrackToRegion": 0.508,
