@@ -19,6 +19,8 @@ struct eeprom_v1_s {
   uint8_t addr_mcp96l01;
   uint8_t addr_ads7823;
   uint8_t addr_ds2482;
+  uint8_t addr_linbus_bridge;
+  uint32_t linbus_slaves;	// we support ids of 0x00-0x1F
 };
 
 typedef union {
@@ -37,6 +39,7 @@ extern int eeprom_lengths[];
 #define CAPABILITIES_COOLANT_TEMP     0x04
 #define CAPABILITIES_EXHAUST_TEMP     0x08
 #define CAPABILITIES_IGNITION_SOURCE  0x10
+#define CAPABILITIES_LINBUS_BRIDGE    0x20
 
 extern const char *capabilities_names[];
 extern eeprom_data_t eeprom_data[8];
