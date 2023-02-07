@@ -5,13 +5,13 @@
       "Application": "Pcbnew",
       "Version": "6.0.2+dfsg-1"
     },
-    "CreationDate": "2023-01-31T14:27:51-05:00"
+    "CreationDate": "2023-02-07T14:17:08-05:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
       "Name": "atx-power-fixture",
       "GUID": "6174782d-706f-4776-9572-2d6669787475",
-      "Revision": "1.0"
+      "Revision": "2.0"
     },
     "Size": {
       "X": 111.8688,
@@ -24,8 +24,8 @@
   "DesignRules": [
     {
       "Layers": "Outer",
-      "PadToPad": 0.2,
-      "PadToTrack": 0.2,
+      "PadToPad": 0.0,
+      "PadToTrack": 0.0,
       "TrackToTrack": 0.2,
       "MinLineWidth": 0.25,
       "TrackToRegion": 0.508,
@@ -33,10 +33,12 @@
     },
     {
       "Layers": "Inner",
-      "PadToPad": 0.2,
-      "PadToTrack": 0.2,
+      "PadToPad": 0.0,
+      "PadToTrack": 0.0,
       "TrackToTrack": 0.2,
-      "MinLineWidth": 0.25
+      "MinLineWidth": 0.25,
+      "TrackToRegion": 0.508,
+      "RegionToRegion": 0.508
     }
   ],
   "FilesAttributes": [
