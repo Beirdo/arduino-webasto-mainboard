@@ -55,7 +55,7 @@ As an "auxiliary heater", the purpose is to heat the coolant immediately after t
 
 \section{Webasto Replacement Controller}
 
-\noindent Since I want slightly different behavior when using my heater, I will need to reprogram the controller that is in the heater, or replace it.  As it is highly unlikely I will be able to get the design files (hardware or firmware) of the original board (see figure \ref{controller-orig} for a view of one), I have designed my own replacement.  That is what is being documented here.
+\noindent Since I want slightly different behavior when using my heater, I will need to reprogram the controller that is in the heater, or replace it.  As it is highly unlikely I will be able to get the design files (hardware or firmware) of the original board (see figure \ref{controller-orig} for a view of one), I have designed my own replacement (see figure \ref{controller-replacement}.  That is what is being documented here.
 
 \begin{figure}[!t]
 \centering
@@ -63,6 +63,14 @@ As an "auxiliary heater", the purpose is to heat the coolant immediately after t
 \caption{Webasto ThermoTop C/E OEM Controller}
 \label{controller-orig}
 \end{figure}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.5in,keepaspectratio]{mainboard-replacement.png}
+\caption{Webasto ThermoTop C/E Replacement Controller (bare)}
+\label{controller-replacement}
+\end{figure}
+
 
 To be able to fit into the OEM frame, and use the OEM connector, great care was taken to get the shape to match the original, and to keep the connectors (at the bottom of figure \ref{controller-orig}) in the correct places and orientations.  All of the connectors other than the 6-pin X1 are used for the precisely same purpose as stock, and the majority of X1 was left in place as well.  The pinouts of these connectors are as shown in tables \ref{pinout-x1}, \ref{pinout-x2}, \ref{pinout-x3}, \ref{pinout-x4}, and \ref{pinout-x5}.
 
