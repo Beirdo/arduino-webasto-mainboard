@@ -10,6 +10,7 @@ class DummySource : public AnalogSourceBase {
   protected:
     int32_t read_device(void);
     int32_t convert(int32_t reading);
+    int32_t _value;
 };
 
 #endif

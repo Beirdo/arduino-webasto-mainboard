@@ -17,8 +17,8 @@
 #include "fsm.h"
 #include "dummy.h"
 
-#define OFFBOARD_SENSOR_COUNT 5
-#define ONBOARD_SENSOR_COUNT  5
+#define OFFBOARD_SENSOR_COUNT 6
+#define ONBOARD_SENSOR_COUNT  4
 
 AnalogSourceBase *sensors[OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT];
 
@@ -27,11 +27,11 @@ AnalogSourceBase *batteryVoltageSensor;
 AnalogSourceBase *coolantTempSensor;
 AnalogSourceBase *exhaustTempSensor;
 AnalogSourceBase *ignitionSenseSensor;
+AnalogSourceBase *emergencyStopSensor;
 
 InternalADCSource *internalTempSensor;
 INA219Source *flameDetectorSensor;
 InternalGPIODigitalSource *startRunSensor;
-InternalGPIODigitalSource *emergencyStopSensor;
 InternalADCSource *vsysVoltageSensor;
 
 
@@ -69,6 +69,9 @@ void init_analog(void)
         case INDEX_IGNITION_SENSE:
           sensors[i] = new PCA9501DigitalSource(i, eeprom_data[j].current.addr_pca9501_gpio, PCA9501_VINN);
           break;
+        case INDEX_EMERGENCY_STOP:
+          sensors[i] = new PCA9501DigitalSource(i, eeprom_data[i].current.addr_pca9501_gpio, PCA9501_VINN);
+          break;  
         default:
           break;
       }      
@@ -80,17 +83,16 @@ void init_analog(void)
   coolantTempSensor = sensors[INDEX_COOLANT_TEMP];
   exhaustTempSensor = sensors[INDEX_EXHAUST_TEMP];
   ignitionSenseSensor = sensors[INDEX_IGNITION_SENSE];
+  emergencyStopSensor = sensors[INDEX_EMERGENCY_STOP];
 
   internalTempSensor = new InternalADCSource(INDEX_INTERNAL_TEMP, 4, 12);
   flameDetectorSensor = new INA219Source(INDEX_FLAME_DETECTOR, 0x4F, 12, &glowPlugInEnable);
   startRunSensor = new InternalGPIODigitalSource(INDEX_START_RUN, PIN_START_RUN);
-  emergencyStopSensor = new InternalGPIODigitalSource(INDEX_EMERGENCY_STOP, PIN_EMERGENCY_STOP);
   vsysVoltageSensor = new InternalADCSource(INDEX_VSYS_VOLTAGE, 3, 12);
 
   sensors[INDEX_INTERNAL_TEMP] = internalTempSensor;
   sensors[INDEX_FLAME_DETECTOR] = flameDetectorSensor;  
   sensors[INDEX_START_RUN] = startRunSensor;
-  sensors[INDEX_EMERGENCY_STOP] = emergencyStopSensor;
   sensors[INDEX_VSYS_VOLTAGE] = vsysVoltageSensor;
 
   // Now init() the suckers

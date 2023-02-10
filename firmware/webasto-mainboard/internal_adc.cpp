@@ -32,7 +32,7 @@ int32_t InternalADCSource::read_device(void)
   Log.notice("Reading Internal ADC Channel %d", _channel);
 #endif
   if (_channel == 4) {
-    float vref = mainboardDetected ? 3.0 : 3.3;
+    float vref = mainboardDetected ? 3.3 : 3.3; //3.0 for onboard once I put parts on there;
     float temp = analogReadTemp(vref);
     return (int32_t)(temp * 100.0);
   }
@@ -44,7 +44,7 @@ int32_t InternalADCSource::convert(int32_t reading)
 {
   if (_channel == 3) {
     // Wired to VSYS / 3 on the pico board itself
-    int vref = mainboardDetected ? 3000 : 3300;
+    int vref = mainboardDetected ? 3300 : 3300; // 3000 once onboard connected
     int retval = (reading * vref * 3) / (1 << _bits);
 #ifdef VERBOSE_LOGGING
     Log.notice("VSYS = %dmV", retval);

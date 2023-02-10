@@ -20,10 +20,10 @@ enum {
   INDEX_COOLANT_TEMP,
   INDEX_EXHAUST_TEMP,
   INDEX_IGNITION_SENSE,
+  INDEX_EMERGENCY_STOP,
   INDEX_INTERNAL_TEMP,
   INDEX_FLAME_DETECTOR,
   INDEX_START_RUN,
-  INDEX_EMERGENCY_STOP,
   INDEX_VSYS_VOLTAGE,
 };
 
@@ -32,10 +32,10 @@ extern AnalogSourceBase *batteryVoltageSensor;
 extern AnalogSourceBase *coolantTempSensor;
 extern AnalogSourceBase *exhaustTempSensor;
 extern AnalogSourceBase *ignitionSenseSensor;
+extern AnalogSourceBase *emergencyStopSensor;
 extern InternalADCSource *internalTempSensor;
 extern INA219Source *flameDetectorSensor;
 extern InternalGPIODigitalSource *startRunSensor;
-extern InternalGPIODigitalSource *emergencyStopSensor;
 extern InternalADCSource *vsysVoltageSensor;
 
 #endif

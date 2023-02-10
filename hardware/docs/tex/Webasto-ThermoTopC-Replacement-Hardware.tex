@@ -205,14 +205,14 @@ The resistance of a glow plug should normally be somewhere in the range of $100 
 The Start/Run line is another digital signal, and is already coming in on the X1 connector.  We simply put it through level translation, and then connect it to a GPIO on the Pico module.  This signal is used to order the heater to run, and when it goes low again, the heater will be shutdown in an orderly fashion unless it has been told to start via the K-Line/WBUS interface as well.
 
 \subsubsection{Emergency Stop Sense}
-The Emergency Stop line is currently coming in on a separate onboard connector, although it might make more sense to move it to a sensor board so no modifications are needed to the housing.  Either way, it requires level translation.
+The Emergency Stop line is an active low digital signal that comes from a switch in the driving area.  We perform the same level translation as done for the ignition sense (reverse biased diode with pull-up to 3.3V at the anode.  While this could be done on the mainboard, I didn't want to be modifying the housing to add more wiring.
 
 When the emergency stop has been asserted (active low), the heater will be shutdown immediately, with no cooldown.  This will put the heater into a lockdown situation, but may be necessary in the case of dangerously flammable situations.
 
 The emergency stop is also used to clear out a lockdown state by toggling it while the heater is locked down.
 
 \subsubsection{System Voltage}
-The Pico module has the VSYS (nominally +5V) rail attached to the RP2040's internal ADC on channel 3.  This is readily available in arduino using analogRead().
+The Pico module has the VSYS (nominally +5V) rail attached to the RP2040's internal ADC on channel 3 after a 1/3 voltage divider.  This is readily available in arduino using analogRead(), and is then scaled back to the full range.  When on USB, this should be a diode drop below VBUS, so about 4.7V.  If there is no USB, it is expected that this will be closer to 5V as the external 5V is applied through a FET to minimize voltage loss. 
 
 \subsubsection{Coolant Flow Rate}
 As the desired configuration includes several bypass loops (and a cooling loop), I felt it would be useful to track how well coolant is flowing.  Each valve controller board has an attached flow meter that uses a spinning impeller with an attached hall effect sensor to send a pulse for every rotation.  Given that each rotation calculates out to a fixed volume of coolant, this allows us to measure the coolant flow.
@@ -325,7 +325,7 @@ Address Range & Description & Location \\
 & ignition sense & \\
 \hline
 0x31 & PCA9501 GPIO Extender & sensor board 1 \\
-& unused & \\
+& emergency stop & \\
 \hline
 0x32 & PCA9501 GPIO Extender & sensor board 2 \\
 & unused & \\

@@ -39,7 +39,8 @@ extern int eeprom_lengths[];
 #define CAPABILITIES_COOLANT_TEMP     0x04
 #define CAPABILITIES_EXHAUST_TEMP     0x08
 #define CAPABILITIES_IGNITION_SOURCE  0x10
-#define CAPABILITIES_LINBUS_BRIDGE    0x20
+#define CAPABILITIES_EMERGENCY_STOP   0x20
+#define CAPABILITIES_LINBUS_BRIDGE    0x40
 
 extern const char *capabilities_names[];
 extern eeprom_data_t eeprom_data[8];
