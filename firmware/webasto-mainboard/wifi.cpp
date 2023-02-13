@@ -144,6 +144,10 @@ void update_wifi(void)
     cbor_tx_q.pop(&item);
 
     if (client.connected()) {
+      const uint8_t *buf = (const uint8_t *)&cbor_bufs[item.index];
+      int len = item.len;
+
+      hexdump(buf, len, 16);
       client.write((const uint8_t *)&cbor_bufs[item.index], item.len);
     }
     
@@ -160,6 +164,7 @@ void update_wifi(void)
     cbor_rx_buf[cbor_rx_tail++] = client.read();
   }
 
+  hexdump(cbor_rx_buf, cbor_rx_tail, 16);
   TinyCBOR.Parser.init(cbor_rx_buf, cbor_rx_tail, 0);
 
   int size = 0;
