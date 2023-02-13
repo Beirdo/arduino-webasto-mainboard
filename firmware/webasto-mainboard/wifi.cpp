@@ -1,3 +1,4 @@
+#include "cbor.h"
 #include <Arduino.h>
 #include <pico.h>
 #include <CoreMutex.h>
@@ -12,6 +13,7 @@
 #include "fsm.h"
 #include "analog.h"
 #include "project.h"
+#include "kline.h"
 
 #define WIFI_STRING_LEN 32
 
@@ -35,6 +37,9 @@ uint16_t port;
 typedef uint8_t cbor_buf_t[CBOR_BUF_SIZE];
 
 cbor_buf_t cbor_bufs[CBOR_BUF_COUNT];
+cbor_buf_t cbor_rx_buf;
+cbor_buf_t cbor_rx_wbus_buf;
+int cbor_rx_tail;
 
 mutex_t cbor_mutex;
 int cbor_head = 0;
@@ -118,6 +123,7 @@ void wifi_connection_callback(int timer_id, int delay_ms)
     Log.info("Server connected");
     Log.info("Local IP Address: %s:%d", client.localIP(), client.localPort());
     Log.info("Remote IP Address: %s:%d", client.remoteIP(), client.remotePort());        
+    cbor_rx_tail = 0;
   }
 }
 
@@ -151,9 +157,112 @@ void update_wifi(void)
   }
 
   while (client.available()) {
-    // for now, just eat the characters.  Will tie this into KLine.
-    client.read();
+    cbor_rx_buf[cbor_rx_tail++] = client.read();
   }
+
+  TinyCBOR.Parser.init(cbor_rx_buf, cbor_rx_tail, 0);
+
+  int size = 0;
+  uint8_t index;
+
+  while (!TinyCBOR.Parser.at_end_of_data()) {
+    int ty = TinyCBOR.Parser.get_type();
+    switch (ty) {
+      case CborMapType:
+        size = TinyCBOR.Parser.get_map_length();
+        TinyCBOR.Parser.enter_container();
+        break;
+
+      // CborInvalidType(0xFF) is equivalent to a break byte, and is put at the
+      // end of a container.      
+      case CborInvalidType:
+        if (TinyCBOR.Parser.at_end_of_container()) {
+          TinyCBOR.Parser.leave_container();
+        } else {
+          // This is a load of crap.  Flush it and abort.  Don't forget to wipe.
+          goto bail;          
+        }
+        break;
+
+      // Our keys are all simple type as are some of our values
+      case CborSimpleType:
+        {
+          bool isKey = TinyCBOR.Parser.is_key();
+          uint8_t value = TinyCBOR.Parser.get_simple_type();
+          if (isKey) {
+            index = value;
+          } else if (index == CBOR_VERSION && value != CBOR_CURRENT_VERSION) {
+            Log.warning("Wrong CBOR packet version: %d", value);
+            goto bail;
+          } else if (index == CBOR_PACKET_TYPE && value != CBOR_TYPE_WBUS) {
+            Log.warning("Wrong CBOR buffer type: %d", value);
+            goto bail;
+          }
+        }
+        break;
+
+      case CborByteStringType:
+        {
+          int str_len = TinyCBOR.Parser.get_string_length();
+          if (str_len > CBOR_BUF_SIZE) {
+            Log.warning("Received WBUS packet is too long (%d)", str_len);
+            goto bail;
+          }
+          str_len = TinyCBOR.Parser.copy_byte_string(cbor_rx_wbus_buf, CBOR_BUF_SIZE);
+          receive_kline_from_cbor(cbor_rx_wbus_buf, str_len);
+        }
+        break;
+
+      case CborTextStringType:
+        TinyCBOR.Parser.get_string_length();
+        TinyCBOR.Parser.copy_text_string((char *)cbor_rx_wbus_buf, CBOR_BUF_SIZE);
+        break;
+
+      case CborTagType:
+        TinyCBOR.Parser.get_tag();
+        break;
+
+      case CborIntegerType:
+        if (TinyCBOR.Parser.is_unsigned_integer()) {
+          TinyCBOR.Parser.get_uint64();
+        } else if (TinyCBOR.Parser.is_negative_integer()) {
+          TinyCBOR.Parser.get_int64();
+        } else if (TinyCBOR.Parser.is_integer()) {
+          TinyCBOR.Parser.get_int64();
+        }
+        break;
+
+      case CborBooleanType:
+        TinyCBOR.Parser.get_boolean();
+        break;
+
+      case CborFloatType:
+        TinyCBOR.Parser.get_float();
+        break;
+
+      case CborDoubleType:
+        TinyCBOR.Parser.get_double();
+        break;
+
+      case CborHalfFloatType:
+        break;
+
+      case CborNullType:
+        TinyCBOR.Parser.get_null();
+        break;        
+
+      case CborUndefinedType:
+        TinyCBOR.Parser.skip_undefined();
+        break;
+
+      default:
+        goto bail;
+    }
+  }
+
+bail:
+  cbor_rx_tail = 0;
+  return;
 }
 
 void cbor_send(const uint8_t *kline_buf, int kline_len) 
@@ -179,7 +288,7 @@ void cbor_send(const uint8_t *kline_buf, int kline_len)
     TinyCBOR.Encoder.encode_simple_value(CBOR_CURRENT_VERSION);
 
     TinyCBOR.Encoder.encode_simple_value(CBOR_PACKET_TYPE);
-    TinyCBOR.Encoder.encode_simple_value(CBOR_TYPE_KLINE);
+    TinyCBOR.Encoder.encode_simple_value(CBOR_TYPE_WBUS);
 
     TinyCBOR.Encoder.encode_simple_value(CBOR_BUFFER);
     TinyCBOR.Encoder.encode_byte_string(kline_buf, kline_len);

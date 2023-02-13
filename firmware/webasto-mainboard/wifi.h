@@ -33,7 +33,7 @@ enum {
 };
 
 enum {
-  CBOR_TYPE_KLINE,
+  CBOR_TYPE_WBUS,
   CBOR_TYPE_SENSORS,
 };
 
