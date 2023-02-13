@@ -370,8 +370,8 @@ uint8_t *kline_command_keep_alive(uint8_t mode, uint8_t minutes)
   int remaining = globalTimer.get_remaining_time(TIMER_TIMED_SHUT_DOWN) / 60000;
 
   // Add x minutes to the timer for mode, and return the number of minutes left.
-  buf[3] = HIBYTE(remaining);
-  buf[4] = LOBYTE(remaining);
+  buf[3] = HI_BYTE(remaining);
+  buf[4] = LO_BYTE(remaining);
   return buf;  
 }
 
@@ -380,8 +380,8 @@ uint8_t *kline_command_component_test(uint8_t component, uint8_t seconds, uint16
   // TODO:  Implement tests
   uint8_t *buf = allocate_response(0x45, 7, component);
   buf[4] = seconds;
-  buf[5] = HIBYTE(value);
-  buf[6] = LOBYTE(value);
+  buf[5] = HI_BYTE(value);
+  buf[6] = LO_BYTE(value);
   return buf;
 }
 
@@ -437,18 +437,18 @@ uint8_t *kline_command_read_sensor(uint8_t sensornum)
 
 uint8_t *kline_command_read_stuff(uint8_t index)
 {
-  if (index > 0x00 && index <= 0x0D) {
-    device_info_t *info = get_device_info(index - 1);
-    if (!info) {
-      return 0;
-    }
-
-    uint8_t *buf = allocate_response(0x51, 5 + info->len, index);
-    memcpy(&buf[4], info->buf, info->len);
-    return buf;
-  } else {
+  if (index <= 0x00 || index > 0x0D) {
     return 0;
   }
+
+  device_info_t *info = get_device_info(index - 1);
+  if (!info) {
+    return 0;
+  }
+
+  uint8_t *buf = allocate_response(0x51, 5 + info->len, index);
+  memcpy(&buf[4], info->buf, info->len);
+  return buf;
 }  
 
 uint8_t *kline_command_read_voltage_data(uint8_t index)
@@ -529,17 +529,17 @@ uint8_t *kline_get_error_code_details(uint8_t code)
   buf[6] = fram_data.current.error_list[index].count;
   
   uint16_t state = fram_data.current.error_list[index].state;
-  buf[7] = HIBYTE(state);
-  buf[8] = LOBYTE(state);
+  buf[7] = HI_BYTE(state);
+  buf[8] = LO_BYTE(state);
   buf[9] = fram_data.current.error_list[i].temperature;
 
   uint16_t millivolts = fram_data.current.error_list[index].vbat;
-  buf[10] = HIBYTE(millivolts);
-  buf[11] = LOBYTE(millivolts);
+  buf[10] = HI_BYTE(millivolts);
+  buf[11] = LO_BYTE(millivolts);
 
   time_sensor_t *operating_time = &fram_data.current.error_list[i].operating_time;
-  buf[12] = HIBYTE(operating_time->hours);
-  buf[13] = LOBYTE(operating_time->hours);
+  buf[12] = HI_BYTE(operating_time->hours);
+  buf[13] = LO_BYTE(operating_time->hours);
   buf[14] = operating_time->minutes;
   return buf;
 }
@@ -640,17 +640,17 @@ uint8_t *kline_read_operational_sensor(void)
   buf[4] = (uint8_t)(((externalTempSensor->get_value() / 50) + 1 / 2) + 50);
 
   int vbat = batteryVoltageSensor->get_value();
-  buf[5] = HIBYTE(vbat);
-  buf[6] = LOBYTE(vbat);
+  buf[5] = HI_BYTE(vbat);
+  buf[6] = LO_BYTE(vbat);
   buf[7] = (glowPlugInEnable ? 0x01 : 0x00);
 
   int power = fuelPumpTimer.getBurnPower();  
-  buf[8] = HIBYTE(power);
-  buf[9] = LOBYTE(power);
+  buf[8] = HI_BYTE(power);
+  buf[9] = LO_BYTE(power);
 
   int milliohms = flameDetectorSensor->get_value();
-  buf[10] = HIBYTE(milliohms);
-  buf[11] = LOBYTE(milliohms);
+  buf[10] = HI_BYTE(milliohms);
+  buf[11] = LO_BYTE(milliohms);
 
   return buf;
 }
@@ -664,14 +664,14 @@ uint8_t *kline_read_operating_time_sensor(void)
   buf[1] = 0x06;
   buf[3] = len - 2;
   
-  buf[4] = HIBYTE(fram_data.current.total_burn_duration.hours);
-  buf[5] = LOBYTE(fram_data.current.total_burn_duration.hours);
+  buf[4] = HI_BYTE(fram_data.current.total_burn_duration.hours);
+  buf[5] = LO_BYTE(fram_data.current.total_burn_duration.hours);
   buf[6] = fram_data.current.total_burn_duration.minutes;
-  buf[7] = HIBYTE(fram_data.current.total_working_duration.hours);
-  buf[8] = LOBYTE(fram_data.current.total_working_duration.hours);
+  buf[7] = HI_BYTE(fram_data.current.total_working_duration.hours);
+  buf[8] = LO_BYTE(fram_data.current.total_working_duration.hours);
   buf[9] = fram_data.current.total_working_duration.minutes;
-  buf[10] = HIBYTE(fram_data.current.total_start_counter);
-  buf[11] = LOBYTE(fram_data.current.total_start_counter);
+  buf[10] = HI_BYTE(fram_data.current.total_start_counter);
+  buf[11] = LO_BYTE(fram_data.current.total_start_counter);
 
   return buf;
 }
@@ -704,14 +704,14 @@ uint8_t *kline_read_burning_duration_sensor(void)
 
   int index = 4;
   for (int i = 0; i < 4; i++) {
-    buf[index++] = HIBYTE(fram_data.current.burn_duration_parking_heater[i].hours);
-    buf[index++] = LOBYTE(fram_data.current.burn_duration_parking_heater[i].hours);
+    buf[index++] = HI_BYTE(fram_data.current.burn_duration_parking_heater[i].hours);
+    buf[index++] = LO_BYTE(fram_data.current.burn_duration_parking_heater[i].hours);
     buf[index++] = fram_data.current.burn_duration_parking_heater[i].minutes;
   }
   
   for (int i = 0; i < 4; i++) {
-    buf[index++] = HIBYTE(fram_data.current.burn_duration_supplemental_heater[i].hours);
-    buf[index++] = LOBYTE(fram_data.current.burn_duration_supplemental_heater[i].hours);
+    buf[index++] = HI_BYTE(fram_data.current.burn_duration_supplemental_heater[i].hours);
+    buf[index++] = LO_BYTE(fram_data.current.burn_duration_supplemental_heater[i].hours);
     buf[index++] = fram_data.current.burn_duration_supplemental_heater[i].minutes;
   }
 
@@ -724,11 +724,11 @@ uint8_t *kline_read_operating_duration_sensor(void)
 
   CoreMutex m(&fram_mutex);  
 
-  buf[4] = HIBYTE(fram_data.current.working_duration_parking_heater.hours);
-  buf[5] = LOBYTE(fram_data.current.working_duration_parking_heater.hours);
+  buf[4] = HI_BYTE(fram_data.current.working_duration_parking_heater.hours);
+  buf[5] = LO_BYTE(fram_data.current.working_duration_parking_heater.hours);
   buf[6] = fram_data.current.working_duration_parking_heater.minutes;
-  buf[7] = HIBYTE(fram_data.current.working_duration_supplemental_heater.hours);
-  buf[8] = LOBYTE(fram_data.current.working_duration_supplemental_heater.hours);
+  buf[7] = HI_BYTE(fram_data.current.working_duration_supplemental_heater.hours);
+  buf[8] = LO_BYTE(fram_data.current.working_duration_supplemental_heater.hours);
   buf[9] = fram_data.current.working_duration_supplemental_heater.minutes;
 
   return buf;
@@ -740,12 +740,12 @@ uint8_t *kline_read_start_counter_sensor(void)
 
   CoreMutex m(&fram_mutex);
 
-  buf[4] = HIBYTE(fram_data.current.start_counter_parking_heater);
-  buf[5] = LOBYTE(fram_data.current.start_counter_parking_heater);
-  buf[6] = HIBYTE(fram_data.current.start_counter_supplemental_heater);
-  buf[7] = LOBYTE(fram_data.current.start_counter_supplemental_heater);
-  buf[8] = HIBYTE(fram_data.current.counter_emergency_shutdown);
-  buf[9] = LOBYTE(fram_data.current.counter_emergency_shutdown);
+  buf[4] = HI_BYTE(fram_data.current.start_counter_parking_heater);
+  buf[5] = LO_BYTE(fram_data.current.start_counter_parking_heater);
+  buf[6] = HI_BYTE(fram_data.current.start_counter_supplemental_heater);
+  buf[7] = LO_BYTE(fram_data.current.start_counter_supplemental_heater);
+  buf[8] = HI_BYTE(fram_data.current.counter_emergency_shutdown);
+  buf[9] = LO_BYTE(fram_data.current.counter_emergency_shutdown);
   return buf;
 }
 
@@ -777,8 +777,8 @@ uint8_t *kline_read_ventilation_duration_sensor(void)
   CoreMutex m(&fsm_mutex);
   
   uint8_t *buf = allocate_response(0x50, 7, 0x12);
-  buf[4] = HIBYTE(ventilation_duration.hours);
-  buf[5] = LOBYTE(ventilation_duration.hours);
+  buf[4] = HI_BYTE(ventilation_duration.hours);
+  buf[5] = LO_BYTE(ventilation_duration.hours);
   buf[6] = ventilation_duration.minutes;
   return buf;
 }

@@ -74,11 +74,13 @@
 #define PIN_FLAME_LED         26
 #define PIN_OPERATING_LED     27
 
-#define HIBYTE(x)     ((uint8_t)(((int)(x) >> 8) & 0xFF))
-#define LOBYTE(x)     ((uint8_t)(((int)(x) & 0xFF)))
+#define HI_BYTE(x)    ((uint8_t)(((int)(x) >> 8) & 0xFF))
+#define LO_BYTE(x)    ((uint8_t)(((int)(x) & 0xFF)))
 
 #define HI_NIBBLE(x)  ((uint8_t)(((int)(x) >> 4) & 0x0F))
 #define LO_NIBBLE(x)  ((uint8_t)(((int)(x) & 0x0F)))
+
+#define BIT(x) ((uint32_t)(1 << x))
 
 #define SUPPLEMENTAL_MIN_TEMP   -2000   // -20C
 #define SUPPLEMENTAL_MAX_TEMP   1000    // 10C

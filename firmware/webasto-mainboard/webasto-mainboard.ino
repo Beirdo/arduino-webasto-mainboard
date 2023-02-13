@@ -12,6 +12,7 @@
 #include "device_eeprom.h"
 #include "display.h"
 #include "fsm.h"
+#include "wifi.h"
 
 bool mainboardDetected;
 mutex_t startup_mutex;
@@ -20,9 +21,10 @@ mutex_t log_mutex;
 void sendCRLF(Print *output, int level);
 void sendCoreNum(Print *output, int level);
 
+
 void setup() {
   mutex_init(&startup_mutex);
-  mutex_init(&log_mutex);  
+  mutex_init(&log_mutex);
 
   CoreMutex m(&startup_mutex);
   
@@ -36,7 +38,7 @@ void setup() {
   pinMode(PIN_I2C0_SCL, INPUT_PULLUP);
   pinMode(PIN_I2C0_SDA, INPUT_PULLUP);
 
-  if (digitalRead(PIN_USE_USB)) {
+  if (digitalRead(PIN_USE_USB) && 0) {
     Serial.begin(115200);
     Log.begin(LOG_LEVEL_VERBOSE, &Serial);
   } else {
@@ -66,6 +68,8 @@ void setup() {
   delay(500);
 
   init_device_eeprom();
+
+  init_wifi();
   
   Log.notice("Starting I2C0");
   Wire.setSDA(PIN_I2C0_SDA);

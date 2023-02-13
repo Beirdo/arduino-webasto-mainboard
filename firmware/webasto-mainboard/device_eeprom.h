@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <pico.h>
 
-#define DEVICE_INFO_COUNT 13
+#define DEVICE_INFO_COUNT 17
 
 typedef struct {
   uint8_t *buf;
@@ -21,5 +21,6 @@ extern bool device_info_dirty;
 void init_device_eeprom(void);
 void update_device_eeprom(void);
 device_info_t *get_device_info(int index);
+int get_device_info_string(int index, uint8_t *buf, int len);
 
 #endif

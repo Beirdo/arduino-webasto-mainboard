@@ -8,6 +8,7 @@
 #include "device_eeprom.h"
 #include "sensor_eeprom.h"
 #include "project.h"
+#include "wifi.h"
 
 #define EEPROM_SIZE 4096
 
@@ -29,6 +30,7 @@ const uint8_t default_device_info_09[] = "PQ48 SH";                             
 const uint8_t default_device_info_10[] = { 0x78, 0x7C, 0x00, 0x0A, 0x50, 0x20, 0x00};  // W-BUS code. Flags of supported subsystems
 const uint8_t default_device_info_11[] = { 00, 00, 00, 00, 0x1E };                     // Software ID
 
+
 const device_info_t default_device_info[DEVICE_INFO_COUNT] = {
   { (uint8_t *)default_device_info_00, 5 },
   { (uint8_t *)default_device_info_01, 12 },
@@ -42,6 +44,10 @@ const device_info_t default_device_info[DEVICE_INFO_COUNT] = {
   { (uint8_t *)default_device_info_09, 7 },
   { (uint8_t *)default_device_info_10, 7 },
   { (uint8_t *)default_device_info_11, 5 },
+  { (uint8_t *)WIFI_SSID, WIFI_SSID_LEN },
+  { (uint8_t *)WIFI_PSK, WIFI_PSK_LEN },
+  { (uint8_t *)WIFI_SERVER, WIFI_SERVER_LEN },
+  { (uint8_t *)WIFI_PORT, WIFI_PORT_LEN },
 };
 
 bool device_info_dirty;
@@ -73,8 +79,8 @@ void init_device_eeprom(void)
     for (int i = 0; i < DEVICE_INFO_COUNT && addr < EEPROM_SIZE; i++) {
       int len = device_length[i];
       device_info[i].len = len;
-      calc_checksum ^= HIBYTE(len);
-      calc_checksum ^= LOBYTE(len);
+      calc_checksum ^= HI_BYTE(len);
+      calc_checksum ^= LO_BYTE(len);
       device_info[i].buf = (uint8_t *)malloc(len);
       for (int j = 0; j < len && addr < EEPROM_SIZE; j++) {
         uint8_t ch = EEPROM.read(addr++);
@@ -119,8 +125,8 @@ void update_device_eeprom(void)
     int addr = sizeof(device_length) + 1;
     for (int i = 0; i < DEVICE_INFO_COUNT; i++) {
       int len = device_length[i];
-      checksum ^= HIBYTE(len);
-      checksum ^= LOBYTE(len);
+      checksum ^= HI_BYTE(len);
+      checksum ^= LO_BYTE(len);
       for (int j = 0; j < len; j++) {
         uint8_t ch = device_info[i].buf[j];
         checksum ^= ch;
@@ -153,3 +159,21 @@ device_info_t *get_device_info(int index)
   return &(device_info[index]);
 }
 
+int get_device_info_string(int index, uint8_t *buf, int len) 
+{
+  device_info_t *dev = get_device_info(index);
+
+  if (!dev || !buf) {
+    return 0;
+  }
+
+  len = clamp<int>(len - 1, 0, dev->len);
+  if (!len) {
+    return 0;
+  }
+
+  memcpy(buf, dev->buf, len);
+  buf[len] = 0;
+
+  return len; 
+}
