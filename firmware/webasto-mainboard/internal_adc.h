@@ -5,12 +5,12 @@
 
 class InternalADCSource : public AnalogSourceBase {
   public:
-    InternalADCSource(int index, int channel, int bits, int mult = 0, int div_ = 0) : 
+    InternalADCSource(int index, int channel, int bits, int mult = 0, int div_ = 0) :
         AnalogSourceBase(index, 100, 0x00, bits, mult, div_)
     {
       _channel = channel;
     };
-    
+
     void init(void);
   protected:
     int32_t read_device(void);

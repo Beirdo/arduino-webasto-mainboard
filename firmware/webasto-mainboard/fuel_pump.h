@@ -33,7 +33,7 @@ class FuelPumpTimer {
       _enabled = false;
       abort();
     }
-    
+
     void abort(void);
     void timerCallback(int timer_id, int delayed);
     int getFuelPumpFrequency(void);

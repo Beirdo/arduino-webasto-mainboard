@@ -13,10 +13,10 @@ const char *capabilities_names[] = {
   "coolant temperature",
   "exhaust temperature",
   "ignition sense",
-  "emergency stop sense", 
+  "emergency stop sense",
   "LINbus bridge",
   "internal temperature",
-  "flame detector", 
+  "flame detector",
   "start/run sense",
   "VSYS voltage",
 };
@@ -37,7 +37,7 @@ uint8_t eeprom_checksum(uint8_t *buf, int len)
   return checksum;
 }
 
-void init_eeprom(void) 
+void init_eeprom(void)
 {
   memset((char *)&eeprom_data, 0xFF, sizeof(eeprom_data));
 
@@ -110,14 +110,14 @@ void init_eeprom(void)
       delete eeprom;
       eeprom_devices[1] = 0;
       continue;
-    } 
+    }
 
     if (version != CURRENT_EEPROM_VERSION) {
-      upgrade_eeprom_version(&eeprom_data[i]);        
-    }    
+      upgrade_eeprom_version(&eeprom_data[i]);
+    }
 
     Log.notice("Found v%d Sensor Board at index %d with capabilities of %X", version, i, eeprom_data[i].current.capabilities);
   }
 }
 
- 
+

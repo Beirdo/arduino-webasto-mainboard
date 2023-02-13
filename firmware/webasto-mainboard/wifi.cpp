@@ -64,7 +64,7 @@ void wifi_startup_callback(int timer_id, int delay_ms)
   }
 
   (void)delay_ms;
-  
+
   CoreMutex m(&wifi_mutex);
 
   get_device_info_string(13, ssid, 32);
@@ -75,7 +75,7 @@ void wifi_startup_callback(int timer_id, int delay_ms)
   if (!old_ssid || !old_psk) {
     new_ap = true;
   } else if (strcmp((const char *)ssid, (const char *)old_ssid)) {
-    new_ap = true;    
+    new_ap = true;
   } else if (strcmp((const char *)psk, (const char *)old_psk)) {
     new_ap = true;
   }
@@ -83,7 +83,7 @@ void wifi_startup_callback(int timer_id, int delay_ms)
   if (new_ap) {
     old_ssid = ssid;
     old_psk = psk;
-  
+
     multi.addAP((const char *)ssid, (const char *)psk);
   }
 
@@ -106,7 +106,7 @@ void wifi_connection_callback(int timer_id, int delay_ms)
   }
 
   (void)delay_ms;
-  
+
   CoreMutex m(&wifi_mutex);
 
   get_device_info_string(15, server, 128);
@@ -122,7 +122,7 @@ void wifi_connection_callback(int timer_id, int delay_ms)
   } else {
     Log.info("Server connected");
     Log.info("Local IP Address: %s:%d", client.localIP(), client.localPort());
-    Log.info("Remote IP Address: %s:%d", client.remoteIP(), client.remotePort());        
+    Log.info("Remote IP Address: %s:%d", client.remoteIP(), client.remotePort());
     cbor_rx_tail = 0;
   }
 }
@@ -148,20 +148,20 @@ void update_wifi(void)
       flush = true;
       continue;
     }
-  
+
     const uint8_t *buf = (const uint8_t *)&cbor_bufs[item.index];
     int len = item.len;
 
     hexdump(buf, len, 16);
     client.write((const uint8_t *)&cbor_bufs[item.index], item.len);
-  
+
     cbor_head += 1;
     cbor_head %= CBOR_BUF_COUNT;
 
     if (cbor_head == cbor_tail) {
       cbor_head = 0;
       cbor_tail = 0;
-    }     
+    }
   }
 
   if (flush) {
@@ -174,7 +174,7 @@ void update_wifi(void)
     if (!client.connected() && !globalTimer.get_remaining_time(TIMER_WIFI_CONNECT)) {
       wifi_server_connected = false;
       wifi_connection_callback(TIMER_WIFI_CONNECT, 0);
-      return; 
+      return;
     }
   }
 
@@ -197,13 +197,13 @@ void update_wifi(void)
         break;
 
       // CborInvalidType(0xFF) is equivalent to a break byte, and is put at the
-      // end of a container.      
+      // end of a container.
       case CborInvalidType:
         if (TinyCBOR.Parser.at_end_of_container()) {
           TinyCBOR.Parser.leave_container();
         } else {
           // This is a load of crap.  Flush it and abort.  Don't forget to wipe.
-          goto bail;          
+          goto bail;
         }
         break;
 
@@ -272,7 +272,7 @@ void update_wifi(void)
 
       case CborNullType:
         TinyCBOR.Parser.get_null();
-        break;        
+        break;
 
       case CborUndefinedType:
         TinyCBOR.Parser.skip_undefined();
@@ -288,7 +288,7 @@ bail:
   return;
 }
 
-void cbor_send(const uint8_t *kline_buf, int kline_len) 
+void cbor_send(const uint8_t *kline_buf, int kline_len)
 {
    CoreMutex m(&cbor_mutex);
 
@@ -297,7 +297,7 @@ void cbor_send(const uint8_t *kline_buf, int kline_len)
     return;
   }
 
-  item.index = cbor_tail++;  
+  item.index = cbor_tail++;
   cbor_tail %= CBOR_BUF_COUNT;
   item.len = 0;
 
@@ -377,5 +377,5 @@ void cbor_send(const uint8_t *kline_buf, int kline_len)
 
   item.len = TinyCBOR.Encoder.get_buffer_size();
 
-  cbor_tx_q.push(&item); 
+  cbor_tx_q.push(&item);
 }

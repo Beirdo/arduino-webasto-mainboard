@@ -34,8 +34,8 @@ const uint8_t default_device_info_11[] = { 00, 00, 00, 00, 0x1E };              
 const device_info_t default_device_info[DEVICE_INFO_COUNT] = {
   { (uint8_t *)default_device_info_00, 5 },
   { (uint8_t *)default_device_info_01, 12 },
-  { (uint8_t *)default_device_info_02, 6 }, 
-  { (uint8_t *)default_device_info_03, 3 }, 
+  { (uint8_t *)default_device_info_02, 6 },
+  { (uint8_t *)default_device_info_03, 3 },
   { (uint8_t *)default_device_info_04, 3 },
   { (uint8_t *)default_device_info_05, 1 },
   { (uint8_t *)default_device_info_06, 15 },
@@ -110,14 +110,14 @@ void init_device_eeprom(void)
     device_info_dirty = true;
     device_info_valid = true;
   }
-  
+
   EEPROM.end();
 }
 
 void update_device_eeprom(void)
 {
   if (device_info_dirty && device_info_valid) {
-    Log.notice("Writing back dirty cache to internal EEPROM");    
+    Log.notice("Writing back dirty cache to internal EEPROM");
     uint8_t checksum = 0x00;
 
     EEPROM.begin(EEPROM_SIZE);
@@ -159,7 +159,7 @@ device_info_t *get_device_info(int index)
   return &(device_info[index]);
 }
 
-int get_device_info_string(int index, uint8_t *buf, int len) 
+int get_device_info_string(int index, uint8_t *buf, int len)
 {
   device_info_t *dev = get_device_info(index);
 
@@ -175,5 +175,5 @@ int get_device_info_string(int index, uint8_t *buf, int len)
   memcpy(buf, dev->buf, len);
   buf[len] = 0;
 
-  return len; 
+  return len;
 }

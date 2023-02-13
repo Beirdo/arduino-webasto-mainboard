@@ -25,7 +25,7 @@ void MCP96L01Source::init(void)
   _device_config = 0;
   _device_config |= (1 << 7);   // cold junction resolution of 0.25C
   _device_config |= (((18 - _bits) & 0x06) << 4);  // device resolution - Th always reads back as 16bit
-  
+
   // shutdown mode until I say otherwise, please.
   i2c_write_register(0x06, _device_config | 1);
 
@@ -62,7 +62,7 @@ int32_t MCP96L01Source::read_device(void)
   delay(_conv_ms);
 
   // delay a bit longer if needed
-  uint8_t status;  
+  uint8_t status;
   while (true) {
     i2c_read_data(0x04, &status, 1);
     if (!(status & 0x04)) {

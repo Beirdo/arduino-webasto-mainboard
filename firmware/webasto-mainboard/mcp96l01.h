@@ -17,13 +17,13 @@ typedef enum {
 
 class MCP96L01Source : public AnalogSourceBase {
   public:
-    MCP96L01Source(int index, uint8_t i2c_address, int bits, thermocoupleType_t type, int filter_bits = 4) : 
+    MCP96L01Source(int index, uint8_t i2c_address, int bits, thermocoupleType_t type, int filter_bits = 4) :
         AnalogSourceBase(index, 100, i2c_address, bits)
     {
       _type = type;
       _filter_bits = filter_bits;
     };
-    
+
     void init(void);
   protected:
     int32_t read_device(void);

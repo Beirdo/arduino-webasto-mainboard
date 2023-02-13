@@ -22,7 +22,7 @@ class OLEDDisplay : public Display {
     int _height;
     int _x_offset;
     bool _initialized;
-    Adafruit_SSD1306 *_ssd1306;      
+    Adafruit_SSD1306 *_ssd1306;
 };
 
 void oledTimerCallback(int timerId, int delayMs);

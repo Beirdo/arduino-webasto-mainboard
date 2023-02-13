@@ -28,7 +28,7 @@ class Display {
     void clearMirrorLine(int y);
     void update(void);
     void log(void);
-    
+
     void printHexByte(int x, int y, uint8_t data);
     void printWatts(int x, int y, int burnPower);
     void printPercent(int x, int y, int percent);
@@ -38,8 +38,8 @@ class Display {
 
     uint16_t getHexDigit(uint8_t nibble);
     inline int getOffset(int x, int y) { return y * _columns + x; };
-    inline bool isOffsetInRow(int offset, int y) 
-    { 
+    inline bool isOffsetInRow(int offset, int y)
+    {
       int _min = getOffset(0, y);
       int _max = getOffset(_columns, y);
       return offset >= _min && offset < _max;

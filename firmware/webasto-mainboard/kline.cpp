@@ -45,7 +45,7 @@ void init_kline(void)
   digitalWrite(PIN_KLINE_EN, LOW);
   tx_active = false;
   rx_active = false;
-  kline_rx_tail = 0;  
+  kline_rx_tail = 0;
 }
 
 void send_break(void)
@@ -144,7 +144,7 @@ uint8_t *allocate_response(uint8_t command, uint8_t len, uint8_t subcommand)
 void receive_kline_from_cbor(uint8_t *cbor_buf, int len)
 {
   uint8_t *buf = (uint8_t *)malloc(len);
-  memcpy(buf, cbor_buf, len);               
+  memcpy(buf, cbor_buf, len);
 
   klinePacket_t *packet = (klinePacket_t *)malloc(sizeof(klinePacket_t));
   packet->buf = buf;
@@ -168,7 +168,7 @@ void receive_kline_from_serial(void)
       Serial2.flush();
       continue;
     }
-    
+
     uint8_t ch = Serial2.read();
     if (kline_rx_tail == 0 && ch != KLINE_RX_MATCH_ADDR) {
       rx_active = false;
@@ -180,18 +180,18 @@ void receive_kline_from_serial(void)
     if (kline_rx_tail > 2) {
       int len = kline_rx_buffer[1] + 2;
       if (kline_rx_tail == len) {
-        Log.notice("Received WBus packet");        
+        Log.notice("Received WBus packet");
         // Full frame received
         if (calc_kline_checksum(kline_rx_buffer, len)) {
           // Bad checksum.  Turf it.  Wait for new break
           Log.warning("Received packet had bad checksum.  Discarding");
           rx_active = false;
           Serial2.flush();
-          continue;          
+          continue;
         }
 
         uint8_t *buf = (uint8_t *)malloc(len);
-        memcpy(buf, (const void *)kline_rx_buffer, len);               
+        memcpy(buf, (const void *)kline_rx_buffer, len);
 
         klinePacket_t *packet = (klinePacket_t *)malloc(sizeof(klinePacket_t));
         packet->buf = buf;
@@ -199,9 +199,9 @@ void receive_kline_from_serial(void)
         packet->fromWiFi = false;
 
         kline_rx_q.push(&packet);
-        kline_rx_tail = 0;        
+        kline_rx_tail = 0;
       }
-    }            
+    }
   }
 }
 
@@ -215,7 +215,7 @@ void process_kline(void)
     }
 
     Log.notice("Processing WBus packet");
-    hexdump(packet->buf, packet->len, 16);    
+    hexdump(packet->buf, packet->len, 16);
 
     uint8_t cmd = packet->buf[2];
     klinePacket_t *respPacket = kline_rx_dispatch(packet, cmd);
@@ -225,7 +225,7 @@ void process_kline(void)
 
     free(packet->buf);
     free(packet);
-  }    
+  }
 
   if (!tx_active) {
     kline_send_next_packet();
@@ -251,48 +251,48 @@ klinePacket_t *kline_rx_dispatch(klinePacket_t *packet, uint8_t cmd)
     case 0x20:
       // Start for x minutes, default mode
       buf = kline_command_timed_start(WEBASTO_MODE_DEFAULT, packet->buf[3]);
-      break;      
+      break;
 
     case 0x21:
       // Start for x minutes, parking heater on
       buf = kline_command_timed_start(WEBASTO_MODE_PARKING_HEATER, packet->buf[3]);
-      break;      
-      
+      break;
+
     case 0x22:
       // Start for x minutes, ventilation on
       buf = kline_command_timed_start(WEBASTO_MODE_VENTILATION, packet->buf[3]);
-      break;      
+      break;
 
     case 0x23:
       // Start for x minutes, supplemental heating on
       buf = kline_command_timed_start(WEBASTO_MODE_SUPPLEMENTAL_HEATER, packet->buf[3]);
-      break;      
+      break;
 
     case 0x24:
       // Start for x minutes, circulation pump on
       buf = kline_command_timed_start(WEBASTO_MODE_CIRCULATION_PUMP, packet->buf[3]);
-      break;      
-      
+      break;
+
     case 0x25:
       // Start for x minutes, boost on
       buf = kline_command_timed_start(WEBASTO_MODE_BOOST, packet->buf[3]);
-      break;  
-      
+      break;
+
     case 0x26:
       // Start for x minutes, coolng on
       buf = kline_command_timed_start(WEBASTO_MODE_COOLING, packet->buf[3]);
-      break;  
+      break;
 
     case 0x38:
       // Diagnostic message, unknown use
       buf = kline_command_diagnostics();
-      break;  
+      break;
 
     case 0x44:
       // Seems to be a timer keepalive, I'm going to assume it adds the same number of minutes originally requested
       // and returns a 16-bit "minutes remaining" time
       buf = kline_command_keep_alive(packet->buf[3], packet->buf[4]);
-      break;  
+      break;
 
     case 0x48:
       // Component test
@@ -329,7 +329,7 @@ klinePacket_t *kline_rx_dispatch(klinePacket_t *packet, uint8_t cmd)
 
     default:
       break;
-  } 
+  }
 
   if (buf) {
     len = buf[1] + 2;
@@ -395,7 +395,7 @@ uint8_t *kline_command_keep_alive(uint8_t mode, uint8_t minutes)
   // Add x minutes to the timer for mode, and return the number of minutes left.
   buf[3] = HI_BYTE(remaining);
   buf[4] = LO_BYTE(remaining);
-  return buf;  
+  return buf;
 }
 
 uint8_t *kline_command_component_test(uint8_t component, uint8_t seconds, uint16_t value)
@@ -472,7 +472,7 @@ uint8_t *kline_command_read_stuff(uint8_t index)
   uint8_t *buf = allocate_response(0x51, 5 + info->len, index);
   memcpy(&buf[4], info->buf, info->len);
   return buf;
-}  
+}
 
 uint8_t *kline_command_read_voltage_data(uint8_t index)
 {
@@ -488,7 +488,7 @@ uint8_t *kline_command_read_voltage_data(uint8_t index)
   // 8,9: Maximum voltage threshold
   // 10,11,12,13: dont know
   // 14: Max voltage detection delay (seconds)
-  
+
   static const uint8_t canned_reply[14] = {
     0x2C, 0x24, 0x25, 0x1C, 0x30, 0xD4, 0xFA, 0x40, 0x74, 0x00, 0x00, 0x63, 0x9C, 0x05
   };
@@ -514,9 +514,9 @@ uint8_t *kline_command_get_error_codes(uint8_t subcmd, uint8_t index)
 uint8_t *kline_get_error_code_list(void)
 {
   CoreMutex m(&fram_mutex);
-  
+
   int error_list_len = fram_data.current.error_list_count;
-  int len = 5 + 2 * error_list_len;    
+  int len = 5 + 2 * error_list_len;
   uint8_t *buf = allocate_response(0x56, len, 0x01);
 
   buf[4] = error_list_len;
@@ -530,7 +530,7 @@ uint8_t *kline_get_error_code_list(void)
 uint8_t *kline_get_error_code_details(uint8_t code)
 {
   CoreMutex m(&fram_mutex);
-    
+
   int error_list_len = fram_data.current.error_list_count;
   int i;
   for (i = 0; i < error_list_len; i++) {
@@ -550,7 +550,7 @@ uint8_t *kline_get_error_code_details(uint8_t code)
   buf[4] = code;
   buf[5] = fram_data.current.error_list[index].status;
   buf[6] = fram_data.current.error_list[index].count;
-  
+
   uint16_t state = fram_data.current.error_list[index].state;
   buf[7] = HI_BYTE(state);
   buf[8] = LO_BYTE(state);
@@ -591,7 +591,7 @@ uint8_t *kline_command_co2_calibration(uint8_t index, uint8_t value)
 uint8_t *kline_get_co2(void)
 {
   CoreMutex m(&fram_mutex);
-  
+
   uint8_t *buf = allocate_response(0x57, 8, 0x01);
 
   buf[4] = fram_data.current.current_co2;
@@ -633,7 +633,7 @@ uint8_t *kline_read_status_sensor(void)
 uint8_t *kline_read_subsystem_enabled_sensor(void)
 {
   CoreMutex m(&fsm_mutex);
-  
+
   uint8_t *buf = allocate_response(0x50, 5, 0x03);
   uint8_t flags = 0x00;
   flags |= (combustionFanPercent ? 0x01 : 0x00);
@@ -642,7 +642,7 @@ uint8_t *kline_read_subsystem_enabled_sensor(void)
   flags |= (circulationPumpOn ? 0x08 : 0x00);
   flags |= (vehicleFanPercent ? 0x10 : 0x00);
   flags |= 0x00;        // Nozzle stock heating... we don't have that??!
-  flags |= (glowPlugInEnable ? 0x40 : 0x00);  
+  flags |= (glowPlugInEnable ? 0x40 : 0x00);
   buf[4] = flags;
   return buf;
 }
@@ -659,7 +659,7 @@ uint8_t *kline_read_fuel_param_sensor(void)
 uint8_t *kline_read_operational_sensor(void)
 {
   uint8_t *buf = allocate_response(0x50, 12, 0x05);
-  
+
   buf[4] = (uint8_t)(((externalTempSensor->get_value() / 50) + 1 / 2) + 50);
 
   int vbat = batteryVoltageSensor->get_value();
@@ -667,7 +667,7 @@ uint8_t *kline_read_operational_sensor(void)
   buf[6] = LO_BYTE(vbat);
   buf[7] = (glowPlugInEnable ? 0x01 : 0x00);
 
-  int power = fuelPumpTimer.getBurnPower();  
+  int power = fuelPumpTimer.getBurnPower();
   buf[8] = HI_BYTE(power);
   buf[9] = LO_BYTE(power);
 
@@ -681,12 +681,12 @@ uint8_t *kline_read_operational_sensor(void)
 uint8_t *kline_read_operating_time_sensor(void)
 {
   CoreMutex m(&fram_mutex);
-  
+
   int len = 12;
   uint8_t *buf = (uint8_t *)malloc(len);
   buf[1] = 0x06;
   buf[3] = len - 2;
-  
+
   buf[4] = HI_BYTE(fram_data.current.total_burn_duration.hours);
   buf[5] = LO_BYTE(fram_data.current.total_burn_duration.hours);
   buf[6] = fram_data.current.total_burn_duration.minutes;
@@ -708,14 +708,14 @@ uint8_t *kline_read_state_sensor(void)
   mutex_exit(&fsm_mutex);
 
   buf[5] = 0x00;                // Operating state state number ???
-  
+
   mutex_enter_blocking(&fram_mutex);
   buf[6] = fram_data.current.device_status; // Device state bitfield,  0x01 = STFL, 0x02 = UEHFL, 0x04 = SAFL, 0x08 = RZFL
   mutex_exit(&fram_mutex);
-  
+
   buf[7] = 0x00;                // unknown
   buf[8] = 0x00;                // unknown
-  buf[9] = 0x00;                // unknown  
+  buf[9] = 0x00;                // unknown
   return buf;
 }
 
@@ -723,7 +723,7 @@ uint8_t *kline_read_burning_duration_sensor(void)
 {
   uint8_t *buf = allocate_response(0x50, 28, 0x0A);
 
-  CoreMutex m(&fram_mutex);  
+  CoreMutex m(&fram_mutex);
 
   int index = 4;
   for (int i = 0; i < 4; i++) {
@@ -731,7 +731,7 @@ uint8_t *kline_read_burning_duration_sensor(void)
     buf[index++] = LO_BYTE(fram_data.current.burn_duration_parking_heater[i].hours);
     buf[index++] = fram_data.current.burn_duration_parking_heater[i].minutes;
   }
-  
+
   for (int i = 0; i < 4; i++) {
     buf[index++] = HI_BYTE(fram_data.current.burn_duration_supplemental_heater[i].hours);
     buf[index++] = LO_BYTE(fram_data.current.burn_duration_supplemental_heater[i].hours);
@@ -745,7 +745,7 @@ uint8_t *kline_read_operating_duration_sensor(void)
 {
   uint8_t *buf = allocate_response(0x50, 10, 0x0B);
 
-  CoreMutex m(&fram_mutex);  
+  CoreMutex m(&fram_mutex);
 
   buf[4] = HI_BYTE(fram_data.current.working_duration_parking_heater.hours);
   buf[5] = LO_BYTE(fram_data.current.working_duration_parking_heater.hours);
@@ -775,7 +775,7 @@ uint8_t *kline_read_start_counter_sensor(void)
 uint8_t *kline_read_subsystem_status_sensor(void)
 {
   CoreMutex m(&fsm_mutex);
-  
+
   uint8_t *buf = allocate_response(0x50, 9, 0x0F);
   buf[4] = (uint8_t)glowPlugPercent;
   buf[5] = fuelPumpTimer.getFuelPumpFrequencyKline();
@@ -786,7 +786,7 @@ uint8_t *kline_read_subsystem_status_sensor(void)
 }
 
 uint8_t *kline_read_temperature_thresh_sensor(void)
-{ 
+{
   // lower and upper temperature thresholds (degC + 50)
   // TODO: read from current firmware in unit
   uint8_t *buf = allocate_response(0x50, 6, 0x11);
@@ -798,7 +798,7 @@ uint8_t *kline_read_temperature_thresh_sensor(void)
 uint8_t *kline_read_ventilation_duration_sensor(void)
 {
   CoreMutex m(&fsm_mutex);
-  
+
   uint8_t *buf = allocate_response(0x50, 7, 0x12);
   buf[4] = HI_BYTE(ventilation_duration.hours);
   buf[5] = LO_BYTE(ventilation_duration.hours);

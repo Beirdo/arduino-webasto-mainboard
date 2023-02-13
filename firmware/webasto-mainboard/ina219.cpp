@@ -31,7 +31,7 @@ void INA219Source::init(void)
   _device_config |= (3 << 11);    // PG = 3, +/- 320mV
   _device_config |= ((-9 - _bits) & 0x03) << 7;   /* Bus ADC -> bits wide */
   _device_config |= ((-9 - _bits) & 0x03) << 3;   /* Shunt ADC -> bits wide */
-  i2c_write_register_word(0x00, _device_config);  
+  i2c_write_register_word(0x00, _device_config);
 
   switch(_bits) {
     case 9:
@@ -49,7 +49,7 @@ void INA219Source::init(void)
     default:
       break;
   }
-} 
+}
 
 int32_t INA219Source::read_device(void)
 {

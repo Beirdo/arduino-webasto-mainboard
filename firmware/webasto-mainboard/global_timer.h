@@ -38,12 +38,12 @@ class GlobalTimer {
     void adjust_timer(int timer_id, int delay_ms);
     void tick(void);
     int get_remaining_time(int timer_id);
-  
+
   private:
     timerItem_t *find_item(int timer_id, bool locked = true);
     timerItem_t *remove_item(int timer_id, bool locked = true);
     void insert_item(timerItem_t *item, bool locked = true);
-  
+
     int _last_run;
     timerItem_t *_head;
     mutex_t _mutex;

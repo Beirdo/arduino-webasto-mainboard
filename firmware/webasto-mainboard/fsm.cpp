@@ -60,7 +60,7 @@ void WebastoControlFSM::react(GlowPlugInEnableEvent const &e)
 {
   Log.notice("Received GlowPlugInEnableEvent: %d", e.enable);
   CoreMutex m(&fsm_mutex);
-  
+
   LedChangeEvent e0;
   e0.operatingChange = false;
   e0.flameChange = true;
@@ -79,7 +79,7 @@ void WebastoControlFSM::react(GlowPlugOutEnableEvent const &e)
 {
   Log.notice("Received GlowPlugInEnableEvent: %d", e.enable);
   CoreMutex m(&fsm_mutex);
-  
+
   LedChangeEvent e0;
   e0.operatingChange = false;
   e0.flameChange = true;
@@ -101,7 +101,7 @@ void WebastoControlFSM::react(LedChangeEvent const &e)
 
   int pin;
   bool *store;
-  
+
   if (e.operatingChange) {
     pin = PIN_OPERATING_LED;
     store = &operatingLed;
@@ -120,7 +120,7 @@ void WebastoControlFSM::react(CirculationPumpEvent const &e)
 {
   Log.notice("Received CirculationPumpEvent: %d", e.enable);
   CoreMutex m(&fsm_mutex);
-  
+
   circulationPumpOn = e.enable;
   digitalWrite(PIN_CIRCULATION_PUMP, circulationPumpOn);
 }
@@ -129,7 +129,7 @@ void WebastoControlFSM::react(CombustionFanEvent const &e)
 {
   Log.notice("Received CombustionFanEvent: %d", e.value);
   CoreMutex m(&fsm_mutex);
-  
+
   combustionFanPercent = clamp<int>(e.value, 0, 100);
   analogWrite(PIN_COMBUSTION_FAN, combustionFanPercent * 255 / 100);
 }
@@ -138,11 +138,11 @@ void WebastoControlFSM::react(GlowPlugOutEvent const &e)
 {
   Log.notice("Received GlowPlugOutEvent: %d", e.value);
   CoreMutex m(&fsm_mutex);
-  
+
   if (e.value && !glowPlugOutEnable) {
     return;
-  } 
-  
+  }
+
   glowPlugPercent = clamp<int>(e.value, 0, 100);
   analogWrite(PIN_GLOW_PLUG_OUT, glowPlugPercent * 255 / 100);
 }
@@ -151,7 +151,7 @@ void WebastoControlFSM::react(VehicleFanEvent const &e)
 {
   Log.notice("Received VehicleFanEvent: %d", e.value);
   CoreMutex m(&fsm_mutex);
-  
+
   vehicleFanPercent = clamp<int>(e.value, 0, 100);
   analogWrite(PIN_VEHICLE_FAN_RELAY, vehicleFanPercent * 255 / 100);
 }
@@ -190,7 +190,7 @@ void WebastoControlFSM::react(EmergencyStopEvent const &e)
   }
 
   CoreMutex m(&fsm_mutex);
-    
+
   // TODO: what if we missed the edge?
   if (lockdown && !fsm_mode) {
     LockdownEvent event;
@@ -267,7 +267,7 @@ void WebastoControlFSM::react(ExhaustTempEvent const &e)
   }
 }
 
-void WebastoControlFSM::react(InternalTempEvent const &e) 
+void WebastoControlFSM::react(InternalTempEvent const &e)
 {
   Log.notice("Received InternalTempEvent: %d", e.value);
 
@@ -282,7 +282,7 @@ void WebastoControlFSM::react(InternalTempEvent const &e)
     event.emergency = false;
     event.lockdown = false;
     dispatch(event);
-  }  
+  }
 }
 
 void WebastoControlFSM::react(BatteryLevelEvent const &e)
@@ -303,7 +303,7 @@ void WebastoControlFSM::react(BatteryLevelEvent const &e)
 
     fram_add_error(0x84);
 
-    if (fsm_mode) {    
+    if (fsm_mode) {
       ShutdownEvent event;
       event.mode = fsm_mode;
       event.emergency = false;
@@ -371,7 +371,7 @@ void WebastoControlFSM::react(ShutdownEvent const &e)
 
   int new_mode;
   int old_mode = fsm_mode;
-  
+
   if (e.lockdown) {
     LockdownEvent event;
     event.enable = true;
@@ -389,16 +389,16 @@ void WebastoControlFSM::react(ShutdownEvent const &e)
 
   if (new_mode == WEBASTO_MODE_DEFAULT) {
     if (ignitionOn){
-      new_mode = WEBASTO_MODE_SUPPLEMENTAL_HEATER; 
+      new_mode = WEBASTO_MODE_SUPPLEMENTAL_HEATER;
     } else{
       new_mode = WEBASTO_MODE_PARKING_HEATER;
     }
   }
-  
+
   switch(new_mode) {
     case WEBASTO_MODE_PARKING_HEATER:
     case WEBASTO_MODE_SUPPLEMENTAL_HEATER:
-      if (new_mode == fsm_mode) { 
+      if (new_mode == fsm_mode) {
         transit<CooldownState>();
       } else {
         Log.error("Can't shutdown the wrong mode!  %d != %d", e.mode, fsm_mode);
@@ -432,10 +432,10 @@ void WebastoControlFSM::react(AddTimeEvent const &e)
   CoreMutex m(&fsm_mutex);
   int new_mode = e.mode;
   int minutes = e.minutes;
-  
+
   if (new_mode == WEBASTO_MODE_DEFAULT) {
     if (ignitionOn){
-      new_mode = WEBASTO_MODE_SUPPLEMENTAL_HEATER; 
+      new_mode = WEBASTO_MODE_SUPPLEMENTAL_HEATER;
     } else{
       new_mode = WEBASTO_MODE_PARKING_HEATER;
     }
@@ -471,7 +471,7 @@ void WebastoControlFSM::react(IgnitionEvent const &e)
 void WebastoControlFSM::react(StartRunEvent const &e)
 {
   Log.notice("Received StartRunEvent: %d", e.enable);
-    
+
   CoreMutex m(&fsm_mutex);
   startRunSignalOn = e.enable;
 
@@ -526,10 +526,10 @@ void WebastoControlFSM::react(StartupEvent const &e)
     Log.warning("Will not startup without clearing lockdown (using EmergencyStop while not running)");
     return;
   }
-  
+
   if (new_mode == WEBASTO_MODE_DEFAULT) {
     if (ignitionOn){
-      new_mode = WEBASTO_MODE_SUPPLEMENTAL_HEATER; 
+      new_mode = WEBASTO_MODE_SUPPLEMENTAL_HEATER;
     } else{
       new_mode = WEBASTO_MODE_PARKING_HEATER;
     }
@@ -546,7 +546,7 @@ void WebastoControlFSM::react(StartupEvent const &e)
   if (minutes) {
     globalTimer.register_timer(TIMER_TIMED_SHUT_DOWN, minutes * 60000, &fsmTimerCallback);
   }
-  
+
   switch(fsm_mode) {
     case WEBASTO_MODE_PARKING_HEATER:
       transit<PurgingState>();
@@ -634,7 +634,7 @@ void PurgingState::entry()
     // Turn on Combustion Fan at 80%
     CombustionFanEvent e1;
     e1.value = PURGE_FAN;
-    dispatch(e1);    
+    dispatch(e1);
 
     // Stay in this state for 3s
     globalTimer.register_timer(TIMER_STAGE_COMPLETE, 5000, &fsmTimerCallback);
@@ -658,7 +658,7 @@ void PurgingState::react(TimerEvent const &e)
 
 void StandbyState::entry()
 {
-  
+
   kickRunTimer();
 
   CoreMutex m(&fsm_mutex);
@@ -666,10 +666,10 @@ void StandbyState::entry()
   fsm_state = _state_num;
   exhaustTempPreBurn = exhaustTempSensor->get_value();
 
-  // Turn on the combustion fan - 70%  
+  // Turn on the combustion fan - 70%
   CombustionFanEvent e1;
   e1.value = 70;
-  dispatch(e1);    
+  dispatch(e1);
 
   // Turn on the circulation pump
   CirculationPumpEvent e2;
@@ -677,7 +677,7 @@ void StandbyState::entry()
   dispatch(e2);
 
   // Set the glow plug to 100%
-  GlowPlugOutEvent e3;  
+  GlowPlugOutEvent e3;
   e3.value = 100;
   dispatch(e3);
 
@@ -725,7 +725,7 @@ void PrefuelState::entry()
   // Turn on Combustion Fan at 15%
   CombustionFanEvent e1;
   e1.value = 15;
-  dispatch(e1);    
+  dispatch(e1);
 
   // Turn on Fuel Pump to prime
   FuelPumpEvent e2;
@@ -863,7 +863,7 @@ void FlameMeasureState::entry()
 {
   CoreMutex m(&fsm_mutex);
 
-  fsm_state = _state_num;  
+  fsm_state = _state_num;
 
   // Turn on the Flame Sensor
   GlowPlugInEnableEvent e1;
@@ -901,7 +901,7 @@ void FlameMeasureState::react(TimerEvent const &e)
         } else {
           globalTimer.register_timer(TIMER_STAGE_RETRY, 20000, &fsmTimerCallback);
         }
-      }    
+      }
       break;
     case TIMER_STAGE_RETRY:
       {
@@ -916,9 +916,9 @@ void FlameMeasureState::react(TimerEvent const &e)
           // Need a restart over here!
           FlameoutEvent event;
           event.resetCount = false;
-          dispatch(event);          
+          dispatch(event);
         }
-      }    
+      }
     default:
       fsmCommonReact(e);
       break;
@@ -929,7 +929,7 @@ void AutoBurnState::entry()
 {
   CoreMutex m(&fsm_mutex);
 
-  fsm_state = _state_num;  
+  fsm_state = _state_num;
 
   // Turn off the Flame Sensor
   GlowPlugInEnableEvent e1;
@@ -992,7 +992,7 @@ void AutoBurnState::react(TimerEvent const &e)
           }
 
           if (fanRequest < fanTarget) {
-            fanRequest += 1;            
+            fanRequest += 1;
           } else if (fanRequest > fanTarget) {
             fanRequest -= 1;
           }
@@ -1034,7 +1034,7 @@ void CooldownState::entry()
 {
   CoreMutex m(&fsm_mutex);
 
-  fsm_state = _state_num;  
+  fsm_state = _state_num;
   int currentPower = fuelPumpTimer.getBurnPower();
 
   // Shut off the fuel pump
@@ -1056,7 +1056,7 @@ void CooldownState::entry()
   GlowPlugOutEnableEvent e4;
   e4.enable = false;
   dispatch(e4);
-  
+
   // Make sure to shut off the flame sensor
   GlowPlugInEnableEvent e5;
   e5.enable = false;
@@ -1089,7 +1089,7 @@ void LockdownState::entry()
 {
   CoreMutex m(&fsm_mutex);
 
-  fsm_state = _state_num;  
+  fsm_state = _state_num;
   Log.warning("Entering lockdown mode.  Toggle EmergencyStop to clear");
   beeper.register_beeper(10, 500, 500);
   globalTimer.register_timer(TIMER_RESTART_BEEPS, 20000, &fsmTimerCallback);
@@ -1114,10 +1114,10 @@ void LockdownState::react(TimerEvent const &e)
 
 void EmergencyOffState::entry()
 {
-  Log.notice("Entering EmergencyOffState");  
+  Log.notice("Entering EmergencyOffState");
   CoreMutex m(&fsm_mutex);
 
-  fsm_state = _state_num;  
+  fsm_state = _state_num;
 
   // Shut off the fuel pump
   FuelPumpEvent e1;
@@ -1138,7 +1138,7 @@ void EmergencyOffState::entry()
   GlowPlugOutEnableEvent e4;
   e4.enable = false;
   dispatch(e4);
-  
+
   // Make sure to shut off the flame sensor
   GlowPlugInEnableEvent e5;
   e5.enable = false;
@@ -1156,7 +1156,7 @@ void EmergencyOffState::entry()
   fram_add_error(0x5F);
 
   CoreMutex m1(&fram_mutex);
-  
+
   fram_data.current.counter_emergency_shutdown++;
   fram_dirty = true;
 }
@@ -1175,12 +1175,12 @@ void fsmTimerCallback(int timer_id, int delay)
   WebastoControlFSM::dispatch(event);
 }
 
-void kickRunTimer(void) 
+void kickRunTimer(void)
 {
   globalTimer.register_timer(TIMER_RUN_TIME_MINUTE, 60000, &fsmTimerCallback);
 }
 
-void increment_minutes(time_sensor_t *time) 
+void increment_minutes(time_sensor_t *time)
 {
   if (!time) {
     return;
@@ -1247,7 +1247,7 @@ void fsmCommonReact(TimerEvent const &e)
             increment_minutes(time);
             fram_dirty = true;
             break;
-          
+
           default:
             break;
         }
@@ -1291,7 +1291,7 @@ void init_fsm(void)
   GlowPlugInEnableEvent e1;
   e1.enable = false;
   WebastoControlFSM::dispatch(e1);
-  
+
   // this is an open drain output.  default is off = input with pullup
   pinMode(PIN_GLOW_PLUG_OUT_EN, INPUT);
   GlowPlugOutEnableEvent e2;

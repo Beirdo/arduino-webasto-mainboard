@@ -6,11 +6,11 @@
 
 class Beeper {
   public:
-    Beeper(int pin) : _pin(pin), _active(false), _on(false), _count(0) { 
+    Beeper(int pin) : _pin(pin), _active(false), _on(false), _count(0) {
       digitalWrite(_pin, 0);
       pinMode(_pin, OUTPUT);
       digitalWrite(_pin, 0);
-    };  
+    };
     void register_beeper(int count, int toneMs, int silenceMs);
     void timer_callback(int timerId, int delay);
 
@@ -21,7 +21,7 @@ class Beeper {
     int _count;
     int _toneMs;
     int _silenceMs;
-    
+
 };
 
 extern Beeper beeper;

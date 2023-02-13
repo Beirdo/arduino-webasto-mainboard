@@ -16,18 +16,18 @@ AnalogSourceBase::AnalogSourceBase(int index, int feedback_threshold, uint8_t i2
   _i2c_address = i2c_address;
   _bits = bits;
   _bytes = (_bits >> 8) + ((_bits & 0x07) != 0);
-  
+
   for (int i = 0; i < ADC_AVG_WINDOW; i++) {
     _readings[i] = UNUSED_READING;
   }
-  
+
   _tail = 0;
   _value = UNUSED_READING;
   _mult = mult;
   _div = div_;
   _prev_value = UNUSED_READING;
   _feedback_threshold = feedback_threshold;
-  
+
   mutex_init(&_i2c_mutex);
 
   if (_i2c_address == 0xFF) {
@@ -49,7 +49,7 @@ void AnalogSourceBase::update(void)
 {
   uint32_t raw_value;
   int32_t scaled_value;
-  
+
   if (!_connected) {
     return;
   }
@@ -62,7 +62,7 @@ void AnalogSourceBase::update(void)
 
 int32_t AnalogSourceBase::filter(void)
 {
-  int32_t accumulator = 0;  
+  int32_t accumulator = 0;
   int count = 0;
   int32_t min_reading = (int32_t)0x7FFFFFFF;
   int min_index = -1;
@@ -99,15 +99,15 @@ int32_t AnalogSourceBase::filter(void)
     Log.notice("Reading %d: %d", i, value);
 #endif
     if (value == UNUSED_READING) {
-      continue;            
+      continue;
     }
-    
+
     if (i == min_index) {
 #ifdef VERBOSE_LOGGING
       Log.notice("Discarding min: %d -> %d", i, value);
 #endif
       continue;
-    }    
+    }
 
     if (i == max_index) {
 #ifdef VERBOSE_LOGGING
@@ -121,7 +121,7 @@ int32_t AnalogSourceBase::filter(void)
   }
 
 #ifdef VERBOSE_LOGGING
-  Log.notice("Accumulator: %d, Count: %d", accumulator, count);  
+  Log.notice("Accumulator: %d, Count: %d", accumulator, count);
 #endif
 
   if (!count) {
@@ -135,8 +135,8 @@ void AnalogSourceBase::append_value(int32_t value)
 {
   if (value == UNUSED_READING || value == DISABLED_READING) {
     return;
-  }  
-  
+  }
+
   _readings[_tail] = value;
   _tail += 1;
   _tail %= ADC_AVG_WINDOW;
@@ -145,24 +145,24 @@ void AnalogSourceBase::append_value(int32_t value)
 void AnalogSourceBase::i2c_write_register(uint8_t regnum, uint8_t value, bool skip_byte)
 {
   CoreMutex m(&_i2c_mutex);
-    
+
   Wire.beginTransmission(_i2c_address);
   Wire.write(regnum);
   if (!skip_byte) {
     Wire.write(value);
   }
-  Wire.endTransmission();  
+  Wire.endTransmission();
 }
 
 void AnalogSourceBase::i2c_write_register_word(uint8_t regnum, uint16_t value)
 {
   CoreMutex m(&_i2c_mutex);
-    
+
   Wire.beginTransmission(_i2c_address);
   Wire.write(regnum);
   Wire.write((value >> 8) & 0xFF);
   Wire.write(value & 0xFF);
-  Wire.endTransmission();  
+  Wire.endTransmission();
 }
 
 void AnalogSourceBase::i2c_read_data(uint8_t regnum, uint8_t *buf, uint8_t count, bool skip_regnum)
@@ -212,7 +212,7 @@ void AnalogSourceBase::feedback(int index)
 
   if (_value == UNUSED_READING) {
     return;
-  }  
+  }
 
   if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > _feedback_threshold) {
     switch(index) {
@@ -234,7 +234,7 @@ void AnalogSourceBase::feedback(int index)
         {
           CoolantTempEvent event;
           event.value = (int)_value;
-          WebastoControlFSM::dispatch(event);    
+          WebastoControlFSM::dispatch(event);
         }
         break;
       case INDEX_EXHAUST_TEMP:
@@ -245,7 +245,7 @@ void AnalogSourceBase::feedback(int index)
         }
         break;
       case INDEX_IGNITION_SENSE:
-        {        
+        {
           IgnitionEvent event;
           event.enable = (bool)_value;
           WebastoControlFSM::dispatch(event);

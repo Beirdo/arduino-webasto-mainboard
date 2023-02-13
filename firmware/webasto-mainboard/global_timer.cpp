@@ -21,7 +21,7 @@ void GlobalTimer::register_timer(int timer_id, int delay_ms, timer_callback cb)
   }
 
   Log.notice("Registering timer: %d -> %dms", timer_id, delay_ms);
-  
+
   timerItem_t *item = (timerItem_t *)malloc(sizeof(timerItem_t));
 
   item->timer_id = timer_id;
@@ -53,7 +53,7 @@ timerItem_t *GlobalTimer::remove_item(int timer_id, bool locked)
 
   if (!locked) {
    mutex_exit(&_mutex);
-  }  
+  }
 
   return curr;
 }
@@ -73,7 +73,7 @@ timerItem_t *GlobalTimer::find_item(int timer_id, bool locked)
 
   if (!locked) {
    mutex_exit(&_mutex);
-  }  
+  }
 
   return curr;
 }
@@ -88,7 +88,7 @@ void GlobalTimer::insert_item(timerItem_t *item, bool locked)
   }
 
   Log.notice("Inserting item, key: %d", key);
-  item->next = 0;  
+  item->next = 0;
   if (!_head) {
     _head = item;
   } else {
@@ -133,7 +133,7 @@ int GlobalTimer::get_remaining_time(int timer_id)
 
   timerItem_t *item = find_item(timer_id);
   int remaining = 0;
-  
+
   if (item) {
     remaining = max(0, item->target_ms - millis());
   }
@@ -156,11 +156,11 @@ void GlobalTimer::tick(void)
   for (curr = _head; curr; curr = curr->next) {
     if (curr->target_ms > now) {
       break;
-    }            
+    }
     _head = curr->next;
   }
   new_head = _head;
-  mutex_exit(&_mutex);  
+  mutex_exit(&_mutex);
 
   timerItem_t *next;
   for (curr = old_head; curr && curr != new_head; curr = next) {

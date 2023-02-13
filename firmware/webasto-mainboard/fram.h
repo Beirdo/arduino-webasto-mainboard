@@ -18,7 +18,7 @@ typedef struct time_sensor_s {
 
 typedef struct {
   uint8_t code;
-  uint8_t count;  
+  uint8_t count;
   uint8_t status;
   uint16_t state;
   uint8_t temperature;  // degC with 50C offset

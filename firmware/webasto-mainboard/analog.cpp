@@ -42,7 +42,7 @@ void init_analog(void)
   for (int i = 0; i < OFFBOARD_SENSOR_COUNT; i++) {
     sensors[i] = new DummySource(i);
 
-    for (int j = 0; j < 8; j++) {      
+    for (int j = 0; j < 8; j++) {
       if (!eeprom_devices[j]) {
         continue;
       }
@@ -53,7 +53,7 @@ void init_analog(void)
         continue;
       }
 
-      Log.notice("Found %s sensor on sensor board %d", capabilities_names[i], j);      
+      Log.notice("Found %s sensor on sensor board %d", capabilities_names[i], j);
 
       switch(i) {
         case INDEX_EXTERNAL_TEMP:
@@ -71,10 +71,10 @@ void init_analog(void)
           break;
         case INDEX_EMERGENCY_STOP:
           sensors[i] = new PCA9501DigitalSource(i, eeprom_data[i].current.addr_pca9501_gpio, PCA9501_VINN);
-          break;  
+          break;
         default:
           break;
-      }      
+      }
     }
   }
 
@@ -91,7 +91,7 @@ void init_analog(void)
   vsysVoltageSensor = new InternalADCSource(INDEX_VSYS_VOLTAGE, 3, 12);
 
   sensors[INDEX_INTERNAL_TEMP] = internalTempSensor;
-  sensors[INDEX_FLAME_DETECTOR] = flameDetectorSensor;  
+  sensors[INDEX_FLAME_DETECTOR] = flameDetectorSensor;
   sensors[INDEX_START_RUN] = startRunSensor;
   sensors[INDEX_VSYS_VOLTAGE] = vsysVoltageSensor;
 
@@ -105,7 +105,7 @@ void init_analog(void)
   }
 }
 
-void update_analog(void) 
+void update_analog(void)
 {
   // Now update() the suckers
   for (int i = 0; i < OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT; i++) {

@@ -5,7 +5,7 @@
 
 class DS2482Source : public AnalogSourceBase {
   public:
-    DS2482Source(int index, uint8_t i2c_address, int bits) : 
+    DS2482Source(int index, uint8_t i2c_address, int bits) :
       AnalogSourceBase(index, 100, i2c_address, bits) {};
     void init(void);
   protected:

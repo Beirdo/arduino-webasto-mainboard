@@ -26,7 +26,7 @@ const int coolant_ntc_resistance_table[] = {
   521, 507, 494, 481, 468, 456, 444, 433, 422, 411,                                 // 110 - 119
   400, 390, 381, 371, 362, 353, 344, 336, 328, 320,                                 // 120 - 129
   312, 304, 297, 290, 283, 277, 270, 264, 258, 252,                                 // 130 - 139
-  246, 240, 235, 239, 224, 219, 215, 210, 205, 201, 196,                            // 140 - 150   
+  246, 240, 235, 239, 224, 219, 215, 210, 205, 201, 196,                            // 140 - 150
 };
 const int coolant_ntc_resistance_count = sizeof(coolant_ntc_resistance_table) / sizeof(coolant_ntc_resistance_table[0]);
 

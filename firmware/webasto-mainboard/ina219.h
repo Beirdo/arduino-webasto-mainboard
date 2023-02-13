@@ -5,13 +5,13 @@
 
 class INA219Source : public AnalogSourceBase {
   public:
-    INA219Source(int index, uint8_t i2c_address, int bits, volatile bool *enable) : 
-        AnalogSourceBase(index, 20, i2c_address, bits) 
+    INA219Source(int index, uint8_t i2c_address, int bits, volatile bool *enable) :
+        AnalogSourceBase(index, 20, i2c_address, bits)
     {
       _enable_signal = enable;
     };
-    
-    void init(void); 
+
+    void init(void);
   protected:
     int32_t read_device(void);
     int32_t convert(int32_t reading);

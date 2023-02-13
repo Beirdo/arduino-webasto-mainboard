@@ -7,7 +7,7 @@
 
 void DS2482Source::wait_for_1wire(uint32_t poll_us) {
   uint8_t status_reg;
-  
+
   while (true) {
     i2c_read_data(0, &status_reg, 1, true);
     if (!(status_reg & 0x01)) {
@@ -33,7 +33,7 @@ void DS2482Source::init(void)
 
   // Reset the DS2482 I2c to 1Wire bridge
   i2c_write_register(0xF0, 0, true);
-  
+
   // Initialize the DS2482 I2C to 1Wire bridge - APU on, SPU off (until needed), 1WS at standard speed
   i2c_write_register(0xD2, 0xE1);
 
@@ -45,12 +45,12 @@ void DS2482Source::init(void)
   // Send the Read Rom Command to the DS18B20
   i2c_write_register(0xA5, 0x33);
   wait_for_1wire(500);
-  
+
   uint8_t *buf = _rom;
   for (int i = 0; i < 8; i++) {
     i2c_write_register(0x96, 0, true);
     wait_for_1wire(500);
-    
+
     // Change read pointer, then read
     i2c_write_register(0xE1, 0xE1);
     i2c_read_data(0, buf++, 1, true);
@@ -73,7 +73,7 @@ void DS2482Source::init(void)
 
   i2c_write_register(0xA5, ((_bits - _min_bits) << 5) | 0x1F);
   wait_for_1wire(500);
-  
+
   // Setup the delay from number of bits
   switch(_bits) {
     case 9:
@@ -90,7 +90,7 @@ void DS2482Source::init(void)
       break;
     default:
       _conv_ms = 0;
-      break; 
+      break;
   }
 }
 
@@ -99,7 +99,7 @@ int32_t DS2482Source::read_device(void)
   if (!_valid) {
     return UNUSED_READING;
   }
-  
+
   // Initialize 1Wire transaction with reset
   i2c_write_register(0xB4, 0, true);
   wait_for_1wire(500);
@@ -137,7 +137,7 @@ int32_t DS2482Source::read_device(void)
   }
 
   value &= (0xFFFFFFFF << (12 - _bits));
-  
+
   if (negative) {
     value = -value;
   }

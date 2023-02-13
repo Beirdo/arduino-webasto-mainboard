@@ -27,7 +27,7 @@ void setup() {
   mutex_init(&log_mutex);
 
   CoreMutex m(&startup_mutex);
-  
+
   pinMode(PIN_ONBOARD_LED, OUTPUT);
   digitalWrite(PIN_ONBOARD_LED, HIGH);
 
@@ -70,7 +70,7 @@ void setup() {
   init_device_eeprom();
 
   init_wifi();
-  
+
   Log.notice("Starting I2C0");
   Wire.setSDA(PIN_I2C0_SDA);
   Wire.setSCL(PIN_I2C0_SCL);
@@ -86,7 +86,7 @@ void setup() {
   rp2040.wdt_begin(500);
 }
 
-void setup1(void) 
+void setup1(void)
 {
   // Give Core0 enough time to initialize and take the mutex.
   delay(10);
@@ -103,7 +103,7 @@ void loop() {
 
   int topOfLoop = millis();
 
-  digitalWrite(PIN_ONBOARD_LED, LOW);  
+  digitalWrite(PIN_ONBOARD_LED, LOW);
 
   display_count++;
 
@@ -113,7 +113,7 @@ void loop() {
 
   // We want screen updates every second.
   if (display_count % 10 == 1) {
-    digitalWrite(PIN_ONBOARD_LED, HIGH);  
+    digitalWrite(PIN_ONBOARD_LED, HIGH);
     update_display();
     cbor_send();
   }
@@ -127,14 +127,14 @@ void loop() {
 
   int delayMs = clamp<int>(100 - elapsed, 1, 100);
   delay(delayMs);
-  
+
   rp2040.wdt_reset();
 }
 
 void loop1(void)
 {
   // Hi, ho!  Kermit the frog here.
-  // this loop runs on core1 and is primarily just the FSM and globalTimer 
+  // this loop runs on core1 and is primarily just the FSM and globalTimer
   int topOfLoop = millis();
 
   globalTimer.tick();
@@ -158,7 +158,7 @@ void sendCoreNum(Print *output, int level)
 
   mutex_enter_blocking(&log_mutex);
   int coreNum = get_core_num();
-  output->print('C');  
+  output->print('C');
   output->print(coreNum == 1 ? '1' : '0');
   output->print(':');
   output->print(' ');

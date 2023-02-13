@@ -13,15 +13,15 @@
 Display *display = 0;
 mutex_t display_mutex;
 
-Display::Display(uint8_t i2c_address, int columns, int rows) : 
-  _i2c_address(i2c_address), _columns(columns), _rows(rows) 
+Display::Display(uint8_t i2c_address, int columns, int rows) :
+  _i2c_address(i2c_address), _columns(columns), _rows(rows)
 {
   mutex_init(&_mutex);
 
   CoreMutex m(&_mutex);
   Log.notice("Attempting to connect to %dx%d display at I2C %X", _columns, _rows, _i2c_address);
-  
-  isConnected();  
+
+  isConnected();
 
   int len = _columns * _rows;
   _cache = new uint16_t[len];
@@ -82,7 +82,7 @@ void Display::update(void)
       }
     }
 
-    _dirty[y] = false;    
+    _dirty[y] = false;
   }
   display();
 }
@@ -161,7 +161,7 @@ void Display::printDigits(int x, int y, int value, int count, uint8_t suffix, bo
       _dirty[y] = true;
     }
   }
-  
+
   int limit = 1;
   for (int i = 0; i < count - 1; i++) {
     limit *= 10;
@@ -224,7 +224,7 @@ void Display::printMilliohms(int x, int y, int milliohms)
 
   printDigits(x, y, milliohms, 5, 'm');
 }
-    
+
 
 void Display::printLabel(int x, int y, const char *str)
 {
@@ -241,7 +241,7 @@ void Display::printLabel(int x, int y, const char *str)
   }
 }
 
-void Display::log(void) 
+void Display::log(void)
 {
   if (_connected) {
     return;
@@ -252,7 +252,7 @@ void Display::log(void)
   int len = (_columns + 1) * _rows;
   uint8_t *buf = new uint8_t[len];
   memset(buf, 0x00, len);
-  
+
   int offset = 0;
 
   for (int y = 0; y < _rows; y++, offset++) {
@@ -262,24 +262,24 @@ void Display::log(void)
     }
     Log.notice("Line %d - |%s|", y, &buf[offset - _columns]);
   }
-  
+
   delete [] buf;
 }
 
 void init_display(void) {
   if (!mutex_is_initialized(&display_mutex)) {
     mutex_init(&display_mutex);
-  }  
+  }
 
-  CoreMutex m(&display_mutex);  
+  CoreMutex m(&display_mutex);
   if (display) {
     Log.error("WTF");
-    return;    
+    return;
   }
 
   display = new OLEDDisplay(I2C_ADDR_OLED, 128, 64);
   if (display && display->isConnected()) {
-    Log.notice("OLED found");    
+    Log.notice("OLED found");
   }
 }
 

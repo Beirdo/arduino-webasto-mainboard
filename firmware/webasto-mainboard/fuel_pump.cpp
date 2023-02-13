@@ -11,7 +11,7 @@ void fuelPumpTimerCallback(int timer_id, int delay_ms) {
 }
 
 void FuelPumpTimer::abort(void) {
-  setPeriod(0);  
+  setPeriod(0);
 }
 
 void FuelPumpTimer::timerCallback(int timer_id, int delayed) {
@@ -38,7 +38,7 @@ int FuelPumpTimer::getFuelPumpFrequency(void) {
     return 0;
   }
   return ((2000000 / _next_period) + 1) / 2;
-  
+
 }
 
 uint8_t FuelPumpTimer::getFuelPumpFrequencyKline(void) {
@@ -65,7 +65,7 @@ void FuelPumpTimer::setFuelNeed(double need) {
   setPeriod(int(periodMs));
 }
 
-int FuelPumpTimer::getBurnPower(void) 
+int FuelPumpTimer::getBurnPower(void)
 {
   // The density of diesel is between 820-845mg/ml.  We will use 832.5mg/ml for our calculations
   // The combustion energy of diesel is 44.80kJ/g

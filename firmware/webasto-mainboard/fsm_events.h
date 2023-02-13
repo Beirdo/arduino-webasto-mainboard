@@ -40,7 +40,7 @@ struct DoubleEvent       : tinyfsm::Event {
 };
 struct FuelPumpEvent      : DoubleEvent { };
 
-struct FlameoutEvent      : tinyfsm::Event { 
+struct FlameoutEvent      : tinyfsm::Event {
   bool resetCount;
 };
 struct RestartEvent       : tinyfsm::Event { };
@@ -50,9 +50,9 @@ struct ModeChangeEvent    : tinyfsm::Event {
   int mode;
   int minutes;
 };
-struct ShutdownEvent      : ModeChangeEvent { 
+struct ShutdownEvent      : ModeChangeEvent {
   bool emergency;
-  bool lockdown;  
+  bool lockdown;
 };
 struct StartupEvent       : ModeChangeEvent { };
 struct AddTimeEvent       : ModeChangeEvent { };

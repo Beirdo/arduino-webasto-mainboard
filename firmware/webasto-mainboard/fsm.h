@@ -13,7 +13,7 @@ class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
     void react(tinyfsm::Event const &) { };
 
     virtual void react(TimerEvent         const &);
-    
+
     virtual void react(FlameDetectEvent   const &);
     virtual void react(EmergencyStopEvent const &);
     virtual void react(CoolantTempEvent   const &);

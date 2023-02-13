@@ -43,7 +43,7 @@ void initalize_fram_data(uint8_t version, uint8_t *buf)
   }
 }
 
-void init_fram(void) 
+void init_fram(void)
 {
   mutex_init(&fram_mutex);
   memset(&fram_data, 0x00, sizeof(fram_data));
@@ -97,7 +97,7 @@ void init_fram(void)
   }
 
   uint8_t version = fram_data.current.version;
-  
+
   if (version > CURRENT_FRAM_VERSION || version < 1) {
     Log.error("Onboard FRAM has an unsupported version (%d)", version);
     delete fram;
@@ -109,7 +109,7 @@ void init_fram(void)
     Log.warning("Onboard FRAM incomplete for v%d (%d of %d bytes read), initializing...", version, len, fram_lengths[version - 1]);
     initalize_fram_data(CURRENT_FRAM_VERSION, buf);
     return;
-  } 
+  }
 
   fram_dirty = false;
   Log.notice("Found v%d FRAM", version);
@@ -125,7 +125,7 @@ void update_fram(void)
   if (!fram_dirty || !fram) {
     return;
   }
-  
+
   int version = fram_data.current.version;
   int len = fram_lengths[version - 1];
   int written = fram->writeBlock(0, (uint8_t *)&fram_data, len);
@@ -168,7 +168,7 @@ void fram_lock(void)
 
 void fram_unlock(void)
 {
-  mutex_exit(&fram_mutex);  
+  mutex_exit(&fram_mutex);
 }
 
 void fram_clear_error_list(void)
@@ -196,7 +196,7 @@ void fram_add_error(uint8_t code)
 
   int index = i;
   error_list_item_t *item = &fram_data.current.error_list[index];
-  
+
   if (i == error_list_len) {
     if (error_list_len == MAX_ERROR_COUNT) {
       return;   // overflow... maybe should do LRU cache?
@@ -214,7 +214,7 @@ void fram_add_error(uint8_t code)
   item->vbat = batteryVoltageSensor->get_value();
   memcpy((char *)&item->operating_time, (char *)&fram_data.current.total_working_duration, sizeof(time_sensor_t));
 
-  fram_dirty = true;  
+  fram_dirty = true;
 }
 
 void fram_write_co2(uint8_t value)

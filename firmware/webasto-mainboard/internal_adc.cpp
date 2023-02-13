@@ -17,7 +17,7 @@ void InternalADCSource::init(void)
   }
 
   Log.info("Setting up InternalADC@%d", _channel);
-    
+
   // Set the resolution
   analogReadResolution(_bits);
 }

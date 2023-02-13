@@ -69,7 +69,7 @@
 #define PIN_ALERT_BUZZER      15
 #define PIN_EMERGENCY_STOP    16
 #define PIN_USE_USB           17
-#define PIN_BOARD_SENSE       22  // LOW = mainboard there, HIGH = just the Pico 
+#define PIN_BOARD_SENSE       22  // LOW = mainboard there, HIGH = just the Pico
 #define PIN_ONBOARD_LED       25
 #define PIN_FLAME_LED         26
 #define PIN_OPERATING_LED     27

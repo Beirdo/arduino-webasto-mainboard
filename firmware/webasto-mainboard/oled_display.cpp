@@ -16,12 +16,12 @@ OLEDDisplay::OLEDDisplay(uint8_t i2c_address, int width, int height) :
   CoreMutex m(&_mutex);
   _initialized = false;
   _ssd1306 = 0;
-  
+
   if (!isConnected()) {
     Log.warning("No OLED connected at I2C0/%X", _i2c_address);
     return;
   }
-  
+
   Log.notice("Found OLED at I2C0/%X", _i2c_address);
 
   _x_offset = (_width - (6 * _columns)) / 2;
@@ -89,7 +89,7 @@ void OLEDDisplay::display(void)
 }
 
 void OLEDDisplay::updateDisplay(void)
-{  
+{
   clearDisplay();
 
   for (int y = 0; y < _rows; y++) {
@@ -107,7 +107,7 @@ void OLEDDisplay::updateDisplay(void)
 
   printLabel(0, 1, "Burn Power:");
   printWatts(16, 1, fuelPumpTimer.getBurnPower());
- 
+
   printLabel(0, 2, "Flame PTC:");
   printMilliohms(15, 2, flameDetectorSensor->get_value());
 
@@ -116,19 +116,19 @@ void OLEDDisplay::updateDisplay(void)
 
   printLabel(11, 3, "VF:");
   printPercent(17, 3, vehicleFanPercent);
- 
+
   int temp = internalTempSensor->get_value();
   printLabel(0, 4, "Internal:");
   printTemperature(13, 4, temp);
- 
+
   temp = externalTempSensor->get_value();
   printLabel(0, 5, "Outdoors:");
   printTemperature(13, 5, temp);
- 
+
   temp = coolantTempSensor->get_value();
   printLabel(0, 6, "Coolant:");
   printTemperature(13, 6, temp);
- 
+
   temp = exhaustTempSensor->get_value();
   printLabel(0, 7, "Exhaust:");
   printTemperature(13, 7, temp);
@@ -136,14 +136,14 @@ void OLEDDisplay::updateDisplay(void)
   update();
   if (!_connected) {
     log();
-  }  
+  }
 }
 
 void oledTimerCallback(int timerId, int delayMs)
 {
   Log.notice("Received OLED callback: %d, %dms", timerId, delayMs);
   OLEDDisplay *oled = dynamic_cast<OLEDDisplay *>(display);
-    
+
   if (oled && timerId == TIMER_OLED_LOGO) {
     oled->timerCallback(timerId, delayMs);
   }

@@ -55,7 +55,7 @@ void Beeper::timer_callback(int timerId, int delay)
     _toneMs = item->toneMs;
     _silenceMs = item->silenceMs;
     free(item);
-    
+
     _on = false;
     _active = true;
   }
@@ -85,6 +85,6 @@ void beeperTimerCallback(int timerId, int delay)
 {
   if (timerId == TIMER_BEEPER) {
     beeper.timer_callback(timerId, delay);
-  }  
-} 
+  }
+}
 
