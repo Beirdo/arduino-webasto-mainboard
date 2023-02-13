@@ -8,7 +8,6 @@
 
 #include "display.h"
 #include "project.h"
-#include "serlcd_display.h"
 #include "oled_display.h"
 
 Display *display = 0;
@@ -278,23 +277,9 @@ void init_display(void) {
     return;    
   }
 
-  Display *oledDisplay = new OLEDDisplay(I2C_ADDR_OLED, 128, 64);
-  if (oledDisplay && oledDisplay->isConnected()) {
+  display = new OLEDDisplay(I2C_ADDR_OLED, 128, 64);
+  if (display && display->isConnected()) {
     Log.notice("OLED found");    
-    display = oledDisplay;
-    return;
-  }
-
-  display = new SerLCDDisplay(I2C_ADDR_SERLCD, 20, 4);
-  if (!display || !display->isConnected()) {
-    Log.notice("Neither display -> just use the OLED for logging");
-    if (display) {
-      delete display;
-    }
-    display = oledDisplay;
-  } else {
-    Log.notice("SerLCD found");
-    delete oledDisplay;
   }
 }
 

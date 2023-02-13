@@ -8,6 +8,8 @@ void init_kline(void);
 void send_break(void);
 void kline_send_response(klinePacket_t *respPacket);
 void kline_send_next_packet(void);
+void receive_kline_from_serial(void);
+void receive_kline_from_cbor(uint8_t *cbor_buf, int cbor_len);
 void process_kline(void);
 klinePacket_t *kline_rx_dispatch(klinePacket_t *packet, uint8_t cmd);
 uint8_t *allocate_response(uint8_t command, uint8_t len, uint8_t subcommand = 0);

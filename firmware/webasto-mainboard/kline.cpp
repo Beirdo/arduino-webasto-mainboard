@@ -16,6 +16,7 @@
 #include "fuel_pump.h"
 #include "analog.h"
 #include "device_eeprom.h"
+#include "wifi.h"
 
 #define KLINE_RX_MATCH_ADDR 0xF4
 #define KLINE_TX_ADDR       0x4F
@@ -70,6 +71,11 @@ void send_break(void)
 void kline_send_response(klinePacket_t *respPacket)
 {
   if (!respPacket) {
+    return;
+  }
+
+  if (respPacket->fromWiFi) {
+    cbor_send((const uint8_t *)respPacket->buf, respPacket->len);
     return;
   }
 
@@ -135,8 +141,20 @@ uint8_t *allocate_response(uint8_t command, uint8_t len, uint8_t subcommand)
   return buf;
 }
 
+void receive_kline_from_cbor(uint8_t *cbor_buf, int len)
+{
+  uint8_t *buf = (uint8_t *)malloc(len);
+  memcpy(buf, cbor_buf, len);               
 
-void process_kline(void)
+  klinePacket_t *packet = (klinePacket_t *)malloc(sizeof(klinePacket_t));
+  packet->buf = buf;
+  packet->len = len;
+  packet->fromWiFi = true;
+
+  kline_rx_q.push(&packet);
+}
+
+void receive_kline_from_serial(void)
 {
   if (Serial2.getBreakReceived()) {
     Log.notice("Received break on Serial2");
@@ -178,13 +196,17 @@ void process_kline(void)
         klinePacket_t *packet = (klinePacket_t *)malloc(sizeof(klinePacket_t));
         packet->buf = buf;
         packet->len = len;
+        packet->fromWiFi = false;
 
         kline_rx_q.push(&packet);
         kline_rx_tail = 0;        
       }
     }            
   }
+}
 
+void process_kline(void)
+{
   while(!kline_rx_q.isEmpty()) {
     klinePacket_t *packet;
     kline_rx_q.pop(&packet);
@@ -218,7 +240,7 @@ klinePacket_t *kline_rx_dispatch(klinePacket_t *packet, uint8_t cmd)
 
   int len;
   klinePacket_t *respPacket = 0;
-  uint8_t *buf = 0;  
+  uint8_t *buf = 0;
 
   switch(cmd) {
     case 0x10:
@@ -321,6 +343,7 @@ klinePacket_t *kline_rx_dispatch(klinePacket_t *packet, uint8_t cmd)
     respPacket = (klinePacket_t *)malloc(sizeof(klinePacket_t));
     respPacket->buf = buf;
     respPacket->len = len;
+    respPacket->fromWiFi = packet->fromWiFi;
   }
 
   return respPacket;

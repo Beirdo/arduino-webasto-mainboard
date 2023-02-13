@@ -115,7 +115,10 @@ void loop() {
   if (display_count % 10 == 1) {
     digitalWrite(PIN_ONBOARD_LED, HIGH);  
     update_display();
+    cbor_send();
   }
+
+  update_wifi();
 
   int elapsed = millis() - topOfLoop;
   if (elapsed >= 100) {
@@ -135,6 +138,7 @@ void loop1(void)
   int topOfLoop = millis();
 
   globalTimer.tick();
+  receive_kline_from_serial();
   process_kline();
 
   int elapsed = millis() - topOfLoop;
