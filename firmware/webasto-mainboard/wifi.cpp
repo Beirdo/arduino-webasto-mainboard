@@ -138,19 +138,23 @@ void init_wifi(void)
 void update_wifi(void)
 {
   CoreMutex m(&cbor_mutex);
+  bool flush = false;
 
   cbor_item_t item;
   while (!cbor_tx_q.isEmpty()) {
     cbor_tx_q.pop(&item);
 
-    if (client.connected()) {
-      const uint8_t *buf = (const uint8_t *)&cbor_bufs[item.index];
-      int len = item.len;
-
-      hexdump(buf, len, 16);
-      client.write((const uint8_t *)&cbor_bufs[item.index], item.len);
+    if (!client.connected() || !WiFi.connected()) {
+      flush = true;
+      continue;
     }
-    
+  
+    const uint8_t *buf = (const uint8_t *)&cbor_bufs[item.index];
+    int len = item.len;
+
+    hexdump(buf, len, 16);
+    client.write((const uint8_t *)&cbor_bufs[item.index], item.len);
+  
     cbor_head += 1;
     cbor_head %= CBOR_BUF_COUNT;
 
@@ -158,6 +162,20 @@ void update_wifi(void)
       cbor_head = 0;
       cbor_tail = 0;
     }     
+  }
+
+  if (flush) {
+    if (!WiFi.connected() && !globalTimer.get_remaining_time(TIMER_WIFI_STARTUP)) {
+      wifi_connected = false;
+      wifi_startup_callback(TIMER_WIFI_STARTUP, 0);
+      return;
+    }
+
+    if (!client.connected() && !globalTimer.get_remaining_time(TIMER_WIFI_CONNECT)) {
+      wifi_server_connected = false;
+      wifi_connection_callback(TIMER_WIFI_CONNECT, 0);
+      return; 
+    }
   }
 
   while (client.available()) {
