@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <ArduinoLog.h>
 #include <CoreMutex.h>
+#include <cppQueue.h>
 
 #include "project.h"
 #include "analog.h"
@@ -18,6 +19,8 @@ bool mainboardDetected;
 mutex_t startup_mutex;
 mutex_t log_mutex;
 
+cppQueue onboard_led_q(sizeof(bool), 4, FIFO);
+
 void sendCRLF(Print *output, int level);
 void sendCoreNum(Print *output, int level);
 
@@ -26,64 +29,64 @@ void setup() {
   mutex_init(&startup_mutex);
   mutex_init(&log_mutex);
 
-  CoreMutex m(&startup_mutex);
+  {
+    CoreMutex m(&startup_mutex);
 
-  pinMode(PIN_ONBOARD_LED, OUTPUT);
-  digitalWrite(PIN_ONBOARD_LED, HIGH);
+    bool ledOn = true;
+  //  onboard_led_q.push(&ledOn);
 
-  pinMode(PIN_USE_USB, INPUT_PULLUP);
-  pinMode(PIN_BOARD_SENSE, INPUT_PULLUP);
-  delay(2);
+    pinMode(PIN_USE_USB, INPUT_PULLUP);
+    pinMode(PIN_BOARD_SENSE, INPUT_PULLUP);
+    delay(2);
 
-  pinMode(PIN_I2C0_SCL, INPUT_PULLUP);
-  pinMode(PIN_I2C0_SDA, INPUT_PULLUP);
+    pinMode(PIN_I2C0_SCL, INPUT_PULLUP);
+    pinMode(PIN_I2C0_SDA, INPUT_PULLUP);
 
-  if (digitalRead(PIN_USE_USB) && 0) {
-    Serial.begin(115200);
-    Log.begin(LOG_LEVEL_VERBOSE, &Serial);
-  } else {
-    Serial1.setTX(PIN_SERIAL1_TX);
-    Serial1.setRX(PIN_SERIAL1_RX);
-    Serial1.setCTS(PIN_SERIAL1_CTS);
-    Serial1.setRTS(PIN_SERIAL1_RTS);
-    Serial1.begin(115200);
-    Log.begin(LOG_LEVEL_VERBOSE, &Serial1);
+    if (digitalRead(PIN_USE_USB) || 1) {
+      Serial.begin(115200);
+      Log.begin(LOG_LEVEL_VERBOSE, &Serial);
+    } else {
+      Serial1.setTX(PIN_SERIAL1_TX);
+      Serial1.setRX(PIN_SERIAL1_RX);
+      Serial1.setCTS(PIN_SERIAL1_CTS);
+      Serial1.setRTS(PIN_SERIAL1_RTS);
+      Serial1.begin(115200);
+      Log.begin(LOG_LEVEL_VERBOSE, &Serial1);
+    }
+
+    Log.setPrefix(sendCoreNum);
+    Log.setSuffix(sendCRLF);
+
+    // Give user time to open a terminal to see first log messages
+    delay(10000);
+    Log.notice("Rebooted.");
+    Log.notice("Starting Core 0");
+
+    mainboardDetected = !(digitalRead(PIN_BOARD_SENSE));
+    if (mainboardDetected) {
+      Log.notice("Mainboard detected");
+    } else {
+      Log.notice("No mainboard detected - bare Pico");
+    }
+
+    delay(500);
+
+    init_device_eeprom();
+
+    Log.notice("Starting I2C0");
+    Wire.setSDA(PIN_I2C0_SDA);
+    Wire.setSCL(PIN_I2C0_SCL);
+    Wire.setClock(I2C0_CLK);
+    Wire.begin();
+
+    init_eeprom();
+    init_fram();
+    init_analog();
+    init_display();
   }
 
-  Log.setPrefix(sendCoreNum);
-  Log.setSuffix(sendCRLF);
-
-  // Give user time to open a terminal to see first log messages
-  delay(10000);
-  Log.notice("Rebooted.");
-  Log.notice("Starting Core 0");
-
-  mainboardDetected = !(digitalRead(PIN_BOARD_SENSE));
-  if (mainboardDetected) {
-    Log.notice("Mainboard detected");
-  } else {
-    Log.notice("No mainboard detected - bare Pico");
-  }
-
-  delay(500);
-
-  init_device_eeprom();
-
-  init_wifi();
-
-  Log.notice("Starting I2C0");
-  Wire.setSDA(PIN_I2C0_SDA);
-  Wire.setSCL(PIN_I2C0_SCL);
-  Wire.setClock(I2C0_CLK);
-  Wire.begin();
-
-  init_eeprom();
-  init_fram();
-  init_analog();
-  delay(100);
-  init_display();
-
-  rp2040.wdt_begin(500);
+  CoreMutex m2(&startup_mutex);  
+//  rp2040.wdt_begin(500);
 }
 
 void setup1(void)
@@ -94,6 +97,10 @@ void setup1(void)
   CoreMutex m(&startup_mutex);
 
   Log.notice("Starting Core 1");
+
+  // pinMode(PIN_ONBOARD_LED, OUTPUT);
+
+  init_wifi();
   init_fsm();
   init_wbus();
 }
@@ -103,7 +110,8 @@ void loop() {
 
   int topOfLoop = millis();
 
-  digitalWrite(PIN_ONBOARD_LED, LOW);
+  bool ledOn = false;
+//  onboard_led_q.push(&ledOn);
 
   display_count++;
 
@@ -113,12 +121,11 @@ void loop() {
 
   // We want screen updates every second.
   if (display_count % 10 == 1) {
-    digitalWrite(PIN_ONBOARD_LED, HIGH);
+    ledOn = true;
+//    onboard_led_q.push(&ledOn);
     update_display();
     cbor_send();
   }
-
-  update_wifi();
 
   int elapsed = millis() - topOfLoop;
   if (elapsed >= 100) {
@@ -128,7 +135,7 @@ void loop() {
   int delayMs = clamp<int>(100 - elapsed, 1, 100);
   delay(delayMs);
 
-  rp2040.wdt_reset();
+//  rp2040.wdt_reset();
 }
 
 void loop1(void)
@@ -137,7 +144,16 @@ void loop1(void)
   // this loop runs on core1 and is primarily just the FSM and globalTimer
   int topOfLoop = millis();
 
+//  while (!onboard_led_q.isEmpty()) {
+//    bool ledOn;
+//    onboard_led_q.pop(&ledOn);
+//    Log.info("LED: %d", ledOn);
+//    // digitalWrite(PIN_ONBOARD_LED, ledOn ? HIGH : LOW);
+//    Log.info("Done LED");
+//  }
+
   globalTimer.tick();
+  update_wifi(); 
   receive_wbus_from_serial();
   process_wbus();
 
@@ -162,6 +178,7 @@ void sendCoreNum(Print *output, int level)
   output->print(coreNum == 1 ? '1' : '0');
   output->print(':');
   output->print(' ');
+  output->printf("%20d: ", millis());
 }
 
 void sendCRLF(Print *output, int level)
@@ -176,26 +193,41 @@ void sendCRLF(Print *output, int level)
   mutex_exit(&log_mutex);
 }
 
-void hexdump(const void* mem, uint32_t len, uint8_t cols) {
-    const char* src = (const char*)mem;
-    printf("\n[HEXDUMP] Address: %p len: 0x%lX (%ld)", src, len, len);
-    while (len > 0) {
-        uint32_t linesize = cols > len ? len : cols;
-        printf("\n[%p] 0x%04x: ", src, (int)(src - (const char*)mem));
-        for (uint32_t i = 0; i < linesize; i++) {
-            printf("%02x ", *(src + i));
-        }
-        printf("  ");
-        for (uint32_t i = linesize; i < cols; i++) {
-            printf("   ");
-        }
-        for (uint32_t i = 0; i < linesize; i++) {
-            unsigned char c = *(src + i);
-            putc(isprint(c) ? c : '.', stdout);
-        }
-        src += linesize;
-        len -= linesize;
+void hexdump(const void* mem, uint32_t len, uint8_t cols) 
+{
+  const char* src = (const char*)mem;
+  static char line[128];
+  char *ch = line;
+  int written;  
+      
+  Log.info("[HEXDUMP] Address: %X len: %X (%d)", src, len, len);
+  while (len > 0) {
+    ch = line;
+    memset(ch, 0x00, 128);
+
+    uint32_t linesize = cols > len ? len : cols;
+    written = sprintf(ch, "[%X] 0x%04x: ", src, (int)(src - (const char*)mem));
+    ch += written;
+    for (uint32_t i = 0; i < linesize; i++) {
+        written = sprintf(ch, "%02x ", *(src + i));
+        ch += written;
     }
-    printf("\n");
+    written = sprintf(ch, "  ");
+    ch += written;
+
+    for (uint32_t i = linesize; i < cols; i++) {
+        written = sprintf(ch, "   ");
+        ch += written;
+    }
+
+    for (uint32_t i = 0; i < linesize; i++) {
+        unsigned char c = *(src + i);
+        *(ch++) = isprint(c) ? c : '.';
+    }
+
+    src += linesize;
+    len -= linesize;
+    Log.info("%s", line);
+  }
 }
 

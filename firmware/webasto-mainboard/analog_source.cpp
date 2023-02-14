@@ -55,8 +55,10 @@ void AnalogSourceBase::update(void)
   }
 
   raw_value = read_device();
-  scaled_value = convert(raw_value);
-  append_value(scaled_value);
+  if (raw_value != UNUSED_READING) {
+    scaled_value = convert(raw_value);
+    append_value(scaled_value);
+  }
   _value = filter();
 }
 

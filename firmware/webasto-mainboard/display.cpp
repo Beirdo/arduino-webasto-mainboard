@@ -273,8 +273,8 @@ void init_display(void) {
 
   CoreMutex m(&display_mutex);
   if (display) {
-    Log.error("WTF");
-    return;
+    delete display;
+    display = 0;
   }
 
   display = new OLEDDisplay(I2C_ADDR_OLED, 128, 64);

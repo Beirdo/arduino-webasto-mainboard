@@ -1,3 +1,6 @@
+#include "WiFiMulti.h"
+#include "wl_definitions.h"
+#include "lwip/ip4_addr.h"
 #include "cbor.h"
 #include <Arduino.h>
 #include <pico.h>
@@ -17,12 +20,10 @@
 
 #define WIFI_STRING_LEN 32
 
-WiFiMulti multi;
+mutex_t wifi_mutex;
+WiFiMulti *wifi = 0;
 uint8_t ssid[WIFI_STRING_LEN];
 uint8_t psk[WIFI_STRING_LEN];
-uint8_t *old_ssid = 0;
-uint8_t *old_psk = 0;
-mutex_t wifi_mutex;
 bool wifi_connected = false;
 bool wifi_server_connected = false;
 
@@ -55,7 +56,8 @@ cppQueue cbor_tx_q(sizeof(cbor_item_t), CBOR_BUF_COUNT, FIFO);
 
 void wifi_startup_callback(int timer_id, int delay_ms);
 void wifi_connection_callback(int timer_id, int delay_ms);
-
+void update_cbor_tx();
+void update_cbor_rx();
 
 void wifi_startup_callback(int timer_id, int delay_ms)
 {
@@ -67,35 +69,27 @@ void wifi_startup_callback(int timer_id, int delay_ms)
 
   CoreMutex m(&wifi_mutex);
 
-  get_device_info_string(13, ssid, 32);
-  get_device_info_string(14, psk, 32);
+  int wifi_status = WiFi.status();
 
-  Log.notice("Connecting to WiFi SSID: %s", ssid);
-  bool new_ap = false;
-  if (!old_ssid || !old_psk) {
-    new_ap = true;
-  } else if (strcmp((const char *)ssid, (const char *)old_ssid)) {
-    new_ap = true;
-  } else if (strcmp((const char *)psk, (const char *)old_psk)) {
-    new_ap = true;
-  }
+  if (wifi_status != WL_CONNECTED) {
+    if (wifi) {
+      delete wifi;
+    }
+    
+    wifi = new WiFiMulti();
+    
+    get_device_info_string(12, ssid, 32);
+    get_device_info_string(13, psk, 32);
+    wifi->addAP((const char *)ssid, (const char *)psk);
 
-  if (new_ap) {
-    old_ssid = ssid;
-    old_psk = psk;
-
-    multi.addAP((const char *)ssid, (const char *)psk);
-  }
-
-  wifi_connected = (multi.run() == WL_CONNECTED);
-  wifi_server_connected = false;
-  if (!wifi_connected) {
-    Log.warning("Could not connect to WiFi, trying again in 10s");
-    globalTimer.register_timer(TIMER_WIFI_STARTUP, 10000, wifi_startup_callback);
+    Log.notice("Connecting to WiFi SSID: %s", ssid);
+    wifi->run(100);
+    globalTimer.register_timer(TIMER_WIFI_STARTUP, 10000, wifi_startup_callback, true);
   } else {
     Log.info("WiFi connected");
-    Log.info("IP Address: %s", WiFi.localIP());
-    wifi_connection_callback(TIMER_WIFI_CONNECT, 0);
+    IPAddress myIP = WiFi.localIP();    
+    Log.info("IP Address: %s", ip_ntoa(myIP));
+    globalTimer.register_timer(TIMER_WIFI_CONNECT, 10, wifi_connection_callback, true);
   }
 }
 
@@ -109,20 +103,24 @@ void wifi_connection_callback(int timer_id, int delay_ms)
 
   CoreMutex m(&wifi_mutex);
 
-  get_device_info_string(15, server, 128);
-  get_device_info_string(16, port_str, 16);
+  get_device_info_string(14, server, 128);
+  get_device_info_string(15, port_str, 16);
+
+  ip4_addr_t server_ip4;
+  ip4addr_aton((const char *)server, &server_ip4);
+  IPAddress server_ip(server_ip4);
   port = atoi((const char *)port_str);
 
-  Log.notice("Connecting to server: %s:%d", server, port);
+  Log.notice("Connecting to server: %s:%d", ip_ntoa(server_ip), port);
 
-  wifi_server_connected = client.connect(server, port);
+  wifi_server_connected = client.connect(server_ip, port);
   if (!wifi_server_connected) {
     Log.warning("Could not connect to server, trying again in 5s");
-    globalTimer.register_timer(TIMER_WIFI_CONNECT, 5000, wifi_connection_callback);
+    globalTimer.register_timer(TIMER_WIFI_CONNECT, 5000, wifi_connection_callback, true);
   } else {
     Log.info("Server connected");
-    Log.info("Local IP Address: %s:%d", client.localIP(), client.localPort());
-    Log.info("Remote IP Address: %s:%d", client.remoteIP(), client.remotePort());
+    Log.info("Local IP Address: %s:%d", ip_ntoa(client.localIP()), client.localPort());
+    Log.info("Remote IP Address: %s:%d", ip_ntoa(client.remoteIP()), client.remotePort());
     cbor_rx_tail = 0;
   }
 }
@@ -131,20 +129,26 @@ void init_wifi(void)
 {
   mutex_init(&wifi_mutex);
   mutex_init(&cbor_mutex);
-  wifi_startup_callback(TIMER_WIFI_STARTUP, 0);
+  globalTimer.register_timer(TIMER_WIFI_STARTUP, 10, wifi_startup_callback);
   TinyCBOR.init();
 }
 
 void update_wifi(void)
 {
+  update_cbor_tx();
+  update_cbor_rx();
+}
+
+void update_cbor_tx(void) 
+{
   CoreMutex m(&cbor_mutex);
-  bool flush = false;
+  bool flush = cbor_tx_q.isEmpty();
 
   cbor_item_t item;
   while (!cbor_tx_q.isEmpty()) {
     cbor_tx_q.pop(&item);
 
-    if (!client.connected() || !WiFi.connected()) {
+    if (!client.connected() || WiFi.status() != WL_CONNECTED) {
       flush = true;
       continue;
     }
@@ -153,9 +157,11 @@ void update_wifi(void)
     int len = item.len;
 
     hexdump(buf, len, 16);
-    client.write((const uint8_t *)&cbor_bufs[item.index], item.len);
+    for(int i = 0; i < len; i++) {
+      client.write(buf[i]);
+    }
 
-    cbor_head += 1;
+    cbor_head = item.index + 1;
     cbor_head %= CBOR_BUF_COUNT;
 
     if (cbor_head == cbor_tail) {
@@ -165,22 +171,31 @@ void update_wifi(void)
   }
 
   if (flush) {
-    if (!WiFi.connected() && !globalTimer.get_remaining_time(TIMER_WIFI_STARTUP)) {
-      wifi_connected = false;
-      wifi_startup_callback(TIMER_WIFI_STARTUP, 0);
+    if (WiFi.status() != WL_CONNECTED && !globalTimer.get_remaining_time(TIMER_WIFI_STARTUP)) {
+      Log.warning("WiFi no longer connected!");
+      globalTimer.register_timer(TIMER_WIFI_STARTUP, 10, wifi_startup_callback);
       return;
     }
 
     if (!client.connected() && !globalTimer.get_remaining_time(TIMER_WIFI_CONNECT)) {
+      Log.warning("Server no longer connected!");
       wifi_server_connected = false;
-      wifi_connection_callback(TIMER_WIFI_CONNECT, 0);
+      client.stop();
+      globalTimer.register_timer(TIMER_WIFI_CONNECT, 10, wifi_connection_callback);
       return;
     }
   }
+}
 
+void update_cbor_rx(void)
+{
   while (client.available()) {
     cbor_rx_buf[cbor_rx_tail++] = client.read();
   }
+
+  if (cbor_rx_tail == 0) {
+    return;
+  }  
 
   hexdump(cbor_rx_buf, cbor_rx_tail, 16);
   TinyCBOR.Parser.init(cbor_rx_buf, cbor_rx_tail, 0);
@@ -207,21 +222,31 @@ void update_wifi(void)
         }
         break;
 
-      // Our keys are all simple type as are some of our values
-      case CborSimpleType:
+      // Our keys are all integers as are most/all of our values
+      case CborIntegerType:
         {
           bool isKey = TinyCBOR.Parser.is_key();
-          uint8_t value = TinyCBOR.Parser.get_simple_type();
+          int64_t value;
+          
           if (isKey) {
-            index = value;
-          } else if (index == CBOR_VERSION && value != CBOR_CURRENT_VERSION) {
+            index = TinyCBOR.Parser.get_int();
+            continue;
+          } else if (TinyCBOR.Parser.is_unsigned_integer()) {
+            value = (int64_t)TinyCBOR.Parser.get_uint64();
+          } else if (TinyCBOR.Parser.is_negative_integer()) {
+            value = TinyCBOR.Parser.get_int64();
+          } else if (TinyCBOR.Parser.is_integer()) {
+            value = TinyCBOR.Parser.get_int64();
+          }
+
+          if (index == CBOR_VERSION && value != CBOR_CURRENT_VERSION) {
             Log.warning("Wrong CBOR packet version: %d", value);
             goto bail;
           } else if (index == CBOR_PACKET_TYPE && value != CBOR_TYPE_WBUS) {
             Log.warning("Wrong CBOR buffer type: %d", value);
             goto bail;
           }
-        }
+        }                  
         break;
 
       case CborByteStringType:
@@ -241,18 +266,12 @@ void update_wifi(void)
         TinyCBOR.Parser.copy_text_string((char *)cbor_rx_wbus_buf, CBOR_BUF_SIZE);
         break;
 
-      case CborTagType:
-        TinyCBOR.Parser.get_tag();
+      case CborSimpleType:
+        TinyCBOR.Parser.get_simple_type();
         break;
 
-      case CborIntegerType:
-        if (TinyCBOR.Parser.is_unsigned_integer()) {
-          TinyCBOR.Parser.get_uint64();
-        } else if (TinyCBOR.Parser.is_negative_integer()) {
-          TinyCBOR.Parser.get_int64();
-        } else if (TinyCBOR.Parser.is_integer()) {
-          TinyCBOR.Parser.get_int64();
-        }
+      case CborTagType:
+        TinyCBOR.Parser.get_tag();
         break;
 
       case CborBooleanType:
@@ -307,13 +326,13 @@ void cbor_send(const uint8_t *wbus_buf, int wbus_len)
     TinyCBOR.Encoder.create_map(3);
 
     // key values are integers (well, enum)
-    TinyCBOR.Encoder.encode_simple_value(CBOR_VERSION);
-    TinyCBOR.Encoder.encode_simple_value(CBOR_CURRENT_VERSION);
+    TinyCBOR.Encoder.encode_int(CBOR_VERSION);
+    TinyCBOR.Encoder.encode_int(CBOR_CURRENT_VERSION);
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_PACKET_TYPE);
-    TinyCBOR.Encoder.encode_simple_value(CBOR_TYPE_WBUS);
+    TinyCBOR.Encoder.encode_int(CBOR_PACKET_TYPE);
+    TinyCBOR.Encoder.encode_int(CBOR_TYPE_WBUS);
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_BUFFER);
+    TinyCBOR.Encoder.encode_int(CBOR_BUFFER);
     TinyCBOR.Encoder.encode_byte_string(wbus_buf, wbus_len);
 
     TinyCBOR.Encoder.close_container();
@@ -321,56 +340,56 @@ void cbor_send(const uint8_t *wbus_buf, int wbus_len)
     TinyCBOR.Encoder.create_map(15);
 
     // key values are integers (well, enum)
-    TinyCBOR.Encoder.encode_simple_value(CBOR_VERSION);
-    TinyCBOR.Encoder.encode_simple_value(CBOR_CURRENT_VERSION);
+    TinyCBOR.Encoder.encode_int(CBOR_VERSION);
+    TinyCBOR.Encoder.encode_int(CBOR_CURRENT_VERSION);
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_PACKET_TYPE);
-    TinyCBOR.Encoder.encode_simple_value(CBOR_TYPE_SENSORS);
+    TinyCBOR.Encoder.encode_int(CBOR_PACKET_TYPE);
+    TinyCBOR.Encoder.encode_int(CBOR_TYPE_SENSORS);
 
     mutex_enter_blocking(&fsm_mutex);
-    TinyCBOR.Encoder.encode_simple_value(CBOR_FSM_STATE);
-    TinyCBOR.Encoder.encode_simple_value(fsm_state);
+    TinyCBOR.Encoder.encode_int(CBOR_FSM_STATE);
+    TinyCBOR.Encoder.encode_int((uint8_t)(fsm_state & 0xFF));
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_FSM_MODE);
-    TinyCBOR.Encoder.encode_simple_value(fsm_mode);
+    TinyCBOR.Encoder.encode_int(CBOR_FSM_MODE);
+    TinyCBOR.Encoder.encode_int((uint8_t)(fsm_mode & 0xFF));
     mutex_exit(&fsm_mutex);
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_BURN_POWER);
+    TinyCBOR.Encoder.encode_int(CBOR_BURN_POWER);
     TinyCBOR.Encoder.encode_uint(fuelPumpTimer.getBurnPower());
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_FLAME_DETECT);
+    TinyCBOR.Encoder.encode_int(CBOR_FLAME_DETECT);
     TinyCBOR.Encoder.encode_uint(flameDetectorSensor->get_value());
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_COMBUSTION_FAN);
-    TinyCBOR.Encoder.encode_simple_value(combustionFanPercent);
+    TinyCBOR.Encoder.encode_int(CBOR_COMBUSTION_FAN);
+    TinyCBOR.Encoder.encode_int(combustionFanPercent);
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_VEHICLE_FAN);
-    TinyCBOR.Encoder.encode_simple_value(vehicleFanPercent);
+    TinyCBOR.Encoder.encode_int(CBOR_VEHICLE_FAN);
+    TinyCBOR.Encoder.encode_int(vehicleFanPercent);
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_INTERNAL_TEMP);
+    TinyCBOR.Encoder.encode_int(CBOR_INTERNAL_TEMP);
     TinyCBOR.Encoder.encode_int(internalTempSensor->get_value());
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_OUTDOOR_TEMP);
+    TinyCBOR.Encoder.encode_int(CBOR_OUTDOOR_TEMP);
     TinyCBOR.Encoder.encode_int(externalTempSensor->get_value());
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_COOLANT_TEMP);
+    TinyCBOR.Encoder.encode_int(CBOR_COOLANT_TEMP);
     TinyCBOR.Encoder.encode_int(coolantTempSensor->get_value());
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_EXHAUST_TEMP);
+    TinyCBOR.Encoder.encode_int(CBOR_EXHAUST_TEMP);
     TinyCBOR.Encoder.encode_int(exhaustTempSensor->get_value());
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_BATTERY_VOLT);
+    TinyCBOR.Encoder.encode_int(CBOR_BATTERY_VOLT);
     TinyCBOR.Encoder.encode_int(batteryVoltageSensor->get_value());
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_VSYS_VOLT);
+    TinyCBOR.Encoder.encode_int(CBOR_VSYS_VOLT);
     TinyCBOR.Encoder.encode_int(vsysVoltageSensor->get_value());
 
-    TinyCBOR.Encoder.encode_simple_value(CBOR_GPIOS);
+    TinyCBOR.Encoder.encode_int(CBOR_GPIOS);
     uint8_t gpios = 0;
     gpios |= startRunSensor->get_value() ? BIT(CBOR_GPIO_START_RUN) : 0;
     gpios |= ignitionSenseSensor->get_value() ? BIT(CBOR_GPIO_IGNITION) : 0;
     gpios |= emergencyStopSensor->get_value() ? BIT(CBOR_GPIO_EMERG_STOP) : 0;
-    TinyCBOR.Encoder.encode_simple_value(gpios);
+    TinyCBOR.Encoder.encode_int((uint8_t)(gpios & 0xFF));
 
     TinyCBOR.Encoder.close_container();
   }

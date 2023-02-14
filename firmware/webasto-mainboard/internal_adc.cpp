@@ -37,7 +37,12 @@ int32_t InternalADCSource::read_device(void)
     return (int32_t)(temp * 100.0);
   }
 
-  return (int32_t)analogRead(26 + _channel);
+  if (_enable_pin == -1 || digitalRead(_enable_pin)) {
+    return (int32_t)analogRead(26 + _channel);
+  } else {
+    // Log.warning("Skipping reading ADC %d - gated off", _channel);
+    return UNUSED_READING;
+  }
 }
 
 int32_t InternalADCSource::convert(int32_t reading)

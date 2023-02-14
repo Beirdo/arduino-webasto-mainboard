@@ -5,10 +5,11 @@
 
 class InternalADCSource : public AnalogSourceBase {
   public:
-    InternalADCSource(int index, int channel, int bits, int mult = 0, int div_ = 0) :
+    InternalADCSource(int index, int channel, int bits, int enable_pin = -1, int mult = 0, int div_ = 0) :
         AnalogSourceBase(index, 100, 0x00, bits, mult, div_)
     {
       _channel = channel;
+      _enable_pin = enable_pin;
     };
 
     void init(void);
@@ -17,6 +18,7 @@ class InternalADCSource : public AnalogSourceBase {
     int32_t convert(int32_t reading);
     bool i2c_is_connected(void) { return true; };
 
+    int _enable_pin;
     int _min_bits = 12;
     int _max_bits = 12;
     uint8_t _channel;

@@ -3,6 +3,9 @@
 
 #include <WiFi.h>
 
+#include "wifi-local.h"
+
+#ifndef WIFI_SSID
 #define WIFI_SSID       "default-ssid"
 #define WIFI_SSID_LEN   12
 #define WIFI_PSK        "default-psk"
@@ -11,6 +14,7 @@
 #define WIFI_SERVER_LEN 14
 #define WIFI_PORT       "8192"
 #define WIFI_PORT_LEN   4
+#endif
 
 #define CBOR_CURRENT_VERSION  1
 enum {

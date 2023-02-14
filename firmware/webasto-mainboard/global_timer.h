@@ -34,7 +34,7 @@ enum {
 class GlobalTimer {
   public:
     GlobalTimer(void);
-    void register_timer(int timer_id, int delay_ms, timer_callback cb);
+    void register_timer(int timer_id, int delay_ms, timer_callback cb, bool fromCallback = false);
     void adjust_timer(int timer_id, int delay_ms);
     void tick(void);
     int get_remaining_time(int timer_id);
