@@ -49,6 +49,6 @@ extern WiFiClient client;
 
 void init_wifi(void);
 void update_wifi(void);
-void cbor_send(const uint8_t *kline_buf = 0, int kline_len = 0);
+void cbor_send(const uint8_t *wbus_buf = 0, int wbus_len = 0);
 
 #endif

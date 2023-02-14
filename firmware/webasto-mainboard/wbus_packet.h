@@ -1,5 +1,5 @@
-#ifndef __kline_packet_h
-#define __kline_packet_h
+#ifndef __wbus_packet_h
+#define __wbus_packet_h
 
 #include <pico.h>
 
@@ -7,7 +7,7 @@ typedef struct {
   uint8_t *buf;
   int len;
   bool fromWiFi;
-} klinePacket_t;
+} wbusPacket_t;
 
 
 #endif

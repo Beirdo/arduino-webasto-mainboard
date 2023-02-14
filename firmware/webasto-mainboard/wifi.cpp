@@ -13,7 +13,7 @@
 #include "fsm.h"
 #include "analog.h"
 #include "project.h"
-#include "kline.h"
+#include "wbus.h"
 
 #define WIFI_STRING_LEN 32
 
@@ -232,7 +232,7 @@ void update_wifi(void)
             goto bail;
           }
           str_len = TinyCBOR.Parser.copy_byte_string(cbor_rx_wbus_buf, CBOR_BUF_SIZE);
-          receive_kline_from_cbor(cbor_rx_wbus_buf, str_len);
+          receive_wbus_from_cbor(cbor_rx_wbus_buf, str_len);
         }
         break;
 
@@ -288,7 +288,7 @@ bail:
   return;
 }
 
-void cbor_send(const uint8_t *kline_buf, int kline_len)
+void cbor_send(const uint8_t *wbus_buf, int wbus_len)
 {
    CoreMutex m(&cbor_mutex);
 
@@ -303,7 +303,7 @@ void cbor_send(const uint8_t *kline_buf, int kline_len)
 
   TinyCBOR.Encoder.init(cbor_bufs[item.index], CBOR_BUF_SIZE);
 
-  if (kline_buf) {
+  if (wbus_buf) {
     TinyCBOR.Encoder.create_map(3);
 
     // key values are integers (well, enum)
@@ -314,7 +314,7 @@ void cbor_send(const uint8_t *kline_buf, int kline_len)
     TinyCBOR.Encoder.encode_simple_value(CBOR_TYPE_WBUS);
 
     TinyCBOR.Encoder.encode_simple_value(CBOR_BUFFER);
-    TinyCBOR.Encoder.encode_byte_string(kline_buf, kline_len);
+    TinyCBOR.Encoder.encode_byte_string(wbus_buf, wbus_len);
 
     TinyCBOR.Encoder.close_container();
   } else {

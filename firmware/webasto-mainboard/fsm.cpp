@@ -1284,7 +1284,7 @@ void init_fsm(void)
 
   WebastoControlFSM::start();
 
-  // KLineEN handled in kline.cpp
+  // KLineEN handled in wbus.cpp
 
   // this is an open drain output.  default is off = input with pullup
   pinMode(PIN_GLOW_PLUG_IN_EN, INPUT);

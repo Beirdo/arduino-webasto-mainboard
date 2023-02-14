@@ -5,7 +5,7 @@
 
 #include "project.h"
 #include "analog.h"
-#include "kline.h"
+#include "wbus.h"
 #include "sensor_eeprom.h"
 #include "global_timer.h"
 #include "fram.h"
@@ -95,7 +95,7 @@ void setup1(void)
 
   Log.notice("Starting Core 1");
   init_fsm();
-  init_kline();
+  init_wbus();
 }
 
 void loop() {
@@ -138,8 +138,8 @@ void loop1(void)
   int topOfLoop = millis();
 
   globalTimer.tick();
-  receive_kline_from_serial();
-  process_kline();
+  receive_wbus_from_serial();
+  process_wbus();
 
   int elapsed = millis() - topOfLoop;
   if (elapsed >= 10) {
