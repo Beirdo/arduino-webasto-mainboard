@@ -106,7 +106,7 @@ void loop() {
   }
 
   int elapsed = millis() - topOfLoop;
-  int delayMs = clamp(100 - elapsed, 1, 100);
+  int delayMs = clamp<int>(100 - elapsed, 1, 100);
   delay(delayMs);
 
   rp2040.wdt_reset();  
@@ -128,7 +128,7 @@ void loop1() {
   }
 
   int elapsed = millis() - topOfLoop;
-  int delayMs = clamp(10 - elapsed, 1, 100);
+  int delayMs = clamp<int>(10 - elapsed, 1, 10);
   delay(delayMs);
 }
 

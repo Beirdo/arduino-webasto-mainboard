@@ -1,12 +1,12 @@
-%TF.GenerationSoftware,KiCad,Pcbnew,6.0.2+dfsg-1*%
-%TF.CreationDate,2023-02-07T14:17:08-05:00*%
+%TF.GenerationSoftware,KiCad,Pcbnew,6.0.11-2627ca5db0~126~ubuntu22.04.1*%
+%TF.CreationDate,2023-02-14T23:30:31-05:00*%
 %TF.ProjectId,atx-power-fixture,6174782d-706f-4776-9572-2d6669787475,2.0*%
 %TF.SameCoordinates,Original*%
 %TF.FileFunction,Legend,Bot*%
 %TF.FilePolarity,Positive*%
 %FSLAX46Y46*%
 G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
-G04 Created by KiCad (PCBNEW 6.0.2+dfsg-1) date 2023-02-07 14:17:08*
+G04 Created by KiCad (PCBNEW 6.0.11-2627ca5db0~126~ubuntu22.04.1) date 2023-02-14 23:30:31*
 %MOMM*%
 %LPD*%
 G01*
