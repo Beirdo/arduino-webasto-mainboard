@@ -8,7 +8,6 @@
 
 
 // I2C Addresses
-#define I2C_ADDR_SERLCD   0x7F
 #define I2C_ADDR_OLED     0x3C  // 3D for 128x64, 3C for 128x32
 
 // GPIO map on the sensor boards

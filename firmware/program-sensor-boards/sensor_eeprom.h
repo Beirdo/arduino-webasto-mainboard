@@ -19,6 +19,8 @@ struct eeprom_v1_s {
   uint8_t addr_mcp96l01;
   uint8_t addr_ads7823;
   uint8_t addr_ds2482;
+  uint8_t addr_linbus_bridge;
+  uint32_t linbus_slaves;	// we support ids of 0x00-0x1F
 };
 
 typedef struct eeprom_v1_s eeprom_data_t;
@@ -30,9 +32,11 @@ static_assert(sizeof(eeprom_data_t) <= PCA9501_DEVICE_SIZE, "Structure eeprom_da
 #define CAPABILITIES_COOLANT_TEMP     0x04
 #define CAPABILITIES_EXHAUST_TEMP     0x08
 #define CAPABILITIES_IGNITION_SOURCE  0x10
+#define CAPABILITIES_EMERGENCY_STOP   0x20
+#define CAPABILITIES_LINBUS_BRIDGE    0x40
 
-extern eeprom_data_t eeprom_data[3];
-extern void *eeprom_devices[3];
+extern eeprom_data_t eeprom_data[4];
+extern void *eeprom_devices[4];
 
 void init_eeprom(void);
 uint8_t eeprom_checksum(uint8_t *buf, int len);
