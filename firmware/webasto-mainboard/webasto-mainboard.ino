@@ -35,14 +35,14 @@ void setup() {
     bool ledOn = true;
     onboard_led_q.push(&ledOn);
 
-    pinMode(PIN_USE_USB, INPUT_PULLUP);
     pinMode(PIN_BOARD_SENSE, INPUT_PULLUP);
     delay(2);
 
     pinMode(PIN_I2C0_SCL, INPUT_PULLUP);
     pinMode(PIN_I2C0_SDA, INPUT_PULLUP);
 
-    if (digitalRead(PIN_USE_USB) || 1) {
+    mainboardDetected = !(digitalRead(PIN_BOARD_SENSE));
+    if (!mainboardDetected) {
       Serial.begin(115200);
       Log.begin(LOG_LEVEL_VERBOSE, &Serial);
     } else {
@@ -62,7 +62,6 @@ void setup() {
     Log.notice("Rebooted.");
     Log.notice("Starting Core 0");
 
-    mainboardDetected = !(digitalRead(PIN_BOARD_SENSE));
     if (mainboardDetected) {
       Log.notice("Mainboard detected");
     } else {

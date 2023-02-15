@@ -4,4 +4,5 @@
   (lib (name "Beirdo")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/Beirdo-KiCad-Libraries/Footprints/Beirdo.pretty")(options "")(descr ""))
   (lib (name "SparkFun-Connectors")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/SparkFun-KiCad-Libraries/Footprints/Connectors.pretty")(options "")(descr ""))
   (lib (name "SparkFun-Silicon-Standard")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/SparkFun-KiCad-Libraries/Footprints/Silicon-Standard.pretty")(options "")(descr ""))
+  (lib (name "RPi_Pico")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/Beirdo-KiCad-Libraries/Footprints/RPi_Pico.pretty")(options "")(descr ""))
 )

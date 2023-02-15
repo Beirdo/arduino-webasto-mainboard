@@ -4,4 +4,5 @@
   (lib (name "SparkFun-DiscreteSemi")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/SparkFun-KiCad-Libraries/Libraries/SparkFun-DiscreteSemi.kicad_sym")(options "")(descr ""))
   (lib (name "Beirdo")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/Beirdo-KiCad-Libraries/Symbols/Beirdo.kicad_sym")(options "")(descr ""))
   (lib (name "UltraLibrarian")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/Beirdo-KiCad-Libraries/Symbols/UltraLibrarian.kicad_sym")(options "")(descr ""))
+  (lib (name "RPi_Pico")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/Beirdo-KiCad-Libraries/Symbols/RPi_Pico.kicad_sym")(options "")(descr ""))
 )

@@ -68,7 +68,6 @@
 #define PIN_VEHICLE_FAN_RELAY 14
 #define PIN_ALERT_BUZZER      15
 #define PIN_EMERGENCY_STOP    16
-#define PIN_USE_USB           17
 #define PIN_BOARD_SENSE       22  // LOW = mainboard there, HIGH = just the Pico
 #define PIN_RESERVED_WIFI_ON  23
 #define PIN_RESERVED_WIFI_DAT 24
