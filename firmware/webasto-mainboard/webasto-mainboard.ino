@@ -33,7 +33,7 @@ void setup() {
     CoreMutex m(&startup_mutex);
 
     bool ledOn = true;
-  //  onboard_led_q.push(&ledOn);
+    onboard_led_q.push(&ledOn);
 
     pinMode(PIN_USE_USB, INPUT_PULLUP);
     pinMode(PIN_BOARD_SENSE, INPUT_PULLUP);
@@ -98,7 +98,7 @@ void setup1(void)
 
   Log.notice("Starting Core 1");
 
-  // pinMode(PIN_ONBOARD_LED, OUTPUT);
+  pinMode(PIN_ONBOARD_LED, OUTPUT);
 
   init_wifi();
   init_fsm();
@@ -111,7 +111,7 @@ void loop() {
   int topOfLoop = millis();
 
   bool ledOn = false;
-//  onboard_led_q.push(&ledOn);
+  onboard_led_q.push(&ledOn);
 
   display_count++;
 
@@ -122,7 +122,7 @@ void loop() {
   // We want screen updates every second.
   if (display_count % 10 == 1) {
     ledOn = true;
-//    onboard_led_q.push(&ledOn);
+    onboard_led_q.push(&ledOn);
     update_display();
     cbor_send();
   }
@@ -144,13 +144,11 @@ void loop1(void)
   // this loop runs on core1 and is primarily just the FSM and globalTimer
   int topOfLoop = millis();
 
-//  while (!onboard_led_q.isEmpty()) {
-//    bool ledOn;
-//    onboard_led_q.pop(&ledOn);
-//    Log.info("LED: %d", ledOn);
-//    // digitalWrite(PIN_ONBOARD_LED, ledOn ? HIGH : LOW);
-//    Log.info("Done LED");
-//  }
+  while (!onboard_led_q.isEmpty()) {
+    bool ledOn;
+    onboard_led_q.pop(&ledOn);
+    digitalWrite(PIN_ONBOARD_LED, ledOn ? HIGH : LOW);
+  }
 
   globalTimer.tick();
   update_wifi(); 
