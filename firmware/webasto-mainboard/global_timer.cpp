@@ -14,7 +14,7 @@ GlobalTimer::GlobalTimer(void)
   mutex_init(&_mutex);
 }
 
-void GlobalTimer::register_timer(int timer_id, int delay_ms, timer_callback cb, bool from_callback)
+void GlobalTimer::register_timer(int timer_id, int delay_ms, timer_callback cb)
 {
   if (delay_ms <= 0 || !cb) {
     return;
@@ -30,7 +30,7 @@ void GlobalTimer::register_timer(int timer_id, int delay_ms, timer_callback cb, 
   item->cb = cb;
   item->next = 0;
 
-  insert_item(item, from_callback);
+  insert_item(item, false);
 }
 
 timerItem_t *GlobalTimer::remove_item(int timer_id, bool locked)

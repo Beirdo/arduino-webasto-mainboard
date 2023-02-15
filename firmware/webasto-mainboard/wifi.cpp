@@ -26,6 +26,8 @@ uint8_t ssid[WIFI_STRING_LEN];
 uint8_t psk[WIFI_STRING_LEN];
 bool wifi_connected = false;
 bool wifi_server_connected = false;
+int wifi_timeout = 0;
+int wifi_status = 0;
 
 WiFiClient client;
 uint8_t server[128];
@@ -65,17 +67,18 @@ void wifi_startup_callback(int timer_id, int delay_ms)
     return;
   }
 
-  (void)delay_ms;
-
   CoreMutex m(&wifi_mutex);
 
-  int wifi_status = WiFi.status();
+  wifi_timeout = clamp<int>(wifi_timeout - delay_ms, 0, 10000);
 
-  if (wifi_status != WL_CONNECTED) {
+  wifi_status = WiFi.status();
+
+  if (wifi_status != WL_CONNECTED && !wifi_timeout) {
     if (wifi) {
       delete wifi;
     }
-    
+
+    wifi_timeout = 10000;
     wifi = new WiFiMulti();
     
     get_device_info_string(12, ssid, 32);
@@ -83,13 +86,21 @@ void wifi_startup_callback(int timer_id, int delay_ms)
     wifi->addAP((const char *)ssid, (const char *)psk);
 
     Log.notice("Connecting to WiFi SSID: %s", ssid);
-    wifi->run(100);
-    globalTimer.register_timer(TIMER_WIFI_STARTUP, 10000, wifi_startup_callback, true);
+  }
+
+  wifi_timeout = clamp<int>(wifi_timeout - 200, 0, 10000);
+
+  wifi_status = wifi->run(200);
+  Log.notice("Status after run: %d", wifi_status);  
+  
+  if (wifi_status != WL_CONNECTED) {
+    Log.info("WiFi timer: %d, state: %d", wifi_timeout, wifi_status);
+    globalTimer.register_timer(TIMER_WIFI_STARTUP, clamp<int>(wifi_timeout, 0, 500), wifi_startup_callback);
   } else {
     Log.info("WiFi connected");
     IPAddress myIP = WiFi.localIP();    
     Log.info("IP Address: %s", ip_ntoa(myIP));
-    globalTimer.register_timer(TIMER_WIFI_CONNECT, 10, wifi_connection_callback, true);
+    globalTimer.register_timer(TIMER_WIFI_CONNECT, 10, wifi_connection_callback);
   }
 }
 
@@ -116,7 +127,7 @@ void wifi_connection_callback(int timer_id, int delay_ms)
   wifi_server_connected = client.connect(server_ip, port);
   if (!wifi_server_connected) {
     Log.warning("Could not connect to server, trying again in 5s");
-    globalTimer.register_timer(TIMER_WIFI_CONNECT, 5000, wifi_connection_callback, true);
+    globalTimer.register_timer(TIMER_WIFI_CONNECT, 5000, wifi_connection_callback);
   } else {
     Log.info("Server connected");
     Log.info("Local IP Address: %s:%d", ip_ntoa(client.localIP()), client.localPort());
@@ -157,9 +168,7 @@ void update_cbor_tx(void)
     int len = item.len;
 
     hexdump(buf, len, 16);
-    for(int i = 0; i < len; i++) {
-      client.write(buf[i]);
-    }
+    client.write((const char *)buf, len);
 
     cbor_head = item.index + 1;
     cbor_head %= CBOR_BUF_COUNT;
@@ -171,13 +180,13 @@ void update_cbor_tx(void)
   }
 
   if (flush) {
-    if (WiFi.status() != WL_CONNECTED && !globalTimer.get_remaining_time(TIMER_WIFI_STARTUP)) {
+    if (WiFi.status() != WL_CONNECTED && !wifi_timeout && !globalTimer.get_remaining_time(TIMER_WIFI_STARTUP)) {
       Log.warning("WiFi no longer connected!");
       globalTimer.register_timer(TIMER_WIFI_STARTUP, 10, wifi_startup_callback);
       return;
     }
 
-    if (!client.connected() && !globalTimer.get_remaining_time(TIMER_WIFI_CONNECT)) {
+    if (WiFi.status() == WL_CONNECTED && !client.connected() && !globalTimer.get_remaining_time(TIMER_WIFI_CONNECT)) {
       Log.warning("Server no longer connected!");
       wifi_server_connected = false;
       client.stop();
