@@ -24,7 +24,8 @@ enum {
   INDEX_INTERNAL_TEMP,
   INDEX_FLAME_DETECTOR,
   INDEX_START_RUN,
-  INDEX_VSYS_VOLTAGE,
+  INDEX_VSYS_VOLTAGE,  
+  INDEX_LINBUS_BRIDGE,
 };
 
 extern AnalogSourceBase *externalTempSensor;
