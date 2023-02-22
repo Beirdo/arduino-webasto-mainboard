@@ -171,7 +171,7 @@ void sendCoreNum(Print *output, int level)
 
   mutex_enter_blocking(&log_mutex);
   int coreNum = get_core_num();
-  output->printf("C%d: %20d: ", coreNum == 1 ? '1' : '0', millis());
+  output->printf("C%d: %20d: ", coreNum, millis());
 }
 
 void sendCRLF(Print *output, int level)
