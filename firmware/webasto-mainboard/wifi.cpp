@@ -70,7 +70,6 @@ void wifi_startup_callback(int timer_id, int delay_ms)
   CoreMutex m(&wifi_mutex);
 
   wifi_timeout = clamp<int>(wifi_timeout - delay_ms, 0, 10000);
-
   wifi_status = WiFi.status();
 
   if (wifi_status != WL_CONNECTED && !wifi_timeout) {
@@ -89,17 +88,15 @@ void wifi_startup_callback(int timer_id, int delay_ms)
   }
 
   wifi_timeout = clamp<int>(wifi_timeout - 200, 0, 10000);
-
   wifi_status = wifi->run(200);
-  Log.notice("Status after run: %d", wifi_status);  
+  Log.notice("Status after run: %d", wifi_status);
   
   if (wifi_status != WL_CONNECTED) {
-    Log.info("WiFi timer: %d, state: %d", wifi_timeout, wifi_status);
     globalTimer.register_timer(TIMER_WIFI_STARTUP, clamp<int>(wifi_timeout, 0, 500), wifi_startup_callback);
   } else {
-    Log.info("WiFi connected");
+    Log.notice("WiFi connected");
     IPAddress myIP = WiFi.localIP();    
-    Log.info("IP Address: %s", ip_ntoa(myIP));
+    Log.notice("IP Address: %s", ip_ntoa(myIP));
     globalTimer.register_timer(TIMER_WIFI_CONNECT, 10, wifi_connection_callback);
   }
 }
@@ -109,8 +106,6 @@ void wifi_connection_callback(int timer_id, int delay_ms)
   if (timer_id != TIMER_WIFI_CONNECT) {
     return;
   }
-
-  (void)delay_ms;
 
   CoreMutex m(&wifi_mutex);
 
@@ -123,15 +118,17 @@ void wifi_connection_callback(int timer_id, int delay_ms)
   port = atoi((const char *)port_str);
 
   Log.notice("Connecting to server: %s:%d", ip_ntoa(server_ip), port);
-
+  client.setTimeout(250);
   wifi_server_connected = client.connect(server_ip, port);
+
   if (!wifi_server_connected) {
     Log.warning("Could not connect to server, trying again in 5s");
+    client.stop();
     globalTimer.register_timer(TIMER_WIFI_CONNECT, 5000, wifi_connection_callback);
   } else {
-    Log.info("Server connected");
-    Log.info("Local IP Address: %s:%d", ip_ntoa(client.localIP()), client.localPort());
-    Log.info("Remote IP Address: %s:%d", ip_ntoa(client.remoteIP()), client.remotePort());
+    Log.notice("Server connected");
+    Log.notice("Local IP Address: %s:%d", ip_ntoa(client.localIP()), client.localPort());
+    Log.notice("Remote IP Address: %s:%d", ip_ntoa(client.remoteIP()), client.remotePort());
     cbor_rx_tail = 0;
   }
 }
@@ -159,7 +156,11 @@ void update_cbor_tx(void)
   while (!cbor_tx_q.isEmpty()) {
     cbor_tx_q.pop(&item);
 
+    cbor_head = item.index + 1;
+    cbor_head %= CBOR_BUF_COUNT;
+
     if (!client.connected() || WiFi.status() != WL_CONNECTED) {
+      Log.notice("Flushing TX queue.  Disconnected");
       flush = true;
       continue;
     }
@@ -169,20 +170,12 @@ void update_cbor_tx(void)
 
     hexdump(buf, len, 16);
     client.write((const char *)buf, len);
-
-    cbor_head = item.index + 1;
-    cbor_head %= CBOR_BUF_COUNT;
-
-    if (cbor_head == cbor_tail) {
-      cbor_head = 0;
-      cbor_tail = 0;
-    }
   }
 
   if (flush) {
     if (WiFi.status() != WL_CONNECTED && !wifi_timeout && !globalTimer.get_remaining_time(TIMER_WIFI_STARTUP)) {
       Log.warning("WiFi no longer connected!");
-      globalTimer.register_timer(TIMER_WIFI_STARTUP, 10, wifi_startup_callback);
+      globalTimer.register_timer(TIMER_WIFI_STARTUP, 10, wifi_startup_callback); 
       return;
     }
 
@@ -322,6 +315,7 @@ void cbor_send(const uint8_t *wbus_buf, int wbus_len)
 
   cbor_item_t item;
   if ((cbor_tail + 1) % CBOR_BUF_COUNT == cbor_head) {
+    Log.notice("Head: %d, Tail: %d", cbor_head, cbor_tail);
     return;
   }
 

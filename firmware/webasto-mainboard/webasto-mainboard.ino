@@ -171,11 +171,7 @@ void sendCoreNum(Print *output, int level)
 
   mutex_enter_blocking(&log_mutex);
   int coreNum = get_core_num();
-  output->print('C');
-  output->print(coreNum == 1 ? '1' : '0');
-  output->print(':');
-  output->print(' ');
-  output->printf("%20d: ", millis());
+  output->printf("C%d: %20d: ", coreNum == 1 ? '1' : '0', millis());
 }
 
 void sendCRLF(Print *output, int level)
@@ -184,8 +180,7 @@ void sendCRLF(Print *output, int level)
     return;
   }
 
-  output->print('\n');
-  output->print('\r');
+  output->printf("\n\r");
   output->flush();
   mutex_exit(&log_mutex);
 }
@@ -196,17 +191,21 @@ void hexdump(const void* mem, uint32_t len, uint8_t cols)
   static char line[128];
   char *ch = line;
   int written;  
+
+  memset(ch, 0x00, 128);
       
-  Log.info("[HEXDUMP] Address: %X len: %X (%d)", src, len, len);
+  written = sprintf(ch, "[HEXDUMP] Address: %08X len: %04X (%d)", src, len, len);
+  Log.notice("%s", line);
+
   while (len > 0) {
     ch = line;
     memset(ch, 0x00, 128);
 
     uint32_t linesize = cols > len ? len : cols;
-    written = sprintf(ch, "[%X] 0x%04x: ", src, (int)(src - (const char*)mem));
+    written = sprintf(ch, "[%08X] 0x%04X: ", src, (int)(src - (const char*)mem));
     ch += written;
     for (uint32_t i = 0; i < linesize; i++) {
-        written = sprintf(ch, "%02x ", *(src + i));
+        written = sprintf(ch, "%02X ", *(src + i));
         ch += written;
     }
     written = sprintf(ch, "  ");

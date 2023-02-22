@@ -27,7 +27,9 @@ class Display {
     void clearLine(int y);
     void clearMirrorLine(int y);
     void update(void);
+#ifdef LOG_MISSING_DISPLAY
     void log(void);
+#endif
 
     void printHexByte(int x, int y, uint8_t data);
     void printWatts(int x, int y, int burnPower);

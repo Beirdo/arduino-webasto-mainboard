@@ -134,9 +134,11 @@ void OLEDDisplay::updateDisplay(void)
   printTemperature(13, 7, temp);
 
   update();
+#ifdef LOG_MISSING_DISPLAY
   if (!_connected) {
     log();
   }
+#endif
 }
 
 void oledTimerCallback(int timerId, int delayMs)

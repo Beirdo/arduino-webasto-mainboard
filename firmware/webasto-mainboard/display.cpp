@@ -241,6 +241,7 @@ void Display::printLabel(int x, int y, const char *str)
   }
 }
 
+#ifdef LOG_MISSING_DISPLAY
 void Display::log(void)
 {
   if (_connected) {
@@ -265,6 +266,7 @@ void Display::log(void)
 
   delete [] buf;
 }
+#endif
 
 void init_display(void) {
   if (!mutex_is_initialized(&display_mutex)) {
@@ -290,6 +292,7 @@ void update_display(void) {
 
   CoreMutex m(&display_mutex);
 
+#ifdef LOG_MISSING_DISPLAY
   if (display) {
     display->updateDisplay();
   }
@@ -300,5 +303,10 @@ void update_display(void) {
       display = 0;
     }
   }
+#else
+  if (display && display->isConnected()) {
+    display->updateDisplay();
+  }
+#endif
 }
 
