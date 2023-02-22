@@ -26,6 +26,7 @@ uint8_t ssid[WIFI_STRING_LEN];
 uint8_t psk[WIFI_STRING_LEN];
 bool wifi_connected = false;
 bool wifi_server_connected = false;
+bool wifi_initialized = false;
 int wifi_timeout = 0;
 int wifi_status = 0;
 
@@ -168,8 +169,8 @@ void update_cbor_tx(void)
     const uint8_t *buf = (const uint8_t *)&cbor_bufs[item.index];
     int len = item.len;
 
-    hexdump(buf, len, 16);
     client.write((const char *)buf, len);
+    hexdump(buf, len, 16);
   }
 
   if (flush) {
@@ -315,7 +316,7 @@ void cbor_send(const uint8_t *wbus_buf, int wbus_len)
 
   cbor_item_t item;
   if ((cbor_tail + 1) % CBOR_BUF_COUNT == cbor_head) {
-    Log.notice("Head: %d, Tail: %d", cbor_head, cbor_tail);
+    Log.notice("CBOR Tx Full: Head: %d, Tail: %d", cbor_head, cbor_tail);
     return;
   }
 

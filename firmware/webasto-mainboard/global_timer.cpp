@@ -87,7 +87,6 @@ void GlobalTimer::insert_item(timerItem_t *item, bool locked)
     mutex_enter_blocking(&_mutex);
   }
 
-  Log.notice("Inserting item, key: %d", key);
   item->next = 0;
   if (!_head) {
     _head = item;

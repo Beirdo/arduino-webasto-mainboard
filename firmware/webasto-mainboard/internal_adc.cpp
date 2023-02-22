@@ -1,6 +1,9 @@
+#include <sys/_stdint.h>
 #include <Arduino.h>
 #include <pico.h>
 #include <ArduinoLog.h>
+#include <hardware/gpio.h>
+#include <CoreMutex.h>
 
 #include "project.h"
 #include "internal_adc.h"
@@ -37,13 +40,26 @@ int32_t InternalADCSource::read_device(void)
     return (int32_t)(temp * 100.0);
   }
 
-  if (_enable_pin == -1 || digitalRead(_enable_pin)) {
-    return UNUSED_READING;
-    return (int32_t)analogRead(26 + _channel);
-  } else {
+  bool skip_reading = false;
+  if (_enable_pin != -1) {
+#ifdef ARDUINO_RASPBERRY_PI_PICO_W
+    if (_enable_pin == 29) {
+    // stupid Pico W put SPI CLK and VSYS analog in... on the same pin!  and no way to multiplex effectively
+      skip_reading = true;
+    }
+#endif
+
+    if (!skip_reading) {
+      skip_reading = !(digitalRead(_enable_pin));
+    }
+  }
+
+  if (skip_reading) { 
     // Log.warning("Skipping reading ADC %d - gated off", _channel);
     return UNUSED_READING;
   }
+
+  return (int32_t)analogRead(26 + _channel);
 }
 
 int32_t InternalADCSource::convert(int32_t reading)

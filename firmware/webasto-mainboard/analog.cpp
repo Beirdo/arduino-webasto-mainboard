@@ -102,7 +102,7 @@ void init_analog(void)
   internalTempSensor = new InternalADCSource(INDEX_INTERNAL_TEMP, 4, 12);
   flameDetectorSensor = new INA219Source(INDEX_FLAME_DETECTOR, 0x4F, 12, &glowPlugInEnable);
   startRunSensor = new InternalGPIODigitalSource(INDEX_START_RUN, PIN_START_RUN);
-  vsysVoltageSensor = new InternalADCSource(INDEX_VSYS_VOLTAGE, 3, 12, PIN_RESERVED_WIFI_CS);
+  vsysVoltageSensor = new InternalADCSource(INDEX_VSYS_VOLTAGE, 2, 12);
 
   sensors[INDEX_INTERNAL_TEMP] = internalTempSensor;
   sensors[INDEX_FLAME_DETECTOR] = flameDetectorSensor;
