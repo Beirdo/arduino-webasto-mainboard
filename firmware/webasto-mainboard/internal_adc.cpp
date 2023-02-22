@@ -64,8 +64,8 @@ int32_t InternalADCSource::read_device(void)
 
 int32_t InternalADCSource::convert(int32_t reading)
 {
-  if (_channel == 3) {
-    // Wired to VSYS / 3 on the pico board itself
+  if (_channel == 2) {
+    // Wired to VSYS / 3 on our board
     int vref = mainboardDetected ? 3300 : 3300; // 3000 once onboard connected
     int retval = (reading * vref * 3) / (1 << _bits);
 #ifdef VERBOSE_LOGGING
