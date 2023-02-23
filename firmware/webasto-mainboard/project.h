@@ -66,14 +66,14 @@
 #define PIN_FUEL_PUMP         13
 #define PIN_VEHICLE_FAN_RELAY 14
 #define PIN_ALERT_BUZZER      15
-#define PIN_EMERGENCY_STOP    16
+#define PIN_ONBOARD_LED       16
 #define PIN_BOARD_SENSE       22  // LOW = mainboard there, HIGH = just the Pico
 #define PIN_RESERVED_WIFI_ON  23
 #define PIN_RESERVED_WIFI_DAT 24
 #define PIN_RESERVED_WIFI_CS  25
 #define PIN_FLAME_LED         26
 #define PIN_OPERATING_LED     27
-#define PIN_ONBOARD_LED       32
+#define PIN_USELESS_LED       32  // Do NOT use this and WiFi together. Bad driver!
 
 #define HI_BYTE(x)    ((uint8_t)(((int)(x) >> 8) & 0xFF))
 #define LO_BYTE(x)    ((uint8_t)(((int)(x) & 0xFF)))

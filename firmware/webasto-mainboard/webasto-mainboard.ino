@@ -139,18 +139,25 @@ void loop() {
 
 void loop1(void)
 {
+  static bool ledOn = false;
+    
   // Hi, ho!  Kermit the frog here.
   // this loop runs on core1 and is primarily just the FSM and globalTimer
   int topOfLoop = millis();
 
   while (!onboard_led_q.isEmpty()) {
-    bool ledOn;
-    onboard_led_q.pop(&ledOn);
-    digitalWrite(PIN_ONBOARD_LED, ledOn ? HIGH : LOW);
+    bool newLedOn;
+    onboard_led_q.pop(&newLedOn);
+    if (ledOn != newLedOn) {
+      ledOn = newLedOn;
+      // Note:  do NOT use the LED connected to the WiFi chip.  Using it messes with the WiFi's use of
+      //        the shared SPI bus.  Hilarity (well, crashes) ensue
+      digitalWrite(PIN_ONBOARD_LED, ledOn ? HIGH : LOW);
+    }
   }
 
   globalTimer.tick();
-  update_wifi(); 
+  update_wifi();
   receive_wbus_from_serial();
   process_wbus();
 

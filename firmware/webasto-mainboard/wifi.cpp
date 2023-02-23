@@ -400,5 +400,6 @@ void cbor_send(const uint8_t *wbus_buf, int wbus_len)
 
   item.len = TinyCBOR.Encoder.get_buffer_size();
 
+  Log.notice("Queuing CBOR packet (len %d)", item.len);
   cbor_tx_q.push(&item);
 }
