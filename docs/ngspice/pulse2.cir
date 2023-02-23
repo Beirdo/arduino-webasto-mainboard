@@ -1,0 +1,40 @@
+Pulse lengthener
+.TEMP 27
+.TRAN 1U 1M UIC
+
+.OPTIONS ABSTOL=1P ITL1=150 ITL2=20 ITL4=10 TRTOL=7 
+.PROBE V([VF3]) V([VF1]) V([VF2]) V([VF4])
+.save VG1 11 12 14 15 VF1 VF2 VF3 VF4 VF5
+.param vdd=3.3
+
+V3          J1 0 3.3
+V2          4 0 5
+V1          10 0 12
+VG1         13 0 DC 0 PWL
++       (0 0 1N 'vdd' 62.499U 'vdd' 62.5U 0 124.999U 0 125U 0) r=0
+C3          0 6 10N 
+C2          0 7 10N 
+R3          7 4 2.7K 
+XU4         VF2 VF4 4 6 7 7 4 0 NE555
+L1          9 10 1M IC=0 
+R4          11 14 10
+C1          12 11 10N 
+R1          0 12 2 
+MT1         9 13 12 12  2N6755 NRD=0 NRS=0 
+XU6         VF5 VF4 J1 0 SN7405
+R6          VF5 J1 9.1K 
+DSD1        14 0 1N5817
+R7          14 VF1 1K
+R8          4 VF1 1K
+XU5         VF2 VF1 J1 0 SN7405
+*XU1         VF1 15 4 0 15 LMH6611
+*R10         15 VF2 1K
+
+.include SN7405.cir
+.include NE555.cir
+.include 2N6755.cir
+.include LMH6611.cir
+.include 2N6804.cir
+.include 1N5817.cir
+
+.END

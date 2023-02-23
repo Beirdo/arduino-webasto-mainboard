@@ -140,6 +140,7 @@ void init_wifi(void)
   mutex_init(&cbor_mutex);
   globalTimer.register_timer(TIMER_WIFI_STARTUP, 10, wifi_startup_callback);
   TinyCBOR.init();
+  WiFi.setTimeout(500);
 }
 
 void update_wifi(void)
@@ -169,8 +170,12 @@ void update_cbor_tx(void)
     const uint8_t *buf = (const uint8_t *)&cbor_bufs[item.index];
     int len = item.len;
 
-    client.write((const char *)buf, len);
+    Log.notice("Dequeued CBOR (%d bytes)", len);
+    int retlen = client.write((const char *)buf, len);
+    Log.notice("Sent %d bytes of %d", retlen, len);
+#ifdef HEXDUMP_TX
     hexdump(buf, len, 16);
+#endif
   }
 
   if (flush) {

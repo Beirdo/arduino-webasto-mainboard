@@ -18,10 +18,11 @@
 #include "dummy.h"
 #include "linbus_registers.h"
 
-#define OFFBOARD_SENSOR_COUNT 6
-#define ONBOARD_SENSOR_COUNT  4
+#define OFFBOARD_SENSOR_COUNT (INDEX_EMERGENCY_STOP + 1)
+#define ONBOARD_SENSOR_COUNT  (INDEX_VSYS_VOLTAGE - INDEX_EMERGENCY_STOP)
+#define TOTAL_SENSOR_COUNT    (INDEX_VSYS_VOLTAGE + 1)
 
-AnalogSourceBase *sensors[OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT];
+AnalogSourceBase *sensors[TOTAL_SENSOR_COUNT];
 
 AnalogSourceBase *externalTempSensor;
 AnalogSourceBase *batteryVoltageSensor;
@@ -80,7 +81,7 @@ void init_analog(void)
           sensors[i] = new PCA9501DigitalSource(i, eeprom_data[j].current.addr_pca9501_gpio, PCA9501_VINN);
           break;
         case INDEX_EMERGENCY_STOP:
-          sensors[i] = new PCA9501DigitalSource(i, eeprom_data[i].current.addr_pca9501_gpio, PCA9501_VINN);
+          sensors[i] = new PCA9501DigitalSource(i, eeprom_data[i].current.addr_pca9501_gpio, PCA9501_VINN, true);
           break;
         case INDEX_LINBUS_BRIDGE:
           addr_linbus_bridge = eeprom_data[i].current.addr_linbus_bridge;
@@ -110,7 +111,7 @@ void init_analog(void)
   sensors[INDEX_VSYS_VOLTAGE] = vsysVoltageSensor;
 
   // Now init() the suckers
-  for (int i = 0; i < OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT; i++) {
+  for (int i = 0; i < TOTAL_SENSOR_COUNT; i++) {
     Log.notice("Initializing %s sensor", capabilities_names[i]);
     if (!sensors[i]) {
       Log.error("Missing class for %s sensor", capabilities_names[i]);
@@ -165,7 +166,7 @@ void init_analog(void)
 void update_analog(void)
 {
   // Now update() the suckers
-  for (int i = 0; i < OFFBOARD_SENSOR_COUNT + ONBOARD_SENSOR_COUNT; i++) {
+  for (int i = 0; i < TOTAL_SENSOR_COUNT; i++) {
 #ifdef VERBOSE_LOGGING
     Log.notice("Updating %s sensor", capabilities_names[i]);
 #endif

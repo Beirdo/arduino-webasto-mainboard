@@ -26,5 +26,9 @@ int32_t PCA9501DigitalSource::read_device(void)
 int32_t PCA9501DigitalSource::convert(int32_t reading)
 {
   // Normalize to 0/1 regardless of bitmask
-  return !(!reading);
+  if (_active_low) {
+    return !reading;
+  } else {
+    return !(!reading);
+  }
 }
