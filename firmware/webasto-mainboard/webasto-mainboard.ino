@@ -3,6 +3,7 @@
 #include <ArduinoLog.h>
 #include <CoreMutex.h>
 #include <cppQueue.h>
+#include <SparkFun_TCA9534.h>
 
 #include "project.h"
 #include "analog.h"
@@ -20,6 +21,8 @@ mutex_t startup_mutex;
 mutex_t log_mutex;
 
 cppQueue onboard_led_q(sizeof(bool), 4, FIFO);
+TCA9534 tca9534;
+
 
 void sendCRLF(Print *output, int level);
 void sendCoreNum(Print *output, int level);
@@ -48,11 +51,24 @@ void setup() {
     } else {
       Serial1.setTX(PIN_SERIAL1_TX);
       Serial1.setRX(PIN_SERIAL1_RX);
-      Serial1.setCTS(PIN_SERIAL1_CTS);
-      Serial1.setRTS(PIN_SERIAL1_RTS);
       Serial1.begin(115200);
       Log.begin(LOG_LEVEL_VERBOSE, &Serial1);
     }
+
+    tca9534.begin(I2C_ADDR_TCA9534);
+    tca9534.pinMode(PIN_CAN_SOF, INPUT);
+
+    tca9534.pinMode(PIN_POWER_LED, OUTPUT);
+    tca9534.digitalWrite(PIN_POWER_LED, HIGH);
+
+    tca9534.pinMode(PIN_OPERATING_LED, OUTPUT);
+    tca9534.digitalWrite(PIN_OPERATING_LED, LOW);
+
+    tca9534.pinMode(PIN_FLAME_LED, OUTPUT);
+    tca9534.digitalWrite(PIN_FLAME_LED, LOW);
+
+    tca9534.pinMode(PIN_CAN_EN, OUTPUT);
+    tca9524.digitalWrite(PIN_CAN_EN, HIGH);
 
     Log.setPrefix(sendCoreNum);
     Log.setSuffix(sendCRLF);
@@ -96,8 +112,6 @@ void setup1(void)
   CoreMutex m(&startup_mutex);
 
   Log.notice("Starting Core 1");
-
-  pinMode(PIN_ONBOARD_LED, OUTPUT);
 
   init_wifi();
   init_fsm();
@@ -152,7 +166,7 @@ void loop1(void)
       ledOn = newLedOn;
       // Note:  do NOT use the LED connected to the WiFi chip.  Using it messes with the WiFi's use of
       //        the shared SPI bus.  Hilarity (well, crashes) ensue
-      digitalWrite(PIN_ONBOARD_LED, ledOn ? HIGH : LOW);
+      tca9534.digitalWrite(PIN_POWER_LED, ledOn ? HIGH : LOW);
     }
   }
 

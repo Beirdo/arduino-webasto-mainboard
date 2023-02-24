@@ -33,7 +33,8 @@ static_assert(sizeof(eeprom_data_t) <= PCA9501_DEVICE_SIZE, "Structure eeprom_da
 #define CAPABILITIES_EXHAUST_TEMP     0x08
 #define CAPABILITIES_IGNITION_SOURCE  0x10
 #define CAPABILITIES_EMERGENCY_STOP   0x20
-#define CAPABILITIES_LINBUS_BRIDGE    0x40
+#define CAPABILITIES_START_RUN        0x40
+#define CAPABILITIES_LINBUS_BRIDGE    0x80
 
 extern eeprom_data_t eeprom_data[4];
 extern void *eeprom_devices[4];

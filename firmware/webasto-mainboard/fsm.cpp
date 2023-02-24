@@ -113,7 +113,7 @@ void WebastoControlFSM::react(LedChangeEvent const &e)
   }
 
   *store = e.enable;
-  digitalWrite(pin, e.enable);
+  tca9534.digitalWrite(pin, e.enable);
 }
 
 void WebastoControlFSM::react(CirculationPumpEvent const &e)
@@ -1269,18 +1269,12 @@ void init_fsm(void)
   Log.notice("Starting FSM");
   mutex_init(&fsm_mutex);
 
-  // Set input pins as inputs
-  pinMode(PIN_START_RUN, INPUT);
-
   // Set output pins as outputs
-
   flameLed = false;
-  pinMode(PIN_FLAME_LED, OUTPUT);
-  digitalWrite(PIN_FLAME_LED, flameLed);
+  tca9534.digitalWrite(PIN_FLAME_LED, flameLed);
 
   operatingLed = false;
-  pinMode(PIN_OPERATING_LED, OUTPUT);
-  digitalWrite(PIN_OPERATING_LED, operatingLed);
+  tca9534.digitalWrite(PIN_OPERATING_LED, operatingLed);
 
   WebastoControlFSM::start();
 

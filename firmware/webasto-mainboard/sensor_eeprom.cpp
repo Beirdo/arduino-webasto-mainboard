@@ -14,10 +14,10 @@ const char *capabilities_names[] = {
   "exhaust temperature",
   "ignition sense",
   "emergency stop sense",
+  "start/run sense",
   "LINbus bridge",
   "internal temperature",
   "flame detector",
-  "start/run sense",
   "VSYS voltage",
 };
 

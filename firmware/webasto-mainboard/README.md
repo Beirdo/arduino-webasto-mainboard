@@ -11,6 +11,7 @@ Libraries:
 - ArduinoLog by Thijs Elenbaas - v1.1.1
 - TinyCBOR by TOKITA Hiroshi - v0.5.3002
 - SSD1306 stuff
+- ACAN2517FD by Pierre Molinaro - v2.1.10
 
 also, to populate this directory, you need:
 - git submodule init

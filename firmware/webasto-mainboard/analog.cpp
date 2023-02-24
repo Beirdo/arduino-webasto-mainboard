@@ -18,8 +18,8 @@
 #include "dummy.h"
 #include "linbus_registers.h"
 
-#define OFFBOARD_SENSOR_COUNT (INDEX_EMERGENCY_STOP + 1)
-#define ONBOARD_SENSOR_COUNT  (INDEX_VSYS_VOLTAGE - INDEX_EMERGENCY_STOP)
+#define OFFBOARD_SENSOR_COUNT (INDEX_START_RUN + 1)
+#define ONBOARD_SENSOR_COUNT  (INDEX_VSYS_VOLTAGE - INDEX_START_RUN)
 #define TOTAL_SENSOR_COUNT    (INDEX_VSYS_VOLTAGE + 1)
 
 AnalogSourceBase *sensors[TOTAL_SENSOR_COUNT];
@@ -30,10 +30,10 @@ AnalogSourceBase *coolantTempSensor;
 AnalogSourceBase *exhaustTempSensor;
 AnalogSourceBase *ignitionSenseSensor;
 AnalogSourceBase *emergencyStopSensor;
+AnalogSourceBase *startRunSensor;
 
 InternalADCSource *internalTempSensor;
 INA219Source *flameDetectorSensor;
-InternalGPIODigitalSource *startRunSensor;
 InternalADCSource *vsysVoltageSensor;
 
 LINBusRegister *linbus_sensors[32];
@@ -78,6 +78,7 @@ void init_analog(void)
           sensors[i] = new MCP96L01Source(i, eeprom_data[j].current.addr_mcp96l01, 16, TYPE_K, 4);
           break;
         case INDEX_IGNITION_SENSE:
+        case INDEX_START_RUN:
           sensors[i] = new PCA9501DigitalSource(i, eeprom_data[j].current.addr_pca9501_gpio, PCA9501_VINN);
           break;
         case INDEX_EMERGENCY_STOP:
@@ -99,15 +100,14 @@ void init_analog(void)
   exhaustTempSensor = sensors[INDEX_EXHAUST_TEMP];
   ignitionSenseSensor = sensors[INDEX_IGNITION_SENSE];
   emergencyStopSensor = sensors[INDEX_EMERGENCY_STOP];
+  startRunSensor = sensors[INDEX_START_RUN];
 
   internalTempSensor = new InternalADCSource(INDEX_INTERNAL_TEMP, 4, 12);
   flameDetectorSensor = new INA219Source(INDEX_FLAME_DETECTOR, 0x4F, 12, &glowPlugInEnable);
-  startRunSensor = new InternalGPIODigitalSource(INDEX_START_RUN, PIN_START_RUN);
   vsysVoltageSensor = new InternalADCSource(INDEX_VSYS_VOLTAGE, 2, 12);
 
   sensors[INDEX_INTERNAL_TEMP] = internalTempSensor;
   sensors[INDEX_FLAME_DETECTOR] = flameDetectorSensor;
-  sensors[INDEX_START_RUN] = startRunSensor;
   sensors[INDEX_VSYS_VOLTAGE] = vsysVoltageSensor;
 
   // Now init() the suckers

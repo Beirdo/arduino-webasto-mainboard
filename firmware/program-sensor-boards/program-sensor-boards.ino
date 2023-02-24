@@ -23,8 +23,6 @@ void setup() {
   } else {
     Serial1.setTX(PIN_SERIAL1_TX);
     Serial1.setRX(PIN_SERIAL1_RX);
-    Serial1.setCTS(PIN_SERIAL1_CTS);
-    Serial1.setRTS(PIN_SERIAL1_RTS);
     Serial1.begin(115200);
     Log.begin(LOG_LEVEL_VERBOSE, &Serial1);
     digitalWrite(PIN_ONBOARD_LED, LOW);
@@ -59,11 +57,7 @@ void sendCoreNum(Print *output, int level)
 
   mutex_enter_blocking(&log_mutex);
   int coreNum = get_core_num();
-  output->print('C');  
-  output->print(coreNum == 1 ? '1' : '0');
-  output->print(':');
-  output->print(' ');
-  output->printf("%20d: ", millis());
+  output->printf("C%d: %10d: ", coreNum, millis());
 }
 
 void sendCRLF(Print *output, int level)
@@ -72,8 +66,7 @@ void sendCRLF(Print *output, int level)
     return;
   }
 
-  output->print('\n');
-  output->print('\r');
+  output->printf("\n\r");
   output->flush();
   mutex_exit(&log_mutex);
 }
@@ -85,16 +78,20 @@ void hexdump(const void* mem, uint32_t len, uint8_t cols)
   char *ch = line;
   int written;  
       
-  Log.info("[HEXDUMP] Address: %X len: %X (%d)", src, len, len);
+  ch = line;
+  memset(ch, 0x00, 128);
+  sprintf(ch, "[HEXDUMP] Address: %08X len: %04X (%d)", src, len, len);
+  Log.info("%s", ch);
+
   while (len > 0) {
     ch = line;
     memset(ch, 0x00, 128);
 
     uint32_t linesize = cols > len ? len : cols;
-    written = sprintf(ch, "[%X] 0x%04x: ", src, (int)(src - (const char*)mem));
+    written = sprintf(ch, "[%08X] 0x%04X: ", src, (int)(src - (const char*)mem));
     ch += written;
     for (uint32_t i = 0; i < linesize; i++) {
-        written = sprintf(ch, "%02x ", *(src + i));
+        written = sprintf(ch, "%02X ", *(src + i));
         ch += written;
     }
     written = sprintf(ch, "  ");

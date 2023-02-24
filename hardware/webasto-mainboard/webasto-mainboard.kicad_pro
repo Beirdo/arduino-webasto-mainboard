@@ -443,6 +443,10 @@
     [
       "095c1927-a01d-476f-8a7a-89229de77785",
       "Glow Plug"
+    ],
+    [
+      "7c0c16df-56a4-47e0-af29-6888b8ceae17",
+      "CANBus"
     ]
   ],
   "text_variables": {}
