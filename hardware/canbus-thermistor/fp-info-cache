@@ -1,4 +1,4 @@
-20984565959683425
+20986245819324040
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -322,8 +322,15 @@ battery CR-3032 coin cell vertical
 2
 2
 Beirdo
-FTDI_BASIC
+Altoid-Board-Outline
 
+
+0
+0
+0
+Beirdo
+FTDI-TARGET
+FTDI Serial Debug connector - target side
 
 0
 6
@@ -343,7 +350,7 @@ QWIIC Connector
 6
 6
 Beirdo
-SWITCHING_REGULATOR_MODULE
+Switching_Regulator_Module
 
 
 0
