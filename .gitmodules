@@ -1,15 +1,3 @@
-[submodule "hardware/git-libraries/KiCad-RP-Pico"]
-	path = hardware/git-libraries/KiCad-RP-Pico
-	url = https://github.com/ncarandini/KiCad-RP-Pico.git
 [submodule "firmware/lib/tinyfsm"]
 	path = firmware/lib/tinyfsm
 	url = https://github.com/digint/tinyfsm.git
-[submodule "hardware/git-libraries/Beirdo-KiCad-Libraries"]
-	path = hardware/git-libraries/Beirdo-KiCad-Libraries
-	url = https://github.com/Beirdo/KiCad-Libraries.git
-[submodule "hardware/git-libraries/SparkFun-KiCad-Libraries"]
-	path = hardware/git-libraries/SparkFun-KiCad-Libraries
-	url = https://github.com/Beirdo/SparkFun-KiCad-Libraries.git
-[submodule "hardware/git-libraries/KiCad-SSD1306-128x64"]
-	path = hardware/git-libraries/KiCad-SSD1306-128x64
-	url = https://github.com/Beirdo/KiCad-SSD1306-128x64.git
