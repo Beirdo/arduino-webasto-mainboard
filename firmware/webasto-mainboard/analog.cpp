@@ -17,6 +17,7 @@
 #include "fsm.h"
 #include "dummy.h"
 #include "linbus_registers.h"
+#include "canbus.h"
 
 #define OFFBOARD_SENSOR_COUNT (INDEX_START_RUN + 1)
 #define ONBOARD_SENSOR_COUNT  (INDEX_VSYS_VOLTAGE - INDEX_START_RUN)
@@ -177,7 +178,7 @@ void update_analog(void)
 #ifdef VERBOSE_LOGGING
     Log.notice("Feeding back %s sensor to FSM", capabilities_names[i]);
 #endif
-    sensors[i]->feedback(i);
+    sensors[i]->feedback();
   }
 
   for (int i = 0; i < 32; i++) {
@@ -186,4 +187,78 @@ void update_analog(void)
       linbus_sensors[i]->feedback();
     }    
   }
+}
+
+void send_analog_to_canbus(int id)
+{
+  int32_t value;
+  switch (id) {
+    case CANBUS_ID_INTERNAL_TEMP:
+      value = internalTempSensor->get_value();
+      break;
+      
+    case CANBUS_ID_FLAME_DETECTOR:
+      value = flameDetectorSensor->get_value();
+      break;
+
+    case CANBUS_ID_VSYS_VOLTAGE:
+      value = vsysVoltageSensor->get_value();
+    default:
+      return;
+  }
+
+  canbus_output_value(id, value);
+}
+
+void receive_analog_from_canbus(int id, uint8_t *buf, int len)
+{
+  AnalogSourceBase *sensor = 0;
+  uint32_t raw = 0;
+
+  for (int i = 0; i < len && i < 4; i++) {
+    raw <<= 8;
+    raw |= *(buf++);    
+  }
+
+  int32_t value = (int32_t)raw;
+
+  switch (id) {
+    case CANBUS_ID_EXTERNAL_TEMP:
+      sensor = externalTempSensor;
+      break;
+      
+    case CANBUS_ID_BATTERY_VOLTAGE:
+      sensor = batteryVoltageSensor;
+      break;
+
+    case CANBUS_ID_COOLANT_TEMP_WEBASTO:
+      sensor = coolantTempSensor;
+      break;
+
+    case CANBUS_ID_EXHAUST_TEMP:
+      sensor = exhaustTempSensor;
+      break;
+
+    case CANBUS_ID_IGNITION_SENSE:
+      sensor = ignitionSenseSensor;
+      break;
+
+    case CANBUS_ID_EMERGENCY_STOP:
+      sensor = emergencyStopSensor;
+      break;
+
+    case CANBUS_ID_START_RUN:
+      sensor = startRunSensor;
+      break;
+
+    default:
+      break;
+  }
+
+  if (!sensor) {
+    return;
+  }
+
+  sensor->set_value(value);
+  sensor->feedback();
 }

@@ -41,4 +41,7 @@ extern InternalADCSource *internalTempSensor;
 extern INA219Source *flameDetectorSensor;
 extern InternalADCSource *vsysVoltageSensor;
 
+void send_analog_to_canbus(int id);
+void receive_analog_from_canbus(int id, uint8_t *buf, int len);
+
 #endif

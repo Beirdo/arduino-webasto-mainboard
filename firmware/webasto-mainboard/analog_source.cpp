@@ -206,7 +206,7 @@ int32_t AnalogSourceBase::convert(int32_t reading)
 }
 
 
-void AnalogSourceBase::feedback(int index)
+void AnalogSourceBase::feedback(void)
 {
   if (!fsm_init) {
     return;
@@ -217,7 +217,7 @@ void AnalogSourceBase::feedback(int index)
   }
 
   if (_prev_value == UNUSED_READING || abs(_prev_value - _value) > _feedback_threshold) {
-    switch(index) {
+    switch(_index) {
       case INDEX_EXTERNAL_TEMP:
         {
           OutdoorTempEvent event;

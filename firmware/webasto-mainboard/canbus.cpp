@@ -9,6 +9,8 @@
 #include "project.h"
 #include "canbus.h"
 #include "wbus.h"
+#include "cbor.h"
+#include "analog.h"
 
 ACAN2517FD can(PIN_SPI0_SS, SPI, PIN_CAN_INT);
 CANBus canbus;
@@ -130,15 +132,11 @@ void update_canbus_tx(void)
     int len = item->len;
     int id = item->id;
 
-    if (!len) {
-      continue;
-    }
-
     int retlen = canbus.write(id, (const char *)buf, len);
     Log.notice("CANBus ID %X: Sent %d bytes of %d", retlen, len);
 
 #ifdef HEXDUMP_TX
-    hexdump(buf, len, 16);
+    hexdump(buf, retlen, 16);
 #endif    
   }
 }
@@ -167,7 +165,8 @@ void canbus_dispatch(int id, uint8_t *buf, int len)
 {
   switch(id) {
     case CANBUS_ID_MAINBOARD:
-      // Why are we recieving stuff addressed to this?  Ignore.
+      // Someone is requesting the CBOR
+      cbor_send();
       break;
 
     case CANBUS_ID_WBUS:
@@ -175,6 +174,22 @@ void canbus_dispatch(int id, uint8_t *buf, int len)
       receive_wbus_from_canbus(buf, len);
       break;
 
+    case CANBUS_ID_INTERNAL_TEMP:
+    case CANBUS_ID_FLAME_DETECTOR:
+    case CANBUS_ID_VSYS_VOLTAGE:
+      send_analog_to_canbus(id);
+      break;
+
+    case CANBUS_ID_EXTERNAL_TEMP:
+    case CANBUS_ID_BATTERY_VOLTAGE:
+    case CANBUS_ID_COOLANT_TEMP_WEBASTO:
+    case CANBUS_ID_EXHAUST_TEMP:
+    case CANBUS_ID_IGNITION_SENSE:
+    case CANBUS_ID_EMERGENCY_STOP:
+    case CANBUS_ID_START_RUN:
+      receive_analog_from_canbus(id, buf, len);
+      break;
+      
     default:
       break;
   }
@@ -198,4 +213,28 @@ void canbus_send(int id, uint8_t *buf, int len)
   memcpy(item->buf, buf, len);
 
   canbus_tx_q.push(&index);
+}
+
+void canbus_output_value(int id, int32_t value, bool isBool)
+{
+  uint8_t buf[4];
+  uint32_t raw = (uint32_t)value;
+
+  if (isBool) {
+    buf[0] = !(!value);
+    canbus_send(id, buf, 1);
+    return;
+  }
+
+  for (int i = 0; i < 4; i++) {
+    buf[i] = (uint8_t)((raw >> 24) & 0xFF);
+    raw <<= 8;
+  }
+
+  canbus_send(id, buf, 4);
+}
+
+void canbus_request_value(int id)
+{
+  canbus_send(id, 0, 0);
 }

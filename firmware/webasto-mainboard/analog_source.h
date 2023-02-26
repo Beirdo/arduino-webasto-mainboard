@@ -15,8 +15,9 @@ class AnalogSourceBase {
     AnalogSourceBase(int index, int feedback_threshold, uint8_t i2c_address, int bits, int mult = 0, int div_ = 0);
     virtual void init(void) = 0;
     void update(void);
+    inline void set_value(int32_t value) { _value = value; };
     inline int32_t get_value(void) { return ((_value == UNUSED_READING || _value == DISABLED_READING) ? 0 : _value); };
-    void feedback(int index);
+    void feedback(void);
 
   protected:
     int _index;
