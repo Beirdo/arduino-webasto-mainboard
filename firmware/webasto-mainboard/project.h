@@ -1,14 +1,15 @@
 #ifndef __project_h_
 #define __project_h_
 
-#include <SparkFun_TCA9534.h>
+#include <TCA9534-GPIO.h>
+#include <Beirdo-Utilities.h>
 
 // I2C definitions
 #define I2C0_CLK 400000
 
 // I2C Addresses
 #define I2C_ADDR_OLED     0x3C  // 3D for 128x64, 3C for 128x32
-#define I2C_ADDR_TCA9534  0x3F
+#define I2C_ADDR_TCA9534  0x27
 
 // GPIO map on the sensor boards
 #define PCA9501_WRITE_EN  0x80
@@ -35,6 +36,23 @@
 #ifdef PIN_SERIAL2_RX
 #undef PIN_SERIAL2_RX
 #endif
+
+#ifdef PIN_SPI0_MISO
+#undef PIN_SPI0_MISO
+#endif
+
+#ifdef PIN_SPI0_SS
+#undef PIN_SPI0_SS
+#endif
+
+#ifdef PIN_SPI0_SCK
+#undef PIN_SPI0_SCK
+#endif
+
+#ifdef PIN_SPI0_MOSI
+#undef PIN_SPI0_MOSI
+#endif
+
 
 
 // outputs
@@ -70,13 +88,6 @@
 #define PIN_CAN_EN            7
 
 
-#define HI_BYTE(x)    ((uint8_t)(((int)(x) >> 8) & 0xFF))
-#define LO_BYTE(x)    ((uint8_t)(((int)(x) & 0xFF)))
-
-#define HI_NIBBLE(x)  ((uint8_t)(((int)(x) >> 4) & 0x0F))
-#define LO_NIBBLE(x)  ((uint8_t)(((int)(x) & 0x0F)))
-
-#define BIT(x) ((uint32_t)(1 << x))
 
 #define SUPPLEMENTAL_MIN_TEMP   -2000   // -20C
 #define SUPPLEMENTAL_MAX_TEMP   1000    // 10C
@@ -124,22 +135,6 @@
 
 extern bool mainboardDetected;
 extern TCA9534 tca9534;
-
-extern void hexdump(const void* mem, uint32_t len, uint8_t cols);
-
-template <typename T>
-inline T clamp(T value, T minval, T maxval)
-{
-  return max(min(value, maxval), minval);
-}
-
-template <typename T>
-inline T map(T x, T in_min, T in_max, T out_min, T out_max)
-{
-  // the perfect map fonction, with constraining and float handling
-  x = clamp<T>(x, in_min, in_max);
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
 
 
 #endif

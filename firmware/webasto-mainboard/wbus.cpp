@@ -1,11 +1,10 @@
-
-#include <cppQueue.h>
 #include <Arduino.h>
+#include <ArduinoLog.h>
 #include <pico.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ArduinoLog.h>
 #include <CoreMutex.h>
+#include <cppQueue.h>
 
 #include "project.h"
 #include "wbus_packet.h"
@@ -16,7 +15,7 @@
 #include "fuel_pump.h"
 #include "analog.h"
 #include "device_eeprom.h"
-#include "wifi.h"
+#include "canbus.h"
 
 #define WBUS_RX_MATCH_ADDR 0xF4
 #define WBUS_TX_ADDR       0x4F
@@ -74,8 +73,8 @@ void wbus_send_response(wbusPacket_t *respPacket)
     return;
   }
 
-  if (respPacket->fromWiFi) {
-    cbor_send((const uint8_t *)respPacket->buf, respPacket->len);
+  if (respPacket->fromCANBus) {
+    canbus_send(CANBUS_ID_WBUS, respPacket->buf, respPacket->len);
     return;
   }
 
@@ -141,7 +140,7 @@ uint8_t *allocate_response(uint8_t command, uint8_t len, uint8_t subcommand)
   return buf;
 }
 
-void receive_wbus_from_cbor(uint8_t *cbor_buf, int len)
+void receive_wbus_from_canbus(uint8_t *cbor_buf, int len)
 {
   uint8_t *buf = (uint8_t *)malloc(len);
   memcpy(buf, cbor_buf, len);
@@ -149,7 +148,7 @@ void receive_wbus_from_cbor(uint8_t *cbor_buf, int len)
   wbusPacket_t *packet = (wbusPacket_t *)malloc(sizeof(wbusPacket_t));
   packet->buf = buf;
   packet->len = len;
-  packet->fromWiFi = true;
+  packet->fromCANBus = true;
 
   wbus_rx_q.push(&packet);
 }
@@ -196,7 +195,7 @@ void receive_wbus_from_serial(void)
         wbusPacket_t *packet = (wbusPacket_t *)malloc(sizeof(wbusPacket_t));
         packet->buf = buf;
         packet->len = len;
-        packet->fromWiFi = false;
+        packet->fromCANBus = false;
 
         wbus_rx_q.push(&packet);
         wbus_rx_tail = 0;
@@ -343,7 +342,7 @@ wbusPacket_t *wbus_rx_dispatch(wbusPacket_t *packet, uint8_t cmd)
     respPacket = (wbusPacket_t *)malloc(sizeof(wbusPacket_t));
     respPacket->buf = buf;
     respPacket->len = len;
-    respPacket->fromWiFi = packet->fromWiFi;
+    respPacket->fromCANBus = packet->fromCANBus;
   }
 
   return respPacket;

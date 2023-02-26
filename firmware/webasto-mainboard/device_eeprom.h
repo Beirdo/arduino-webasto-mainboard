@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <pico.h>
 
-#define DEVICE_INFO_COUNT 17
+#define DEVICE_INFO_COUNT 12
 
 typedef struct {
   uint8_t *buf;

@@ -9,7 +9,7 @@ void send_break(void);
 void wbus_send_response(wbusPacket_t *respPacket);
 void wbus_send_next_packet(void);
 void receive_wbus_from_serial(void);
-void receive_wbus_from_cbor(uint8_t *cbor_buf, int cbor_len);
+void receive_wbus_from_canbus(uint8_t *cbor_buf, int cbor_len);
 void process_wbus(void);
 wbusPacket_t *wbus_rx_dispatch(wbusPacket_t *packet, uint8_t cmd);
 uint8_t *allocate_response(uint8_t command, uint8_t len, uint8_t subcommand = 0);

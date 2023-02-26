@@ -3,7 +3,8 @@
 #include <ArduinoLog.h>
 #include <CoreMutex.h>
 #include <cppQueue.h>
-#include <SparkFun_TCA9534.h>
+#include <TCA9534-GPIO.h>
+#include <Beirdo-Utilities.h>
 
 #include "project.h"
 #include "analog.h"
@@ -14,23 +15,18 @@
 #include "device_eeprom.h"
 #include "display.h"
 #include "fsm.h"
-#include "wifi.h"
+#include "cbor.h"
+#include "canbus.h"
 
 bool mainboardDetected;
 mutex_t startup_mutex;
-mutex_t log_mutex;
 
 cppQueue onboard_led_q(sizeof(bool), 4, FIFO);
 TCA9534 tca9534;
 
 
-void sendCRLF(Print *output, int level);
-void sendCoreNum(Print *output, int level);
-
-
 void setup() {
   mutex_init(&startup_mutex);
-  mutex_init(&log_mutex);
 
   {
     CoreMutex m(&startup_mutex);
@@ -44,18 +40,19 @@ void setup() {
     pinMode(PIN_I2C0_SCL, INPUT_PULLUP);
     pinMode(PIN_I2C0_SDA, INPUT_PULLUP);
 
+    HardwareSerial *logSerial = &Serial;
+
     mainboardDetected = !(digitalRead(PIN_BOARD_SENSE));
-    if (!mainboardDetected) {
-      Serial.begin(115200);
-      Log.begin(LOG_LEVEL_VERBOSE, &Serial);
-    } else {
+    if (mainboardDetected) {
+      logSerial = &Serial1;
       Serial1.setTX(PIN_SERIAL1_TX);
       Serial1.setRX(PIN_SERIAL1_RX);
-      Serial1.begin(115200);
-      Log.begin(LOG_LEVEL_VERBOSE, &Serial1);
     }
 
-    tca9534.begin(I2C_ADDR_TCA9534);
+    logSerial->begin(115200);
+    Log.begin(LOG_LEVEL_VERBOSE, logSerial);
+
+    tca9534.begin(Wire, I2C_ADDR_TCA9534);
     tca9534.pinMode(PIN_CAN_SOF, INPUT);
 
     tca9534.pinMode(PIN_POWER_LED, OUTPUT);
@@ -68,10 +65,7 @@ void setup() {
     tca9534.digitalWrite(PIN_FLAME_LED, LOW);
 
     tca9534.pinMode(PIN_CAN_EN, OUTPUT);
-    tca9524.digitalWrite(PIN_CAN_EN, HIGH);
-
-    Log.setPrefix(sendCoreNum);
-    Log.setSuffix(sendCRLF);
+    tca9534.digitalWrite(PIN_CAN_EN, HIGH);
 
     // Give user time to open a terminal to see first log messages
     delay(10000);
@@ -94,6 +88,8 @@ void setup() {
     Wire.setClock(I2C0_CLK);
     Wire.begin();
 
+    init_cbor();
+    init_canbus();
     init_eeprom();
     init_fram();
     init_analog();
@@ -113,7 +109,6 @@ void setup1(void)
 
   Log.notice("Starting Core 1");
 
-  init_wifi();
   init_fsm();
   init_wbus();
 }
@@ -171,7 +166,8 @@ void loop1(void)
   }
 
   globalTimer.tick();
-  update_wifi();
+  update_canbus_rx();
+  update_canbus_tx();
   receive_wbus_from_serial();
   process_wbus();
 
@@ -183,68 +179,3 @@ void loop1(void)
   int delayMs = clamp<int>(10 - elapsed, 1, 10);
   delay(delayMs);
 }
-
-void sendCoreNum(Print *output, int level)
-{
-  if (level > LOG_LEVEL_VERBOSE) {
-    return;
-  }
-
-  mutex_enter_blocking(&log_mutex);
-  int coreNum = get_core_num();
-  output->printf("C%d: %10d: ", coreNum, millis());
-}
-
-void sendCRLF(Print *output, int level)
-{
-  if (level > LOG_LEVEL_VERBOSE) {
-    return;
-  }
-
-  output->printf("\n\r");
-  output->flush();
-  mutex_exit(&log_mutex);
-}
-
-void hexdump(const void* mem, uint32_t len, uint8_t cols) 
-{
-  const char* src = (const char*)mem;
-  static char line[128];
-  char *ch = line;
-  int written;  
-
-  memset(ch, 0x00, 128);
-      
-  written = sprintf(ch, "[HEXDUMP] Address: %08X len: %04X (%d)", src, len, len);
-  Log.notice("%s", line);
-
-  while (len > 0) {
-    ch = line;
-    memset(ch, 0x00, 128);
-
-    uint32_t linesize = cols > len ? len : cols;
-    written = sprintf(ch, "[%08X] 0x%04X: ", src, (int)(src - (const char*)mem));
-    ch += written;
-    for (uint32_t i = 0; i < linesize; i++) {
-        written = sprintf(ch, "%02X ", *(src + i));
-        ch += written;
-    }
-    written = sprintf(ch, "  ");
-    ch += written;
-
-    for (uint32_t i = linesize; i < cols; i++) {
-        written = sprintf(ch, "   ");
-        ch += written;
-    }
-
-    for (uint32_t i = 0; i < linesize; i++) {
-        unsigned char c = *(src + i);
-        *(ch++) = isprint(c) ? c : '.';
-    }
-
-    src += linesize;
-    len -= linesize;
-    Log.info("%s", line);
-  }
-}
-

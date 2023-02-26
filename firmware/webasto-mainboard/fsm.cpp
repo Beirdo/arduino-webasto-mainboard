@@ -153,7 +153,7 @@ void WebastoControlFSM::react(VehicleFanEvent const &e)
   CoreMutex m(&fsm_mutex);
 
   vehicleFanPercent = clamp<int>(e.value, 0, 100);
-  analogWrite(PIN_VEHICLE_FAN_RELAY, vehicleFanPercent * 255 / 100);
+  // analogWrite(PIN_VEHICLE_FAN_RELAY, vehicleFanPercent * 255 / 100);
 }
 
 void WebastoControlFSM::react(FuelPumpEvent const &e)
@@ -1312,7 +1312,7 @@ void init_fsm(void)
   e6.value = 0.0;
   WebastoControlFSM::dispatch(e6);
 
-  pinMode(PIN_VEHICLE_FAN_RELAY, OUTPUT);
+  // pinMode(PIN_VEHICLE_FAN_RELAY, OUTPUT);
   VehicleFanEvent e7;
   e7.value = 0;
   WebastoControlFSM::dispatch(e7);

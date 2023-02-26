@@ -8,7 +8,7 @@
 #include "device_eeprom.h"
 #include "sensor_eeprom.h"
 #include "project.h"
-#include "wifi.h"
+#include "cbor.h"
 
 #define EEPROM_SIZE 4096
 
@@ -44,11 +44,8 @@ const device_info_t default_device_info[DEVICE_INFO_COUNT] = {
   { (uint8_t *)default_device_info_09, 7 },
   { (uint8_t *)default_device_info_10, 7 },
   { (uint8_t *)default_device_info_11, 5 },
-  { (uint8_t *)WIFI_SSID, WIFI_SSID_LEN },
-  { (uint8_t *)WIFI_PSK, WIFI_PSK_LEN },
-  { (uint8_t *)WIFI_SERVER, WIFI_SERVER_LEN },
-  { (uint8_t *)WIFI_PORT, WIFI_PORT_LEN },
 };
+
 
 bool device_info_dirty;
 bool device_info_valid;

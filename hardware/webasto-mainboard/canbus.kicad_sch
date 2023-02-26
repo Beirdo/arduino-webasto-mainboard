@@ -1076,7 +1076,7 @@
     (uuid f79626a8-b4a2-485a-9cdf-f9d17cdedb49)
   )
 
-  (text "I2C Addr 0x38-3F\nWe will use 3F" (at 61.087 182.753 0)
+  (text "I2C Addr 0x20-27\nWe will use 27" (at 61.087 182.753 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 98f6cadb-05b3-455b-981f-0a9012943047)
   )
