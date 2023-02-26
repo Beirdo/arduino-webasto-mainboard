@@ -5,6 +5,7 @@
 #include <string.h>
 #include <CoreMutex.h>
 #include <cppQueue.h>
+#include <canbus_ids.h>
 
 #include "project.h"
 #include "wbus_packet.h"
@@ -16,6 +17,7 @@
 #include "analog.h"
 #include "device_eeprom.h"
 #include "canbus.h"
+#include "sensor_registry.h"
 
 #define WBUS_RX_MATCH_ADDR 0xF4
 #define WBUS_TX_ADDR       0x4F
@@ -670,6 +672,7 @@ uint8_t *wbus_read_operational_sensor(void)
   buf[8] = HI_BYTE(power);
   buf[9] = LO_BYTE(power);
 
+  LocalSensor<uint16_t> *flameDetectorSensor = static_cast<LocalSensor<uint16_t> *>(sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR));
   int milliohms = flameDetectorSensor->get_value();
   buf[10] = HI_BYTE(milliohms);
   buf[11] = LO_BYTE(milliohms);

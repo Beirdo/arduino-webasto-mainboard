@@ -93,6 +93,7 @@
 #define SUPPLEMENTAL_MAX_TEMP   1000    // 10C
 
 #define BATTERY_LOW_THRESHOLD   10000   // 10V
+#define VSYS_LOW_THRESHOLD      3600    // 3.6V
 
 #define MAX_FLAMEOUT_COUNT      2
 

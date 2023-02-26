@@ -30,6 +30,7 @@ struct ExhaustTempEvent   : IntegerEvent { };
 struct InternalTempEvent  : IntegerEvent { };
 struct FlameDetectEvent   : IntegerEvent { };
 struct BatteryLevelEvent  : IntegerEvent { };
+struct VSYSLevelEvent     : IntegerEvent { };
 
 struct TimerEvent         : IntegerEvent {
   int timerId;

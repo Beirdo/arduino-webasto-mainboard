@@ -215,25 +215,6 @@ void canbus_send(int id, uint8_t *buf, int len)
   canbus_tx_q.push(&index);
 }
 
-void canbus_output_value(int id, int32_t value, bool isBool)
-{
-  uint8_t buf[4];
-  uint32_t raw = (uint32_t)value;
-
-  if (isBool) {
-    buf[0] = !(!value);
-    canbus_send(id, buf, 1);
-    return;
-  }
-
-  for (int i = 0; i < 4; i++) {
-    buf[i] = (uint8_t)((raw >> 24) & 0xFF);
-    raw <<= 8;
-  }
-
-  canbus_send(id, buf, 4);
-}
-
 void canbus_request_value(int id)
 {
   canbus_send(id, 0, 0);

@@ -3,15 +3,7 @@
 
 #include <Arduino.h>
 
-typedef enum {
-  BOARD_TYPE_VALVE_CONTROL = 0,
-  BOARD_TYPE_COOLANT_TEMP,
-  BOARD_TYPE_FLOW_SENSOR,
-  BOARD_TYPE_FAN_CONTROL,
-  BOARD_TYPE_PUMP_CONTROL,
-  BOARD_TYPE_PELTIER_CONTROL,
-} board_types_t;
-
+#include <linbus_map.h>
 
 class LINBusRegister {
   public:

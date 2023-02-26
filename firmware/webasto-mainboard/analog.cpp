@@ -9,8 +9,6 @@
 #include "ds2482.h"
 #include "ads7823.h"
 #include "mcp96l01.h"
-#include "internal_adc.h"
-#include "ina219.h"
 #include "pca9501.h"
 #include "sensor_eeprom.h"
 #include "internal_gpio.h"
@@ -32,10 +30,6 @@ AnalogSourceBase *exhaustTempSensor;
 AnalogSourceBase *ignitionSenseSensor;
 AnalogSourceBase *emergencyStopSensor;
 AnalogSourceBase *startRunSensor;
-
-InternalADCSource *internalTempSensor;
-INA219Source *flameDetectorSensor;
-InternalADCSource *vsysVoltageSensor;
 
 LINBusRegister *linbus_sensors[32];
 uint8_t addr_linbus_bridge = 0xFF;
@@ -102,14 +96,6 @@ void init_analog(void)
   ignitionSenseSensor = sensors[INDEX_IGNITION_SENSE];
   emergencyStopSensor = sensors[INDEX_EMERGENCY_STOP];
   startRunSensor = sensors[INDEX_START_RUN];
-
-  internalTempSensor = new InternalADCSource(INDEX_INTERNAL_TEMP, 4, 12);
-  flameDetectorSensor = new INA219Source(INDEX_FLAME_DETECTOR, 0x4F, 12, &glowPlugInEnable);
-  vsysVoltageSensor = new InternalADCSource(INDEX_VSYS_VOLTAGE, 2, 12);
-
-  sensors[INDEX_INTERNAL_TEMP] = internalTempSensor;
-  sensors[INDEX_FLAME_DETECTOR] = flameDetectorSensor;
-  sensors[INDEX_VSYS_VOLTAGE] = vsysVoltageSensor;
 
   // Now init() the suckers
   for (int i = 0; i < TOTAL_SENSOR_COUNT; i++) {
@@ -191,6 +177,7 @@ void update_analog(void)
 
 void send_analog_to_canbus(int id)
 {
+#if 0
   int32_t value;
   switch (id) {
     case CANBUS_ID_INTERNAL_TEMP:
@@ -207,7 +194,8 @@ void send_analog_to_canbus(int id)
       return;
   }
 
-  canbus_output_value(id, value);
+  canbus_output_value<int32_t>(id, value);
+#endif
 }
 
 void receive_analog_from_canbus(int id, uint8_t *buf, int len)
@@ -215,9 +203,10 @@ void receive_analog_from_canbus(int id, uint8_t *buf, int len)
   AnalogSourceBase *sensor = 0;
   uint32_t raw = 0;
 
+  buf += len;
   for (int i = 0; i < len && i < 4; i++) {
     raw <<= 8;
-    raw |= *(buf++);    
+    raw |= *(--buf);    
   }
 
   int32_t value = (int32_t)raw;

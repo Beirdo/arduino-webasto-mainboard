@@ -1,24 +1,23 @@
 #ifndef __internal_adc_h_
 #define __internal_adc_h_
 
-#include "analog_source.h"
+#include "sensor.h"
 
-class InternalADCSource : public AnalogSourceBase {
+class InternalADCSensor : public LocalSensor<int16_t> {
   public:
-    InternalADCSource(int index, int channel, int bits, int enable_pin = -1, int mult = 0, int div_ = 0) :
-        AnalogSourceBase(index, 100, 0x00, bits, mult, div_)
+    InternalADCSensor(int id, int channel, int bits, int mult = 0, int div_ = 0) :
+      LocalSensor<int16_t>(id, 0x8000, 100, bits, mult, div_)
     {
       _channel = channel;
-      _enable_pin = enable_pin;
+      _connected = true;
     };
 
     void init(void);
   protected:
-    int32_t read_device(void);
-    int32_t convert(int32_t reading);
-    bool i2c_is_connected(void) { return true; };
+    int16_t get_raw_value(void);
+    int16_t convert(int16_t reading);
+    void _do_feedback(void); 
 
-    int _enable_pin;
     int _min_bits = 12;
     int _max_bits = 12;
     uint8_t _channel;

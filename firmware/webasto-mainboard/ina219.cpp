@@ -3,9 +3,10 @@
 #include <ArduinoLog.h>
 
 #include "ina219.h"
+#include "fsm.h"
+#include "canbus.h"
 
-
-void INA219Source::init(void)
+void INA219Sensor::init(void)
 {
   if (!_connected) {
     _valid = false;
@@ -51,25 +52,25 @@ void INA219Source::init(void)
   }
 }
 
-int32_t INA219Source::read_device(void)
+uint16_t INA219Sensor::get_raw_value(void)
 {
   if (!_valid) {
-    return UNUSED_READING;
+    return _unused;
   }
 
   if (_enable_signal && !(*_enable_signal)) {
     // We are not currently enabled.
-    return DISABLED_READING;
+    return _unused;
   }
 
   // Trigger a measurement of the shunt ADC
-  i2c_write_register_word(0x00, _device_config | 0x0001);
+  i2c_write_register_word((uint8_t)0x00, _device_config | 0x0001);
 
   delayMicroseconds(_conv_us + 1);
 
   uint16_t status;
   while (true) {
-    i2c_read_data(0x02, (uint8_t *)&status, 2);
+    i2c_read_data((uint8_t)0x02, (uint8_t *)&status, 2);
     if (status & 0x0002) {
       break;
     }
@@ -77,21 +78,30 @@ int32_t INA219Source::read_device(void)
   }
 
   uint16_t raw_reading;
-  i2c_read_data(0x01, (uint8_t *)&raw_reading, 2);
+  i2c_read_data((uint8_t)0x01, (uint8_t *)&raw_reading, 2);
 
   // put it back in power down
-  i2c_write_register_word(0x00, _device_config);
+  i2c_write_register_word((uint8_t)0x00, _device_config);
 
-  int32_t retval = abs((int16_t)raw_reading);
-  return retval;    // shunt voltage in mV (absolute value, should always be positive!)
+  // shunt voltage in mV (absolute value, should always be positive!)
+  return abs((int16_t)raw_reading);
 }
 
-int32_t INA219Source::convert(int32_t reading)
+uint16_t INA219Sensor::convert(uint16_t reading)
 {
   // Apply Ohms law to find resistance
-  int32_t current = 100;      	   // 100mA
-  int32_t voltage = reading * 10;  // in mV
+  int current = 100;      	   // 100mA
+  int voltage = reading * 10;  // in mV
 
-  int32_t resistance = voltage * 1000 / current;    // we want milli-ohm
-  return resistance;
+  int resistance = voltage * 1000 / current;    // we want milli-ohm
+  return (uint16_t)resistance;
+}
+
+void INA219Sensor::_do_feedback(void)
+{ 
+  canbus_output_value<uint16_t>(_id, _value);
+  
+  FlameDetectEvent event;
+  event.value = (int)_value;
+  WebastoControlFSM::dispatch(event);       
 }

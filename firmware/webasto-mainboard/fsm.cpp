@@ -12,10 +12,13 @@
 #include "webasto.h"
 #include "fram.h"
 #include "beeper.h"
+#include "canbus.h"
+#include "sensor_registry.h"
 
 uint8_t fsm_state = 0x00;
 int fsm_mode = 0;
 bool batteryLow = false;
+bool vsysLow = false;
 bool supplementalEnabled = false;
 bool priming = false;
 bool lockdown;
@@ -153,7 +156,8 @@ void WebastoControlFSM::react(VehicleFanEvent const &e)
   CoreMutex m(&fsm_mutex);
 
   vehicleFanPercent = clamp<int>(e.value, 0, 100);
-  // analogWrite(PIN_VEHICLE_FAN_RELAY, vehicleFanPercent * 255 / 100);
+  uint8_t value = (uint8_t)vehicleFanPercent;
+  canbus_output_value<uint8_t>(CANBUS_ID_VEHICLE_FAN, value);
 }
 
 void WebastoControlFSM::react(FuelPumpEvent const &e)
@@ -312,6 +316,35 @@ void WebastoControlFSM::react(BatteryLevelEvent const &e)
     }
   }
 }
+
+void WebastoControlFSM::react(VSYSLevelEvent const &e)
+{
+  Log.notice("Received VSYSLevelEvent: %d", e.value);
+  CoreMutex m(&fsm_mutex);
+
+  if (vsysLow) {
+    if (e.value > VSYS_LOW_THRESHOLD) {
+      vsysLow = false;
+      transit<IdleState>();
+    }
+    return;
+  }
+
+  if (e.value < VSYS_LOW_THRESHOLD) {
+    vsysLow = true;
+
+    fram_add_error(0x84);
+
+    if (fsm_mode) {
+      ShutdownEvent event;
+      event.mode = fsm_mode;
+      event.emergency = false;
+      event.lockdown = false;
+      dispatch(event);
+    }
+  }
+}
+
 
 void WebastoControlFSM::react(FlameoutEvent const &e)
 {
@@ -894,6 +927,8 @@ void FlameMeasureState::react(TimerEvent const &e)
         CoreMutex m(&fsm_mutex);
 
         int exhaustTemp = exhaustTempSensor->get_value();
+
+        LocalSensor<uint16_t> *flameDetectorSensor = static_cast<LocalSensor<uint16_t> *>(sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR));
         int flameSensor = flameDetectorSensor->get_value();
 
         if (exhaustTemp - exhaustTempStable >= EXHAUST_TEMP_RISE || flameSensor > FLAME_DETECT_THRESHOLD) {
@@ -908,6 +943,8 @@ void FlameMeasureState::react(TimerEvent const &e)
         CoreMutex m(&fsm_mutex);
 
         int exhaustTemp = exhaustTempSensor->get_value();
+
+        LocalSensor<uint16_t> *flameDetectorSensor = static_cast<LocalSensor<uint16_t> *>(sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR));
         int flameSensor = flameDetectorSensor->get_value();
 
         if (exhaustTemp - exhaustTempStable >= EXHAUST_TEMP_RISE || flameSensor > FLAME_DETECT_THRESHOLD) {
@@ -1312,7 +1349,6 @@ void init_fsm(void)
   e6.value = 0.0;
   WebastoControlFSM::dispatch(e6);
 
-  // pinMode(PIN_VEHICLE_FAN_RELAY, OUTPUT);
   VehicleFanEvent e7;
   e7.value = 0;
   WebastoControlFSM::dispatch(e7);

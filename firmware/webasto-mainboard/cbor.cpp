@@ -26,7 +26,7 @@ void cbor_send(void)
 
   TinyCBOR.Encoder.init(cbor_tx_buf, CANBUS_BUF_SIZE);
 
-  TinyCBOR.Encoder.create_map(14);
+  TinyCBOR.Encoder.create_map(11);
 
   // key values are integers (well, enum)
   TinyCBOR.Encoder.encode_int(CBOR_VERSION);
@@ -43,17 +43,11 @@ void cbor_send(void)
   TinyCBOR.Encoder.encode_int(CBOR_BURN_POWER);
   TinyCBOR.Encoder.encode_uint(fuelPumpTimer.getBurnPower());
 
-  TinyCBOR.Encoder.encode_int(CBOR_FLAME_DETECT);
-  TinyCBOR.Encoder.encode_uint(flameDetectorSensor->get_value());
-
   TinyCBOR.Encoder.encode_int(CBOR_COMBUSTION_FAN);
   TinyCBOR.Encoder.encode_int(combustionFanPercent);
 
   TinyCBOR.Encoder.encode_int(CBOR_VEHICLE_FAN);
   TinyCBOR.Encoder.encode_int(vehicleFanPercent);
-
-  TinyCBOR.Encoder.encode_int(CBOR_INTERNAL_TEMP);
-  TinyCBOR.Encoder.encode_int(internalTempSensor->get_value());
 
   TinyCBOR.Encoder.encode_int(CBOR_OUTDOOR_TEMP);
   TinyCBOR.Encoder.encode_int(externalTempSensor->get_value());
@@ -66,9 +60,6 @@ void cbor_send(void)
 
   TinyCBOR.Encoder.encode_int(CBOR_BATTERY_VOLT);
   TinyCBOR.Encoder.encode_int(batteryVoltageSensor->get_value());
-
-  TinyCBOR.Encoder.encode_int(CBOR_VSYS_VOLT);
-  TinyCBOR.Encoder.encode_int(vsysVoltageSensor->get_value());
 
   TinyCBOR.Encoder.encode_int(CBOR_GPIOS);
   uint8_t gpios = 0;

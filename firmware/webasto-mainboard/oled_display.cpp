@@ -1,14 +1,15 @@
-#include "pico/mutex.h"
 #include <Arduino.h>
 #include <pico.h>
 #include <ArduinoLog.h>
 #include <Adafruit_SSD1306.h>
+#include <canbus_ids.h>
 
 #include "oled_display.h"
 #include "fsm.h"
 #include "analog.h"
 #include "fuel_pump.h"
 #include "global_timer.h"
+#include "sensor_registry.h"
 
 OLEDDisplay::OLEDDisplay(uint8_t i2c_address, int width, int height) :
   Display(i2c_address, width/6, height/8), _width(width), _height(height)
@@ -109,6 +110,7 @@ void OLEDDisplay::updateDisplay(void)
   printWatts(16, 1, fuelPumpTimer.getBurnPower());
 
   printLabel(0, 2, "Flame PTC:");
+  LocalSensor<uint16_t> *flameDetectorSensor = static_cast<LocalSensor<uint16_t> *>(sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR));
   printMilliohms(15, 2, flameDetectorSensor->get_value());
 
   printLabel(0, 3, "CF:");
@@ -117,6 +119,7 @@ void OLEDDisplay::updateDisplay(void)
   printLabel(11, 3, "VF:");
   printPercent(17, 3, vehicleFanPercent);
 
+  LocalSensor<int16_t> *internalTempSensor = static_cast<LocalSensor<int16_t> *>(sensorRegistry.get(CANBUS_ID_INTERNAL_TEMP));
   int temp = internalTempSensor->get_value();
   printLabel(0, 4, "Internal:");
   printTemperature(13, 4, temp);

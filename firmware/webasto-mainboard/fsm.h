@@ -21,6 +21,7 @@ class WebastoControlFSM : public tinyfsm::Fsm<WebastoControlFSM>
     virtual void react(ExhaustTempEvent   const &);
     virtual void react(InternalTempEvent  const &);
     virtual void react(BatteryLevelEvent  const &);
+    virtual void react(VSYSLevelEvent     const &);
 
     void react(RestartEvent               const &);
     void react(ShutdownEvent              const &);

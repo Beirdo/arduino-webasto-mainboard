@@ -5,8 +5,6 @@
 #include "ds2482.h"
 #include "ads7823.h"
 #include "mcp96l01.h"
-#include "internal_adc.h"
-#include "ina219.h"
 #include "pca9501.h"
 #include "internal_gpio.h"
 #include "fsm.h"
@@ -36,10 +34,6 @@ extern AnalogSourceBase *exhaustTempSensor;
 extern AnalogSourceBase *ignitionSenseSensor;
 extern AnalogSourceBase *emergencyStopSensor;
 extern AnalogSourceBase *startRunSensor;
-
-extern InternalADCSource *internalTempSensor;
-extern INA219Source *flameDetectorSensor;
-extern InternalADCSource *vsysVoltageSensor;
 
 void send_analog_to_canbus(int id);
 void receive_analog_from_canbus(int id, uint8_t *buf, int len);
