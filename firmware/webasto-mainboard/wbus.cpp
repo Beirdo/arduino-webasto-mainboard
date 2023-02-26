@@ -672,7 +672,7 @@ uint8_t *wbus_read_operational_sensor(void)
   buf[8] = HI_BYTE(power);
   buf[9] = LO_BYTE(power);
 
-  LocalSensor<uint16_t> *flameDetectorSensor = static_cast<LocalSensor<uint16_t> *>(sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR));
+  Sensor *flameDetectorSensor = sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR);
   int milliohms = flameDetectorSensor->get_value();
   buf[10] = HI_BYTE(milliohms);
   buf[11] = LO_BYTE(milliohms);

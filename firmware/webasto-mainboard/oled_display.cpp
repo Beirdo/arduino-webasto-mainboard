@@ -110,7 +110,7 @@ void OLEDDisplay::updateDisplay(void)
   printWatts(16, 1, fuelPumpTimer.getBurnPower());
 
   printLabel(0, 2, "Flame PTC:");
-  LocalSensor<uint16_t> *flameDetectorSensor = static_cast<LocalSensor<uint16_t> *>(sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR));
+  Sensor *flameDetectorSensor = sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR);
   printMilliohms(15, 2, flameDetectorSensor->get_value());
 
   printLabel(0, 3, "CF:");
@@ -119,7 +119,7 @@ void OLEDDisplay::updateDisplay(void)
   printLabel(11, 3, "VF:");
   printPercent(17, 3, vehicleFanPercent);
 
-  LocalSensor<int16_t> *internalTempSensor = static_cast<LocalSensor<int16_t> *>(sensorRegistry.get(CANBUS_ID_INTERNAL_TEMP));
+  Sensor *internalTempSensor = sensorRegistry.get(CANBUS_ID_INTERNAL_TEMP);
   int temp = internalTempSensor->get_value();
   printLabel(0, 4, "Internal:");
   printTemperature(13, 4, temp);

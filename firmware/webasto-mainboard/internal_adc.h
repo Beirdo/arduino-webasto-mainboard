@@ -3,10 +3,10 @@
 
 #include "sensor.h"
 
-class InternalADCSensor : public LocalSensor<int16_t> {
+class InternalADCSensor : public LocalSensor {
   public:
     InternalADCSensor(int id, int channel, int bits, int mult = 0, int div_ = 0) :
-      LocalSensor<int16_t>(id, 0x8000, 100, bits, mult, div_)
+      LocalSensor(id, 2, 100, bits, mult, div_)
     {
       _channel = channel;
       _connected = true;
@@ -14,8 +14,8 @@ class InternalADCSensor : public LocalSensor<int16_t> {
 
     void init(void);
   protected:
-    int16_t get_raw_value(void);
-    int16_t convert(int16_t reading);
+    int32_t get_raw_value(void);
+    int32_t convert(int32_t reading);
     void _do_feedback(void); 
 
     int _min_bits = 12;

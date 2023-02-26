@@ -26,10 +26,10 @@ void InternalADCSensor::init(void)
   analogReadResolution(_bits);
 }
 
-int16_t InternalADCSensor::get_raw_value(void)
+int32_t InternalADCSensor::get_raw_value(void)
 {
   if (!_valid) {
-    return _unused;
+    return UNUSED_VALUE;
   }
 
 #ifdef VERBOSE_LOGGING
@@ -38,22 +38,22 @@ int16_t InternalADCSensor::get_raw_value(void)
   if (_channel == 4) {
     float vref = mainboardDetected ? 3.3 : 3.3; //3.0 for onboard once I put parts on there;
     float temp = analogReadTemp(vref);
-    return (int16_t)(temp * 100.0);
+    return (int32_t)(temp * 100.0);
   }
 
-  return (int16_t)analogRead(26 + _channel);
+  return (int32_t)analogRead(26 + _channel);
 }
 
-int16_t InternalADCSensor::convert(int16_t reading)
+int32_t InternalADCSensor::convert(int32_t reading)
 {
   if (_channel == 2) {
     // Wired to VSYS / 3 on our board
-    int vref = mainboardDetected ? 3300 : 3300; // 3000 once onboard connected
-    int retval = (reading * vref * 3) >> _bits;
+    int32_t vref = mainboardDetected ? 3300 : 3300; // 3000 once onboard connected
+    int32_t retval = (reading * vref * 3) >> _bits;
 #ifdef VERBOSE_LOGGING
     Log.notice("VSYS = %dmV", retval);
 #endif
-    return (int16_t)retval;
+    return retval;
   }
 
   if (_channel == 4) {
@@ -61,12 +61,12 @@ int16_t InternalADCSensor::convert(int16_t reading)
     return reading;
   }
 
-  return LocalSensor<int16_t>::convert(reading);
+  return LocalSensor::convert(reading);
 }
 
 void InternalADCSensor::_do_feedback(void)
 { 
-  canbus_output_value<int16_t>(_id, _value);
+  canbus_output_value(_id, _value, _data_bytes);
   
   switch (_id) {
     case CANBUS_ID_INTERNAL_TEMP:

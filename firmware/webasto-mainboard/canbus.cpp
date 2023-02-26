@@ -215,6 +215,15 @@ void canbus_send(int id, uint8_t *buf, int len)
   canbus_tx_q.push(&index);
 }
 
+void canbus_output_value(int id, int32_t value, int data_bytes)
+{
+  int len = clamp<int>(data_bytes, 0, 4);
+  uint8_t buf[4];
+
+  memcpy(buf, &value, len);
+  canbus_send(id, buf, len);
+}
+
 void canbus_request_value(int id)
 {
   canbus_send(id, 0, 0);

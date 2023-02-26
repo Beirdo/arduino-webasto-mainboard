@@ -6,7 +6,7 @@
 
 SensorRegistry sensorRegistry;
 
-void SensorRegistry::add(int id, void *sensor)
+void SensorRegistry::add(int id, Sensor *sensor)
 {
   sensor_reg_item_t *item = new sensor_reg_item_t;
   item->id = id;
@@ -31,7 +31,7 @@ void SensorRegistry::add(int id, void *sensor)
   }
 }
 
-void *SensorRegistry::get(int id) 
+Sensor *SensorRegistry::get(int id) 
 {
   CoreMutex m(&_mutex);
 

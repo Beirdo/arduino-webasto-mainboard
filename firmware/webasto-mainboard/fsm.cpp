@@ -156,8 +156,7 @@ void WebastoControlFSM::react(VehicleFanEvent const &e)
   CoreMutex m(&fsm_mutex);
 
   vehicleFanPercent = clamp<int>(e.value, 0, 100);
-  uint8_t value = (uint8_t)vehicleFanPercent;
-  canbus_output_value<uint8_t>(CANBUS_ID_VEHICLE_FAN, value);
+  canbus_output_value(CANBUS_ID_VEHICLE_FAN, vehicleFanPercent, 1);
 }
 
 void WebastoControlFSM::react(FuelPumpEvent const &e)
@@ -928,7 +927,7 @@ void FlameMeasureState::react(TimerEvent const &e)
 
         int exhaustTemp = exhaustTempSensor->get_value();
 
-        LocalSensor<uint16_t> *flameDetectorSensor = static_cast<LocalSensor<uint16_t> *>(sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR));
+        Sensor *flameDetectorSensor = sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR);
         int flameSensor = flameDetectorSensor->get_value();
 
         if (exhaustTemp - exhaustTempStable >= EXHAUST_TEMP_RISE || flameSensor > FLAME_DETECT_THRESHOLD) {
@@ -944,7 +943,7 @@ void FlameMeasureState::react(TimerEvent const &e)
 
         int exhaustTemp = exhaustTempSensor->get_value();
 
-        LocalSensor<uint16_t> *flameDetectorSensor = static_cast<LocalSensor<uint16_t> *>(sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR));
+        Sensor *flameDetectorSensor = sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR);
         int flameSensor = flameDetectorSensor->get_value();
 
         if (exhaustTemp - exhaustTempStable >= EXHAUST_TEMP_RISE || flameSensor > FLAME_DETECT_THRESHOLD) {
