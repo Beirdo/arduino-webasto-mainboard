@@ -155,7 +155,7 @@ void WebastoControlFSM::react(VehicleFanEvent const &e)
   CoreMutex m(&fsm_mutex);
 
   vehicleFanPercent = clamp<int>(e.value, 0, 100);
-  canbus_output_value(CANBUS_ID_VEHICLE_FAN, vehicleFanPercent, 1);
+  canbus_output_value(CANBUS_ID_VEHICLE_FAN | CANBUS_ID_WRITE_MODIFIER, vehicleFanPercent, 1);
 }
 
 void WebastoControlFSM::react(FuelPumpEvent const &e)

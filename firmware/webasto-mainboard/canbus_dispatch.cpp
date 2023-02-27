@@ -2,18 +2,23 @@
 #include <ArduinoLog.h>
 #include <pico.h>
 
+#include "canbus.h"
+#include "canbus_ids.h"
 #include "canbus_dispatch.h"
 #include "wbus.h"
 #include "cbor.h"
 #include "sensor_registry.h"
 
 
-void canbus_dispatch(int id, uint8_t *buf, int len)
+void canbus_dispatch(int id, uint8_t *buf, int len, uint8_t type)
 {
-  switch(id) {
+  id &= ~(CANBUS_ID_WRITE_MODIFIER);
+  switch (id) {
     case CANBUS_ID_MAINBOARD:
       // Someone is requesting the CBOR
-      cbor_send();
+      if (type == CAN_REMOTE) {
+        cbor_send();
+      }
       break;
 
     case CANBUS_ID_WBUS:
@@ -24,7 +29,7 @@ void canbus_dispatch(int id, uint8_t *buf, int len)
     case CANBUS_ID_INTERNAL_TEMP:
     case CANBUS_ID_FLAME_DETECTOR:
     case CANBUS_ID_VSYS_VOLTAGE:
-      {
+      if (type == CAN_REMOTE) {
         Sensor *sensor = sensorRegistry.get(id);
         if (sensor) {
           sensor->update();
