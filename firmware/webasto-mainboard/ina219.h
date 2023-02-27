@@ -14,7 +14,7 @@ class INA219Sensor : public LocalSensor {
   protected:
     int32_t get_raw_value(void);
     int32_t convert(int32_t reading);
-    void _do_feedback(void);
+    void do_feedback(void);
 
     int _min_bits = 9;
     int _max_bits = 12;

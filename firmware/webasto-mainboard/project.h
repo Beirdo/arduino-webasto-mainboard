@@ -70,10 +70,10 @@
 #define PIN_GLOW_PLUG_OUT     12
 #define PIN_FUEL_PUMP         13
 #define PIN_ALERT_BUZZER      15
-#define PIN_SPI0_MISO         16
-#define PIN_SPI0_SS           17
-#define PIN_SPI0_SCK          18
-#define PIN_SPI0_MOSI         19
+#define PIN_CAN_SPI_MISO      16
+#define PIN_CAN_SPI_SS        17
+#define PIN_CAN_SPI_SCK       18
+#define PIN_CAN_SPI_MOSI      19
 #define PIN_CAN_INT           10
 #define PIN_BOARD_SENSE       22  // LOW = mainboard there, HIGH = just the Pico
 #define PIN_RESERVED_WIFI_ON  23
@@ -87,6 +87,8 @@
 #define PIN_FLAME_LED         6
 #define PIN_CAN_EN            7
 
+
+#define CAN_SPI SPI
 
 
 #define SUPPLEMENTAL_MIN_TEMP   -2000   // -20C
@@ -137,5 +139,7 @@
 extern bool mainboardDetected;
 extern TCA9534 tca9534;
 
+void init_sensors(void);
+void update_sensors(void);
 
 #endif

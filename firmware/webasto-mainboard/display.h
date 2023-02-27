@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "analog_source.h"
-
 class Display {
   public:
     Display(uint8_t i2c_address, int cols, int rows);

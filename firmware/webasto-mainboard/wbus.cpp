@@ -14,7 +14,6 @@
 #include "fsm.h"
 #include "fram.h"
 #include "fuel_pump.h"
-#include "analog.h"
 #include "device_eeprom.h"
 #include "canbus.h"
 #include "sensor_registry.h"
@@ -620,6 +619,8 @@ uint8_t *wbus_read_status_sensor(void)
   buf[4] = flags;
 
   flags = 0x00;
+  
+  Sensor *externalTempSensor = sensorRegistry.get(CANBUS_ID_EXTERNAL_TEMP);
   flags |= (externalTempSensor->get_value() >= 1000 ? 0x01 : 0x00);    // >= 10C - summer.  Below - winter
   buf[5] = flags;
   buf[6] = 0x00;      // Generator signal D+  (whaaa?)
@@ -661,8 +662,10 @@ uint8_t *wbus_read_operational_sensor(void)
 {
   uint8_t *buf = allocate_response(0x50, 12, 0x05);
 
+  Sensor *externalTempSensor = sensorRegistry.get(CANBUS_ID_EXTERNAL_TEMP);
   buf[4] = (uint8_t)(((externalTempSensor->get_value() / 50) + 1 / 2) + 50);
 
+  Sensor *batteryVoltageSensor = sensorRegistry.get(CANBUS_ID_BATTERY_VOLTAGE);
   int vbat = batteryVoltageSensor->get_value();
   buf[5] = HI_BYTE(vbat);
   buf[6] = LO_BYTE(vbat);

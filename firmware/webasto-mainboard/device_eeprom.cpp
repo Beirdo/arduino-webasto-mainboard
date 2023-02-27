@@ -6,9 +6,9 @@
 #include <string.h>
 
 #include "device_eeprom.h"
-#include "sensor_eeprom.h"
 #include "project.h"
-#include "cbor.h"
+// #include "cbor.h"
+#include "eeprom_checksum.h"
 
 #define EEPROM_SIZE 4096
 

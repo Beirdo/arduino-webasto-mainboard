@@ -64,7 +64,7 @@ int32_t InternalADCSensor::convert(int32_t reading)
   return LocalSensor::convert(reading);
 }
 
-void InternalADCSensor::_do_feedback(void)
+void InternalADCSensor::do_feedback(void)
 { 
   canbus_output_value(_id, _value, _data_bytes);
   

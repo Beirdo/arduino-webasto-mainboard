@@ -7,11 +7,12 @@
 #include <CoreMutex.h>
 
 #include "project.h"
-#include "sensor_eeprom.h"
 #include "fram.h"
-#include "analog.h"
 #include "fsm.h"
 #include "beeper.h"
+#include "eeprom_checksum.h"
+#include "canbus_ids.h"
+#include "sensor_registry.h"
 
 fram_data_t fram_data;
 bool fram_dirty = false;
@@ -210,7 +211,10 @@ void fram_add_error(uint8_t code)
   item->count++;
   item->status = 0x01;    // Stored
   item->state = (fsm_state << 8);
+  Sensor *externalTempSensor = sensorRegistry.get(CANBUS_ID_EXTERNAL_TEMP);
   item->temperature = (uint8_t)(((externalTempSensor->get_value() / 50) + 1) / 2 + 50);
+
+  Sensor *batteryVoltageSensor = sensorRegistry.get(CANBUS_ID_BATTERY_VOLTAGE);
   item->vbat = batteryVoltageSensor->get_value();
   memcpy((char *)&item->operating_time, (char *)&fram_data.current.total_working_duration, sizeof(time_sensor_t));
 

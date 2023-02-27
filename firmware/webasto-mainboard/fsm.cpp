@@ -6,7 +6,6 @@
 #include "fsm.h"
 #include "fsm_state.h"
 #include "fsm_events.h"
-#include "analog.h"
 #include "fuel_pump.h"
 #include "global_timer.h"
 #include "webasto.h"
@@ -643,6 +642,7 @@ void IdleState::entry()
 
   fsm_mode = 0;
   batteryLow = false;
+  Sensor *ignitionSenseSensor = sensorRegistry.get(CANBUS_ID_IGNITION_SENSE);
   ignitionOn = ignitionSenseSensor->get_value();
 
   // Make sure the vehicle fan is off
@@ -660,6 +660,7 @@ void PurgingState::entry()
   CoreMutex m(&fsm_mutex);
 
   fsm_state = _state_num;
+  Sensor *exhaustTempSensor = sensorRegistry.get(CANBUS_ID_EXHAUST_TEMP);
   int exhaustTemp = exhaustTempSensor->get_value();
 
   if (exhaustTemp > EXHAUST_PURGE_THRESHOLD) {
@@ -696,6 +697,7 @@ void StandbyState::entry()
   CoreMutex m(&fsm_mutex);
 
   fsm_state = _state_num;
+  Sensor *exhaustTempSensor = sensorRegistry.get(CANBUS_ID_EXHAUST_TEMP);
   exhaustTempPreBurn = exhaustTempSensor->get_value();
 
   // Turn on the combustion fan - 70%
@@ -761,6 +763,7 @@ void PrefuelState::entry()
 
   // Turn on Fuel Pump to prime
   FuelPumpEvent e2;
+  Sensor *exhaustTempSensor = sensorRegistry.get(CANBUS_ID_EXHAUST_TEMP);
   int exhaustTemp = exhaustTempSensor->get_value();
   e2.value = map<double>(exhaustTemp, PRIMING_LOW_THRESHOLD, PRIMING_HIGH_THRESHOLD, 3.5, 2.0);
   dispatch(e2);
@@ -815,6 +818,7 @@ void StabilizationState::entry()
   CoreMutex m(&fsm_mutex);
 
   fsm_state = _state_num;
+  Sensor *exhaustTempSensor = sensorRegistry.get(CANBUS_ID_EXHAUST_TEMP);
   exhaustTempStable = exhaustTempSensor->get_value();
 
   // Shutdown the glow plug
@@ -925,6 +929,7 @@ void FlameMeasureState::react(TimerEvent const &e)
       {
         CoreMutex m(&fsm_mutex);
 
+        Sensor *exhaustTempSensor = sensorRegistry.get(CANBUS_ID_EXHAUST_TEMP);
         int exhaustTemp = exhaustTempSensor->get_value();
 
         Sensor *flameDetectorSensor = sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR);
@@ -941,6 +946,7 @@ void FlameMeasureState::react(TimerEvent const &e)
       {
         CoreMutex m(&fsm_mutex);
 
+        Sensor *exhaustTempSensor = sensorRegistry.get(CANBUS_ID_EXHAUST_TEMP);
         int exhaustTemp = exhaustTempSensor->get_value();
 
         Sensor *flameDetectorSensor = sensorRegistry.get(CANBUS_ID_FLAME_DETECTOR);
@@ -984,8 +990,13 @@ void AutoBurnState::react(TimerEvent const &e)
       {
         CoreMutex m(&fsm_mutex);
 
+        Sensor *coolantTempSensor = sensorRegistry.get(CANBUS_ID_COOLANT_TEMP_WEBASTO);
         int coolantTemp = coolantTempSensor->get_value();
+
+        Sensor *externalTempSensor = sensorRegistry.get(CANBUS_ID_EXTERNAL_TEMP);
         int externalTemp = externalTempSensor->get_value();
+
+        Sensor *exhaustTempSensor = sensorRegistry.get(CANBUS_ID_EXHAUST_TEMP);
         int exhaustTemp = exhaustTempSensor->get_value();
 
         int fanRequest = combustionFanPercent;
@@ -1047,7 +1058,10 @@ void AutoBurnState::react(TimerEvent const &e)
       break;
     case TIMER_STAGE_COMPLETE:
       {
+        Sensor *coolantTempSensor = sensorRegistry.get(CANBUS_ID_COOLANT_TEMP_WEBASTO);
         int coolantTemp = coolantTempSensor->get_value();
+
+        Sensor *exhaustTempSensor = sensorRegistry.get(CANBUS_ID_EXHAUST_TEMP);
         int exhaustTemp = exhaustTempSensor->get_value();
 
         if (exhaustTemp > 4000 && coolantTemp > exhaustTemp) {

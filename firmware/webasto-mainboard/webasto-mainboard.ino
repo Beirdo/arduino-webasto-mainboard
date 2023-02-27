@@ -7,9 +7,7 @@
 #include <Beirdo-Utilities.h>
 
 #include "project.h"
-#include "analog.h"
 #include "wbus.h"
-#include "sensor_eeprom.h"
 #include "global_timer.h"
 #include "fram.h"
 #include "device_eeprom.h"
@@ -88,11 +86,15 @@ void setup() {
     Wire.setClock(I2C0_CLK);
     Wire.begin();
 
+    CAN_SPI.setTX(PIN_CAN_SPI_MOSI);
+    CAN_SPI.setRX(PIN_CAN_SPI_MISO);
+    CAN_SPI.setSCK(PIN_CAN_SPI_SCK);
+    CAN_SPI.setCS(PIN_CAN_SPI_SS);
+
     init_cbor();
-    init_canbus();
-    init_eeprom();
+    init_canbus(&CAN_SPI, PIN_CAN_SPI_SS, PIN_CAN_INT);
+    init_sensors();
     init_fram();
-    init_analog();
     init_display();
   }
 
@@ -125,7 +127,7 @@ void loop() {
 
   update_device_eeprom();
   update_fram();
-  update_analog();
+  update_sensors();
 
   // We want screen updates every second.
   if (display_count % 10 == 1) {

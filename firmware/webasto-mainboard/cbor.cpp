@@ -5,7 +5,6 @@
 #include <tinycbor.h>
 
 #include "fsm.h"
-#include "analog.h"
 #include "project.h"
 #include "cbor.h"
 #include "canbus.h"
@@ -26,7 +25,7 @@ void cbor_send(void)
 
   TinyCBOR.Encoder.init(cbor_tx_buf, CANBUS_BUF_SIZE);
 
-  TinyCBOR.Encoder.create_map(11);
+  TinyCBOR.Encoder.create_map(6);
 
   // key values are integers (well, enum)
   TinyCBOR.Encoder.encode_int(CBOR_VERSION);
@@ -48,25 +47,6 @@ void cbor_send(void)
 
   TinyCBOR.Encoder.encode_int(CBOR_VEHICLE_FAN);
   TinyCBOR.Encoder.encode_int(vehicleFanPercent);
-
-  TinyCBOR.Encoder.encode_int(CBOR_OUTDOOR_TEMP);
-  TinyCBOR.Encoder.encode_int(externalTempSensor->get_value());
-
-  TinyCBOR.Encoder.encode_int(CBOR_COOLANT_TEMP);
-  TinyCBOR.Encoder.encode_int(coolantTempSensor->get_value());
-
-  TinyCBOR.Encoder.encode_int(CBOR_EXHAUST_TEMP);
-  TinyCBOR.Encoder.encode_int(exhaustTempSensor->get_value());
-
-  TinyCBOR.Encoder.encode_int(CBOR_BATTERY_VOLT);
-  TinyCBOR.Encoder.encode_int(batteryVoltageSensor->get_value());
-
-  TinyCBOR.Encoder.encode_int(CBOR_GPIOS);
-  uint8_t gpios = 0;
-  gpios |= startRunSensor->get_value() ? BIT(CBOR_GPIO_START_RUN) : 0;
-  gpios |= ignitionSenseSensor->get_value() ? BIT(CBOR_GPIO_IGNITION) : 0;
-  gpios |= emergencyStopSensor->get_value() ? BIT(CBOR_GPIO_EMERG_STOP) : 0;
-  TinyCBOR.Encoder.encode_int((uint8_t)(gpios & 0xFF));
 
   TinyCBOR.Encoder.close_container();
 

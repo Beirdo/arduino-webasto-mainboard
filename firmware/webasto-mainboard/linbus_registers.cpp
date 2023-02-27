@@ -2,7 +2,7 @@
 #include <Wire.h>
 
 #include "project.h"
-#include "analog.h"
+#include "sensor.h"
 #include "linbus_registers.h"
 
 void LINBusRegister::init(void)
@@ -60,7 +60,7 @@ void LINBusRegister::feedback(void)
 
 int32_t LINBusRegister::get_value(uint8_t index)
 {
-  int32_t value = UNUSED_READING;
+  int32_t value = UNUSED_VALUE;
   if (index >= _max_register()) {
     return value;
   }

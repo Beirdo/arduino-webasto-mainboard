@@ -6,7 +6,6 @@
 
 #include "oled_display.h"
 #include "fsm.h"
-#include "analog.h"
 #include "fuel_pump.h"
 #include "global_timer.h"
 #include "sensor_registry.h"
@@ -124,14 +123,17 @@ void OLEDDisplay::updateDisplay(void)
   printLabel(0, 4, "Internal:");
   printTemperature(13, 4, temp);
 
+  Sensor *externalTempSensor = sensorRegistry.get(CANBUS_ID_EXTERNAL_TEMP);
   temp = externalTempSensor->get_value();
   printLabel(0, 5, "Outdoors:");
   printTemperature(13, 5, temp);
 
+  Sensor *coolantTempSensor = sensorRegistry.get(CANBUS_ID_COOLANT_TEMP_WEBASTO);
   temp = coolantTempSensor->get_value();
   printLabel(0, 6, "Coolant:");
   printTemperature(13, 6, temp);
 
+  Sensor *exhaustTempSensor = sensorRegistry.get(CANBUS_ID_EXHAUST_TEMP);
   temp = exhaustTempSensor->get_value();
   printLabel(0, 7, "Exhaust:");
   printTemperature(13, 7, temp);

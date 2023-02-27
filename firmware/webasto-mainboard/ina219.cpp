@@ -93,7 +93,7 @@ int32_t INA219Sensor::convert(int32_t reading)
   return resistance;
 }
 
-void INA219Sensor::_do_feedback(void)
+void INA219Sensor::do_feedback(void)
 { 
   canbus_output_value(_id, _value, _data_bytes);
   
