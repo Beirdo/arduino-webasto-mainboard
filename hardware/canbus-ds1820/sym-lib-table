@@ -1,0 +1,5 @@
+(sym_lib_table
+  (lib (name "Beirdo")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/Beirdo-KiCad-Libraries/Symbols/Beirdo.kicad_sym")(options "")(descr ""))
+  (lib (name "SparkFun-Switches")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/SparkFun-KiCad-Libraries/Libraries/SparkFun-Switches.kicad_sym")(options "")(descr ""))
+  (lib (name "SparkFun-Connectors")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/SparkFun-KiCad-Libraries/Libraries/SparkFun-Connectors.kicad_sym")(options "")(descr ""))
+)
