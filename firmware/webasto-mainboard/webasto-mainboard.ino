@@ -15,6 +15,7 @@
 #include "fsm.h"
 #include "cbor.h"
 #include "canbus.h"
+#include "canbus_mcp2517fd.h"
 
 bool mainboardDetected;
 mutex_t startup_mutex;
@@ -92,7 +93,11 @@ void setup() {
     CAN_SPI.setCS(PIN_CAN_SPI_SS);
 
     init_cbor();
-    init_canbus(&CAN_SPI, PIN_CAN_SPI_SS, PIN_CAN_INT);
+    init_canbus_mcp2517fd(&CAN_SPI, PIN_CAN_SPI_SS, PIN_CAN_INT);
+
+    // active low enable for transceiver
+    tca9534.digitalWrite(PIN_CAN_EN, LOW);
+
     init_sensors();
     init_fram();
     init_display();
