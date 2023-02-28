@@ -1,0 +1,4 @@
+(fp_lib_table
+  (lib (name "Beirdo")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/Beirdo-KiCad-Libraries/Footprints/Beirdo.pretty")(options "")(descr ""))
+  (lib (name "SparkFun-Switches")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/SparkFun-KiCad-Libraries/Footprints/Switches.pretty")(options "")(descr ""))
+)
