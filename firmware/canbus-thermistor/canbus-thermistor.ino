@@ -18,6 +18,16 @@ InternalADCSensor batteryVoltageSensor(CANBUS_ID_BATTERY_VOLTAGE, 1, 12, 599, 10
 
 int32_t vref = -1;
 
+CAN_filter_t filters[] = {
+  {0, 0, 0, 0, 
+   0xFF00 | STM32_CAN::makeFilter16(CANBUS_ID_COOLANT_TEMP_WEBASTO, STANDARD_FORMAT, REMOTE_FRAME),
+   0xFF00 | STM32_CAN::makeFilter16(CANBUS_ID_COOLANT_TEMP_WEBASTO | CANBUS_ID_WRITE_MODIFIER, STANDARD_FORMAT, DATA_FRAME)},  
+  {1, 0, 0, 1, 
+   0xFF00 | STM32_CAN::makeFilter16(CANBUS_ID_BATTERY_VOLTAGE, STANDARD_FORMAT, REMOTE_FRAME),
+   0xFF00 | STM32_CAN::makeFilter16(CANBUS_ID_BATTERY_VOLTAGE | CANBUS_ID_WRITE_MODIFIER, STANDARD_FORMAT, DATA_FRAME)},  
+};
+int filter_count = NELEMS(filters);
+
 void setup(void)
 {
   Serial.setRx(PIN_USART2_RX);
@@ -29,7 +39,7 @@ void setup(void)
   batteryVoltageSensor.init();
   coolantTempSensor.init();
 
-  init_canbus_stm32_internal(PIN_CAN_EN);
+  init_canbus_stm32_internal(PIN_CAN_EN, filters, filter_count);
 }
 
 void loop(void)
