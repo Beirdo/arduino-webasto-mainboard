@@ -3,6 +3,8 @@
 
 #include <Beirdo-Utilities.h>
 
+#include "internal_adc.h"
+
 // Serial2 -> Console
 #ifdef PIN_SERIAL2_TX
 #undef PIN_SERIAL2_TX
@@ -49,9 +51,8 @@
 #define PIN_CAN_TX            17  // PA_12_R
 #define PIN_USB_DP            17  // PA_12_R
 
-#define CAN_SPI SPI
 
-void init_sensors(void);
-void update_sensors(void);
+extern InternalADCSensor coolantTempSensor;
+extern InternalADCSensor batteryVoltageSensor;
 
 #endif
