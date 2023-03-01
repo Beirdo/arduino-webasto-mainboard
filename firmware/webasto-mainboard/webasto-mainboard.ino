@@ -1,10 +1,12 @@
+#include <Beirdo-Utilities.h>
+
+#include <Arduino.h>
 #include <pico.h>
 #include <Wire.h>
 #include <ArduinoLog.h>
 #include <CoreMutex.h>
 #include <cppQueue.h>
 #include <TCA9534-GPIO.h>
-#include <Beirdo-Utilities.h>
 
 #include "project.h"
 #include "wbus.h"
@@ -14,8 +16,9 @@
 #include "display.h"
 #include "fsm.h"
 #include "cbor.h"
-#include "canbus.h"
 #include "canbus_mcp2517fd.h"
+#include "canbus.h"
+
 
 bool mainboardDetected;
 mutex_t startup_mutex;
@@ -24,84 +27,86 @@ cppQueue onboard_led_q(sizeof(bool), 4, FIFO);
 TCA9534 tca9534;
 
 
-void setup() {
+void setup() 
+{
   mutex_init(&startup_mutex);
 
-  {
-    CoreMutex m(&startup_mutex);
+  mutex_enter_blocking(&startup_mutex);
 
-    bool ledOn = true;
-    onboard_led_q.push(&ledOn);
+  bool ledOn = true;
+  onboard_led_q.push(&ledOn);
 
-    pinMode(PIN_BOARD_SENSE, INPUT_PULLUP);
-    delay(2);
+  pinMode(PIN_BOARD_SENSE, INPUT_PULLUP);
+  delay(2);
 
-    pinMode(PIN_I2C0_SCL, INPUT_PULLUP);
-    pinMode(PIN_I2C0_SDA, INPUT_PULLUP);
+  pinMode(PIN_I2C0_SCL, INPUT_PULLUP);
+  pinMode(PIN_I2C0_SDA, INPUT_PULLUP);
 
-    HardwareSerial *logSerial = &Serial;
+  HardwareSerial *logSerial = &Serial;
 
-    mainboardDetected = !(digitalRead(PIN_BOARD_SENSE));
-    if (mainboardDetected) {
-      logSerial = &Serial1;
-      Serial1.setTX(PIN_SERIAL1_TX);
-      Serial1.setRX(PIN_SERIAL1_RX);
-    }
-
-    logSerial->begin(115200);
-    Log.begin(LOG_LEVEL_VERBOSE, logSerial);
-
-    tca9534.begin(Wire, I2C_ADDR_TCA9534);
-    tca9534.pinMode(PIN_CAN_SOF, INPUT);
-
-    tca9534.pinMode(PIN_POWER_LED, OUTPUT);
-    tca9534.digitalWrite(PIN_POWER_LED, HIGH);
-
-    tca9534.pinMode(PIN_OPERATING_LED, OUTPUT);
-    tca9534.digitalWrite(PIN_OPERATING_LED, LOW);
-
-    tca9534.pinMode(PIN_FLAME_LED, OUTPUT);
-    tca9534.digitalWrite(PIN_FLAME_LED, LOW);
-
-    tca9534.pinMode(PIN_CAN_EN, OUTPUT);
-    tca9534.digitalWrite(PIN_CAN_EN, HIGH);
-
-    // Give user time to open a terminal to see first log messages
-    delay(10000);
-    Log.notice("Rebooted.");
-    Log.notice("Starting Core 0");
-
-    if (mainboardDetected) {
-      Log.notice("Mainboard detected");
-    } else {
-      Log.notice("No mainboard detected - bare Pico");
-    }
-
-    delay(500);
-
-    init_device_eeprom();
-
-    Log.notice("Starting I2C0");
-    Wire.setSDA(PIN_I2C0_SDA);
-    Wire.setSCL(PIN_I2C0_SCL);
-    Wire.setClock(I2C0_CLK);
-    Wire.begin();
-
-    CAN_SPI.setTX(PIN_CAN_SPI_MOSI);
-    CAN_SPI.setRX(PIN_CAN_SPI_MISO);
-    CAN_SPI.setSCK(PIN_CAN_SPI_SCK);
-    CAN_SPI.setCS(PIN_CAN_SPI_SS);
-
-    init_cbor();
-    init_canbus_mcp2517fd(&CAN_SPI, PIN_CAN_SPI_SS, PIN_CAN_INT);
-
-    // active low enable for transceiver
-    tca9534.digitalWrite(PIN_CAN_EN, LOW);
-
-    init_sensors();
-    init_fram();
-    init_display();
+  mainboardDetected = !(digitalRead(PIN_BOARD_SENSE));
+  if (mainboardDetected) {
+    logSerial = &Serial1;
+    Serial1.setTX(PIN_SERIAL1_TX);
+    Serial1.setRX(PIN_SERIAL1_RX);
   }
+
+  logSerial->begin(115200);
+  Log.begin(LOG_LEVEL_VERBOSE, logSerial);
+
+  tca9534.begin(Wire, I2C_ADDR_TCA9534);
+  tca9534.pinMode(PIN_CAN_SOF, INPUT);
+
+  tca9534.pinMode(PIN_POWER_LED, OUTPUT);
+  tca9534.digitalWrite(PIN_POWER_LED, HIGH);
+
+  tca9534.pinMode(PIN_OPERATING_LED, OUTPUT);
+  tca9534.digitalWrite(PIN_OPERATING_LED, LOW);
+
+  tca9534.pinMode(PIN_FLAME_LED, OUTPUT);
+  tca9534.digitalWrite(PIN_FLAME_LED, LOW);
+
+  tca9534.pinMode(PIN_CAN_EN, OUTPUT);
+  tca9534.digitalWrite(PIN_CAN_EN, HIGH);
+
+  // Give user time to open a terminal to see first log messages
+  delay(10000);
+  Log.notice("Rebooted.");
+  Log.notice("Starting Core 0");
+
+  if (mainboardDetected) {
+    Log.notice("Mainboard detected");
+  } else {
+    Log.notice("No mainboard detected - bare Pico");
+  }
+
+  delay(500);
+
+  init_device_eeprom();
+
+  Log.notice("Starting I2C0");
+  Wire.setSDA(PIN_I2C0_SDA);
+  Wire.setSCL(PIN_I2C0_SCL);
+  Wire.setClock(I2C0_CLK);
+  Wire.begin();
+
+  CAN_SPI.setTX(PIN_CAN_SPI_MOSI);
+  CAN_SPI.setRX(PIN_CAN_SPI_MISO);
+  CAN_SPI.setSCK(PIN_CAN_SPI_SCK);
+  CAN_SPI.setCS(PIN_CAN_SPI_SS);
+
+  init_cbor();
+  init_canbus_mcp2517fd(&CAN_SPI, PIN_CAN_SPI_SS, PIN_CAN_INT);
+
+  // active low enable for transceiver
+  tca9534.digitalWrite(PIN_CAN_EN, LOW);
+
+  init_sensors();
+  init_fram();
+  init_display();
+  mutex_exit(&startup_mutex);
+
+  delay(1);
 
   CoreMutex m2(&startup_mutex);  
 //  rp2040.wdt_begin(500);
@@ -148,6 +153,7 @@ void loop() {
   }
 
   int delayMs = clamp<int>(100 - elapsed, 1, 100);
+
   delay(delayMs);
 
 //  rp2040.wdt_reset();

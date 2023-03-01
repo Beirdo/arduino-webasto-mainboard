@@ -74,7 +74,7 @@
 #define PIN_CAN_SPI_SS        17
 #define PIN_CAN_SPI_SCK       18
 #define PIN_CAN_SPI_MOSI      19
-#define PIN_CAN_INT           10
+#define PIN_CAN_INT           20
 #define PIN_BOARD_SENSE       22  // LOW = mainboard there, HIGH = just the Pico
 #define PIN_RESERVED_WIFI_ON  23
 #define PIN_RESERVED_WIFI_DAT 24

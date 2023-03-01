@@ -1,6 +1,9 @@
+#include "beirdo_config.h"
+
 #include <Arduino.h>
 #include <pico.h>
 #include <ArduinoLog.h>
+#include <sensor.h>
 
 #include "ina219.h"
 #include "fsm.h"

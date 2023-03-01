@@ -155,7 +155,8 @@ void WebastoControlFSM::react(VehicleFanEvent const &e)
   CoreMutex m(&fsm_mutex);
 
   vehicleFanPercent = clamp<int>(e.value, 0, 100);
-  canbus_output_value(CANBUS_ID_VEHICLE_FAN | CANBUS_ID_WRITE_MODIFIER, vehicleFanPercent, 1);
+  RemoteLINBusSensor *vehicleFanActuator = dynamic_cast<RemoteLINBusSensor *>(sensorRegistry.get(CANBUS_ID_VEHICLE_FAN_SPEED));
+  vehicleFanActuator->send_control_value(vehicleFanPercent, 1);
 }
 
 void WebastoControlFSM::react(FuelPumpEvent const &e)
