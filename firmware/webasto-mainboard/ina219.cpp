@@ -1,5 +1,3 @@
-#include "beirdo_config.h"
-
 #include <Arduino.h>
 #include <pico.h>
 #include <ArduinoLog.h>

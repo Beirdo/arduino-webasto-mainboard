@@ -18,6 +18,13 @@ class SensorRegistry
     SensorRegistry() : _head(0) { mutex_init(&_mutex); };
     void add(int id, Sensor *sensor);
     Sensor *get(int id);
+
+    template <typename T>
+    T *get(int id)
+    {
+      return dynamic_cast<T *>(get(id));
+    }
+
     void remove(int id);
 
   protected:

@@ -36,6 +36,7 @@ void canbus_dispatch(int id, uint8_t *buf, int len, uint8_t type)
         }
       }
       break;
+    // CANBus
     case CANBUS_ID_EXTERNAL_TEMP:
     case CANBUS_ID_BATTERY_VOLTAGE:
     case CANBUS_ID_COOLANT_TEMP_WEBASTO:
@@ -43,8 +44,10 @@ void canbus_dispatch(int id, uint8_t *buf, int len, uint8_t type)
     case CANBUS_ID_IGNITION_SENSE:
     case CANBUS_ID_EMERGENCY_STOP:
     case CANBUS_ID_START_RUN:
+    // LINBus via CANBus bridge
+    case CANBUS_ID_VEHICLE_FAN_SPEED:
       {
-        RemoteCANBusSensor *sensor = dynamic_cast<RemoteCANBusSensor *>(sensorRegistry.get(id));
+        RemoteSensor *sensor = sensorRegistry.get<RemoteSensor>(id);
         if (sensor) {
           int32_t value = sensor->convert_from_packet(buf, len);
           sensor->set_value(value);

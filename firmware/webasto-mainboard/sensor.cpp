@@ -24,7 +24,8 @@ void init_sensors(void)
   sensorRegistry.add(CANBUS_ID_START_RUN, new RemoteCANBusSensor(CANBUS_ID_START_RUN, 1, 1));
 
   // Remote LINBus
-  sensorRegistry.add(CANBUS_ID_VEHICLE_FAN_SPEED, new RemoteLINBusSensor(CANBUS_ID_VEHICLE_FAN_SPEED, 2, 50, 2));
+  sensorRegistry.add(CANBUS_ID_VEHICLE_FAN_PERCENT, new RemoteLINBusSensor(CANBUS_ID_VEHICLE_FAN_PERCENT, 1, 1, 2));
+  sensorRegistry.add(CANBUS_ID_VEHICLE_FAN_SPEED, new RemoteLINBusSensor(CANBUS_ID_VEHICLE_FAN_SPEED, 2, 50));
   sensorRegistry.add(CANBUS_ID_VEHICLE_FAN_INT_TEMP, new RemoteLINBusSensor(CANBUS_ID_VEHICLE_FAN_INT_TEMP, 1, 1));
   sensorRegistry.add(CANBUS_ID_VEHICLE_FAN_EXT_TEMP, new RemoteLINBusSensor(CANBUS_ID_VEHICLE_FAN_EXT_TEMP, 2, 100));
 }
