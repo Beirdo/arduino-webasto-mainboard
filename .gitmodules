@@ -1,3 +1,51 @@
 [submodule "firmware/webasto-mainboard/lib/tinyfsm"]
 	path = firmware/webasto-mainboard/lib/tinyfsm
 	url = https://github.com/digint/tinyfsm.git
+[submodule "firmware/webasto-mainboard/lib/firmware/webasto-mainboard/lib/Beirdo-Utilities"]
+	path = firmware/webasto-mainboard/lib/firmware/webasto-mainboard/lib/Beirdo-Utilities
+	url = https://github.com/Beirdo/arduino-common-utils
+[submodule "firmware/webasto-mainboard/lib/firmware/webasto-mainboard/lib/cppQueue"]
+	path = firmware/webasto-mainboard/lib/firmware/webasto-mainboard/lib/cppQueue
+	url = https://github.com/SMFSW/Queue.git
+[submodule "firmware/webasto-mainboard/lib/ArduinoLog"]
+	path = firmware/webasto-mainboard/lib/ArduinoLog
+	url = https://github.com/thijse/Arduino-Log.git
+[submodule "firmware/webasto-mainboard/lib/cppQueue"]
+	path = firmware/webasto-mainboard/lib/cppQueue
+	url = https://github.com/SMFSW/Queue.git
+[submodule "firmware/webasto-mainboard/lib/Beirdo-Utilities"]
+	path = firmware/webasto-mainboard/lib/Beirdo-Utilities
+	url = https://github.com/Beirdo/arduino-common-utils
+[submodule "firmware/webasto-mainboard/lib/ACAN2517FD"]
+	path = firmware/webasto-mainboard/lib/ACAN2517FD
+	url = https://github.com/pierremolinaro/acan2517FD.git
+[submodule "firmware/webasto-mainboard/lib/TCA9524-GPIO"]
+	path = firmware/webasto-mainboard/lib/TCA9524-GPIO
+	url = https://github.com/Beirdo/Arduino-TCA9534
+[submodule "firmware/webasto-mainboard/lib/I2C_EEPROM"]
+	path = firmware/webasto-mainboard/lib/I2C_EEPROM
+	url = https://github.com/RobTillaart/I2C_EEPROM
+[submodule "firmware/webasto-mainboard/lib/tinycbor"]
+	path = firmware/webasto-mainboard/lib/tinycbor
+	url = https://github.com/soburi/tinycbor
+[submodule "firmware/webasto-mainboard/lib/Arduino-SSD1306"]
+	path = firmware/webasto-mainboard/lib/Arduino-SSD1306
+	url = git@github.com:Beirdo/Arduino-SSD1306
+[submodule "firmware/webasto-mainboard/lib/Arduino-Adafruit-GFX"]
+	path = firmware/webasto-mainboard/lib/Arduino-Adafruit-GFX
+	url = git@github.com:Beirdo/Arduino-Adafruit-GFX.git
+[submodule "firmware/webasto-mainboard/lib/Adafruit_BusIO"]
+	path = firmware/webasto-mainboard/lib/Adafruit_BusIO
+	url = https://github.com/adafruit/Adafruit_BusIO.git
+[submodule "firmware/webasto-mainboard/lib/Adafruit_FRAM_SPI"]
+	path = firmware/webasto-mainboard/lib/Adafruit_FRAM_SPI
+	url = https://github.com/adafruit/Adafruit_FRAM_SPI.git
+[submodule "firmware/webasto-mainboard/lib/Arduino-FRAM-Cache"]
+	path = firmware/webasto-mainboard/lib/Arduino-FRAM-Cache
+	url = git@github.com:Beirdo/Arduino-FRAM-Cache.git
+[submodule "firmware/webasto-mainboard/lib/Arduino-Log"]
+	path = firmware/webasto-mainboard/lib/Arduino-Log
+	url = git@github.com:Beirdo/Arduino-Log.git
+[submodule "firmware/webasto-mainboard/lib/Arduino-LIN"]
+	path = firmware/webasto-mainboard/lib/Arduino-LIN
+	url = git@github.com:Beirdo/Arduino-LIN
