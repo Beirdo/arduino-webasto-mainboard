@@ -6,7 +6,6 @@
 #include "canbus_ids.h"
 #include "canbus_dispatch.h"
 #include "wbus.h"
-#include "cbor.h"
 #include "sensor_registry.h"
 
 
@@ -14,13 +13,6 @@ void canbus_dispatch(int id, uint8_t *buf, int len, uint8_t type)
 {
   id &= ~(CANBUS_ID_WRITE_MODIFIER);
   switch (id) {
-    case CANBUS_ID_MAINBOARD:
-      // Someone is requesting the CBOR
-      if (type == CAN_REMOTE) {
-        cbor_send();
-      }
-      break;
-
     case CANBUS_ID_WBUS:
       // This is an incoming WBUS packet, tunneled in from K-Line
       receive_wbus_from_canbus(buf, len);
@@ -36,6 +28,7 @@ void canbus_dispatch(int id, uint8_t *buf, int len, uint8_t type)
         }
       }
       break;
+      
     // CANBus
     case CANBUS_ID_EXTERNAL_TEMP:
     case CANBUS_ID_BATTERY_VOLTAGE:
@@ -44,6 +37,7 @@ void canbus_dispatch(int id, uint8_t *buf, int len, uint8_t type)
     case CANBUS_ID_IGNITION_SENSE:
     case CANBUS_ID_EMERGENCY_STOP:
     case CANBUS_ID_START_RUN:
+
     // LINBus via CANBus bridge
     case CANBUS_ID_VEHICLE_FAN_SPEED:
       {

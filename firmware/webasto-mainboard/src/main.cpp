@@ -7,6 +7,8 @@
 #include <CoreMutex.h>
 #include <cppQueue.h>
 #include <TCA9534-GPIO.h>
+#include <canbus_mcp2517fd.h>
+#include <canbus.h>
 
 #include "project.h"
 #include "wbus.h"
@@ -15,9 +17,6 @@
 #include "device_eeprom.h"
 #include "display.h"
 #include "fsm.h"
-#include "cbor.h"
-#include "canbus_mcp2517fd.h"
-#include "canbus.h"
 
 
 bool mainboardDetected;
@@ -95,7 +94,6 @@ void setup()
   CAN_SPI.setSCK(PIN_CAN_SPI_SCK);
   CAN_SPI.setCS(PIN_CAN_SPI_SS);
 
-  init_cbor();
   init_canbus_mcp2517fd(&CAN_SPI, PIN_CAN_SPI_SS, PIN_CAN_INT);
 
   // active low enable for transceiver
@@ -122,7 +120,6 @@ void setup1(void)
   Log.notice("Starting Core 1");
 
   init_fsm();
-  init_wbus();
 }
 
 void loop() {
@@ -144,7 +141,6 @@ void loop() {
     ledOn = true;
     onboard_led_q.push(&ledOn);
     update_display();
-    cbor_send();
   }
 
   int elapsed = millis() - topOfLoop;
@@ -181,8 +177,6 @@ void loop1(void)
   globalTimer.tick();
   update_canbus_rx();
   update_canbus_tx();
-  receive_wbus_from_serial();
-  process_wbus();
 
   int elapsed = millis() - topOfLoop;
   if (elapsed >= 10) {
