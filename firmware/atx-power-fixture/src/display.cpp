@@ -1,17 +1,14 @@
 #include <Arduino.h>
-#include <pico.h>
 #include <Wire.h>
 #include <ArduinoLog.h>
 #include <stdlib.h>
 #include <string.h>
-#include <CoreMutex.h>
 
 #include "display.h"
-#include "project.h"
 #include "oled_display.h"
+#include "project.h"
 
 Display *display = 0;
-mutex_t display_mutex;
 
 Display::Display(uint8_t i2c_address, int columns, int rows) : 
   _i2c_address(i2c_address), _columns(columns), _rows(rows) 
@@ -24,8 +21,6 @@ Display::Display(uint8_t i2c_address, int columns, int rows) :
   _cache = new uint16_t[len];
   _display = new uint16_t[len];
   _dirty = new bool[_rows];
-
-  mutex_init(&_mutex);
 
   for (int i = 0; i < _rows; i++ ) {
     clearLine(i);
@@ -57,7 +52,6 @@ void Display::update(void)
     return;
   }
 
-  CoreMutex m(&_mutex);
   int cursorX, cursorY;
   int x, y;
 
@@ -88,8 +82,6 @@ void Display::update(void)
 
 void Display::clearLine(int y)
 {
-  CoreMutex m(&_mutex);
-
   uint16_t *buf = &_cache[getOffset(0, y)];
 
   for (int i = 0; i < _columns; i++) {
@@ -101,8 +93,6 @@ void Display::clearLine(int y)
 
 void Display::clearMirrorLine(int y)
 {
-  CoreMutex m(&_mutex);
-
   uint16_t *buf = &_display[getOffset(0, y)];
 
   for (int i = 0; i < _columns; i++) {
@@ -128,8 +118,6 @@ void Display::printHexByte(int x, int y, uint8_t data)
   if (y < 0 || y >= _rows || x < 0) {
     return;
   }
-
-  CoreMutex m(&_mutex);
 
   int offset = getOffset(x, y);
   if (isOffsetInRow(offset, y)) {
@@ -195,32 +183,24 @@ void Display::printDigits(int x, int y, int value, int count, uint8_t suffix, bo
   }
 }
 
-void Display::printWatts(int x, int y, int burnPower)
+void Display::printWatts(int x, int y, int power)
 {
-  CoreMutex m(&_mutex);
-
-  printDigits(x, y, burnPower, 4, 'W');
+  printDigits(x, y, power, 4, 'W');
 }
 
 void Display::printPercent(int x, int y, int percent)
 {
-  CoreMutex m(&_mutex);
-
   printDigits(x, y, percent, 3, '%');
 }
 
 void Display::printTemperature(int x, int y, int temperature)
 {
-  CoreMutex m(&_mutex);
-
   printDigits(x, y, temperature / 100, 4, '.');
   printDigits(x + 5, y, abs(temperature) % 100, 2, 'C', true);
 }
 
 void Display::printMilliohms(int x, int y, int milliohms)
 {
-  CoreMutex m(&_mutex);
-
   printDigits(x, y, milliohms, 5, 'm');
 }
     
@@ -230,8 +210,6 @@ void Display::printLabel(int x, int y, const char *str)
   if (y < 0 || y >= _rows || x < 0 || !str) {
     return;
   }
-
-  CoreMutex m(&_mutex);
 
   int offset = getOffset(x, y);
   for ( ; *str && isOffsetInRow(offset, y); str++, offset++) {
@@ -245,8 +223,6 @@ void Display::log(void)
   if (_connected) {
     return;
   }
-
-  CoreMutex m(&_mutex);
 
   int len = (_columns + 1) * _rows;
   uint8_t *buf = new uint8_t[len];
@@ -266,11 +242,6 @@ void Display::log(void)
 }
 
 void init_display(void) {
-  if (!mutex_is_initialized(&display_mutex)) {
-    mutex_init(&display_mutex);
-  }  
-
-  CoreMutex m(&display_mutex);  
   if (display) {
     Log.error("WTF");
     return;    
@@ -289,8 +260,6 @@ void update_display(void) {
   if (!display) {
     init_display();
   }
-
-  CoreMutex m(&display_mutex);
 
   if (display) {
     display->updateDisplay();

@@ -1,6 +1,4 @@
-#include "pico/mutex.h"
 #include <Arduino.h>
-#include <pico.h>
 #include <ArduinoLog.h>
 #include <Adafruit_SSD1306.h>
 
@@ -118,7 +116,7 @@ void OLEDDisplay::updateDisplay(void)
 void oledTimerCallback(int timerId, int delayMs)
 {
   Log.notice("Received OLED callback: %d, %dms", timerId, delayMs);
-  OLEDDisplay *oled = dynamic_cast<OLEDDisplay *>(display);
+  OLEDDisplay *oled = static_cast<OLEDDisplay *>(display);
     
   if (oled && timerId == TIMER_OLED_LOGO) {
     oled->timerCallback(timerId, delayMs);

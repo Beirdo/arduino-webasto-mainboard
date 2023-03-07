@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <pico.h>
 #include <ArduinoLog.h>
 
 #include "ina219.h"

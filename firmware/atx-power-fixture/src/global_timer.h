@@ -2,8 +2,6 @@
 #define __global_timer_h_
 
 #include <Arduino.h>
-#include <pico.h>
-#include <CoreMutex.h>
 
 typedef void (*timer_callback)(int timer_id, int delay_ms);
 
@@ -17,15 +15,6 @@ typedef struct timerItem_s {
 } timerItem_t;
 
 enum {
-  TIMER_FUEL_PUMP,
-  TIMER_TIMED_SHUT_DOWN,
-  TIMER_STAGE_COMPLETE,
-  TIMER_STAGE_RETRY,
-  TIMER_RUN_TIME_MINUTE,
-  TIMER_FUEL_FAN_DELTA,
-  TIMER_BEEPER,
-  TIMER_RESTART_BEEPS,
-  TIMER_FSM_STARTUP,
   TIMER_OLED_LOGO,
 };
 
@@ -38,13 +27,12 @@ class GlobalTimer {
     int get_remaining_time(int timer_id);
   
   private:
-    timerItem_t *find_item(int timer_id, bool locked = true);
-    timerItem_t *remove_item(int timer_id, bool locked = true);
-    void insert_item(timerItem_t *item, bool locked = true);
+    timerItem_t *find_item(int timer_id);
+    timerItem_t *remove_item(int timer_id);
+    void insert_item(timerItem_t *item);
   
     int _last_run;
     timerItem_t *_head;
-    mutex_t _mutex;
 };
 
 extern GlobalTimer globalTimer;

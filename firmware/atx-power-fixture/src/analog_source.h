@@ -2,7 +2,6 @@
 #define __analog_source_
 
 #include <Arduino.h>
-#include <pico.h>
 
 #define ADC_AVG_WINDOW          16
 #define UNUSED_READING          ((int32_t)(0x80000000))
@@ -44,7 +43,6 @@ class AnalogSourceBase {
     readings_t *_data;
     int _reading_count;
 
-    mutex_t _i2c_mutex;
     int _mult;
     int _div;
     bool _connected;

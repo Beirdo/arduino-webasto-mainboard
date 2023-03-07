@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <pico.h>
 #include <Wire.h>
 #include <ArduinoLog.h>
 
@@ -26,9 +25,7 @@ AnalogSourceBase::AnalogSourceBase(uint8_t i2c_address, int bits, int count, int
   
   _mult = mult;
   _div = div_;
-  
-  mutex_init(&_i2c_mutex);
-
+ 
   if (_i2c_address == 0xFF) {
     _connected = false;
   } else if (_i2c_address == 0x00) {
@@ -129,8 +126,6 @@ void AnalogSourceBase::append_value(int index, int32_t value)
 
 void AnalogSourceBase::i2c_write_register(uint8_t regnum, uint8_t value, bool skip_byte)
 {
-  CoreMutex m(&_i2c_mutex);
-    
   Wire.beginTransmission(_i2c_address);
   Wire.write(regnum);
   if (!skip_byte) {
@@ -141,8 +136,6 @@ void AnalogSourceBase::i2c_write_register(uint8_t regnum, uint8_t value, bool sk
 
 void AnalogSourceBase::i2c_write_register_word(uint8_t regnum, uint16_t value)
 {
-  CoreMutex m(&_i2c_mutex);
-    
   Wire.beginTransmission(_i2c_address);
   Wire.write(regnum);
   Wire.write((value >> 8) & 0xFF);
@@ -152,8 +145,6 @@ void AnalogSourceBase::i2c_write_register_word(uint8_t regnum, uint16_t value)
 
 void AnalogSourceBase::i2c_read_data(uint8_t regnum, uint8_t *buf, uint8_t count, bool skip_regnum)
 {
-  CoreMutex m(&_i2c_mutex);
-
   Wire.beginTransmission(_i2c_address);
   if (!skip_regnum) {
     Wire.write(regnum);
@@ -168,8 +159,6 @@ void AnalogSourceBase::i2c_read_data(uint8_t regnum, uint8_t *buf, uint8_t count
 
 bool AnalogSourceBase::i2c_is_connected(void)
 {
-  CoreMutex m(&_i2c_mutex);
-
   Wire.beginTransmission(_i2c_address);
   return (Wire.endTransmission() == 0);
 }

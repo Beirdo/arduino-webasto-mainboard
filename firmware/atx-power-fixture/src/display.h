@@ -2,7 +2,6 @@
 #define __display_h_
 
 #include <Arduino.h>
-#include <pico.h>
 #include <Wire.h>
 #include <ArduinoLog.h>
 #include <stdlib.h>
@@ -53,7 +52,6 @@ class Display {
     uint16_t *_display;
     bool *_dirty;
     bool _connected;
-    mutex_t _mutex;
 };
 
 extern Display *display;

@@ -3,4 +3,5 @@
   (lib (name "MCU_RaspberryPi_and_Boards")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/KiCad-RP-Pico/RP-Pico Libraries/MCU_RaspberryPi_and_Boards.kicad_sym")(options "")(descr ""))
   (lib (name "SSD1306-128x64_OLED")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/KiCad-SSD1306-128x64/library/SSD1306-128x64_OLED.kicad_sym")(options "")(descr ""))
   (lib (name "RPi_Pico")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/Beirdo-KiCad-Libraries/Symbols/RPi_Pico.kicad_sym")(options "")(descr ""))
+  (lib (name "Beirdo")(type "KiCad")(uri "${KICAD6_GIT_LIBRARIES}/Beirdo-KiCad-Libraries/Symbols/Beirdo.kicad_sym")(options "")(descr ""))
 )
