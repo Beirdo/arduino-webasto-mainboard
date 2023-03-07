@@ -49,24 +49,3 @@
 [submodule "firmware/webasto-mainboard/lib/Arduino-LIN"]
 	path = firmware/webasto-mainboard/lib/Arduino-LIN
 	url = git@github.com:Beirdo/Arduino-LIN
-[submodule "firmware/atx-power-fixture/lib/Beirdo-Utilities"]
-	path = firmware/atx-power-fixture/lib/Beirdo-Utilities
-	url = https://github.com/Beirdo/arduino-common-utils
-[submodule "firmware/atx-power-fixture/lib/Arduino-Log"]
-	path = firmware/atx-power-fixture/lib/Arduino-Log
-	url = https://github.com/Beirdo/Arduino-Log
-[submodule "firmware/atx-power-fixture/lib/Arduino-SSD1306"]
-	path = firmware/atx-power-fixture/lib/Arduino-SSD1306
-	url = https://github.com/Beirdo/Arduino-SSD1306
-[submodule "firmware/atx-power-fixture/lib/Adafruit_BusIO"]
-	path = firmware/atx-power-fixture/lib/Adafruit_BusIO
-	url = https://github.com/adafruit/Adafruit_BusIO.git
-[submodule "firmware/atx-power-fixture/lib/Arduino-Adafruit-GFX"]
-	path = firmware/atx-power-fixture/lib/Arduino-Adafruit-GFX
-	url = https://github.com/Beirdo/Arduino-Adafruit-GFX
-[submodule "firmware/atx-power-fixture/lib/Adafruit_FRAM_SPI"]
-	path = firmware/atx-power-fixture/lib/Adafruit_FRAM_SPI
-	url = https://github.com/adafruit/Adafruit_FRAM_SPI.git
-[submodule "firmware/atx-power-fixture/lib/Arduino-FRAM-Cache"]
-	path = firmware/atx-power-fixture/lib/Arduino-FRAM-Cache
-	url = https://github.com/Beirdo/Arduino-FRAM-Cache.git
