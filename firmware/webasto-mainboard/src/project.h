@@ -58,11 +58,11 @@
 #define PIN_CAN_SPI_SCK       18
 #define PIN_CAN_SPI_MOSI      19
 #define PIN_CAN_INT           20
-#define PIN_EMERGENYC_STOP    21
+#define PIN_EMERGENCY_STOP    21
 #define PIN_BOARD_SENSE       22  // LOW = mainboard there, HIGH = just the Pico
 #define PIN_ONBOARD_LED       25
 #define PIN_IGNITION          26
-#define PIN_START_STOP        27
+#define PIN_START_RUN         27
 
 #define SUPPLEMENTAL_MIN_TEMP   -2000   // -20C
 #define SUPPLEMENTAL_MAX_TEMP   1000    // 10C
