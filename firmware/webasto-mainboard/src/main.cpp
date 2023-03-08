@@ -6,7 +6,6 @@
 #include <ArduinoLog.h>
 #include <CoreMutex.h>
 #include <cppQueue.h>
-#include <TCA9534-GPIO.h>
 #include <canbus_mcp2517fd.h>
 #include <canbus.h>
 
@@ -23,7 +22,6 @@ bool mainboardDetected;
 mutex_t startup_mutex;
 
 cppQueue onboard_led_q(sizeof(bool), 4, FIFO);
-TCA9534 tca9534;
 
 
 void setup() 
@@ -33,6 +31,7 @@ void setup()
   mutex_enter_blocking(&startup_mutex);
 
   bool ledOn = true;
+  pinMode(PIN_POWER_LED, OUTPUT);
   onboard_led_q.push(&ledOn);
 
   pinMode(PIN_BOARD_SENSE, INPUT_PULLUP);
@@ -53,20 +52,16 @@ void setup()
   logSerial->begin(115200);
   Log.begin(LOG_LEVEL_VERBOSE, logSerial);
 
-  tca9534.begin(Wire, I2C_ADDR_TCA9534);
-  tca9534.pinMode(PIN_CAN_SOF, INPUT);
+  pinMode(PIN_CAN_SOF, INPUT);
 
-  tca9534.pinMode(PIN_POWER_LED, OUTPUT);
-  tca9534.digitalWrite(PIN_POWER_LED, HIGH);
+  pinMode(PIN_OPERATING_LED, OUTPUT);
+  digitalWrite(PIN_OPERATING_LED, LOW);
 
-  tca9534.pinMode(PIN_OPERATING_LED, OUTPUT);
-  tca9534.digitalWrite(PIN_OPERATING_LED, LOW);
+  pinMode(PIN_FLAME_LED, OUTPUT);
+  digitalWrite(PIN_FLAME_LED, LOW);
 
-  tca9534.pinMode(PIN_FLAME_LED, OUTPUT);
-  tca9534.digitalWrite(PIN_FLAME_LED, LOW);
-
-  tca9534.pinMode(PIN_CAN_EN, OUTPUT);
-  tca9534.digitalWrite(PIN_CAN_EN, HIGH);
+  pinMode(PIN_CAN_EN, OUTPUT);
+  digitalWrite(PIN_CAN_EN, HIGH);
 
   // Give user time to open a terminal to see first log messages
   delay(10000);
@@ -89,15 +84,15 @@ void setup()
   Wire.setClock(I2C0_CLK);
   Wire.begin();
 
-  CAN_SPI.setTX(PIN_CAN_SPI_MOSI);
-  CAN_SPI.setRX(PIN_CAN_SPI_MISO);
-  CAN_SPI.setSCK(PIN_CAN_SPI_SCK);
-  CAN_SPI.setCS(PIN_CAN_SPI_SS);
+  SPI.setTX(PIN_CAN_SPI_MOSI);
+  SPI.setRX(PIN_CAN_SPI_MISO);
+  SPI.setSCK(PIN_CAN_SPI_SCK);
+  SPI.setCS(PIN_CAN_SPI_SS);
 
-  init_canbus_mcp2517fd(&CAN_SPI, PIN_CAN_SPI_SS, PIN_CAN_INT);
+  init_canbus_mcp2517fd(&SPI, PIN_CAN_SPI_SS, PIN_CAN_INT);
 
   // active low enable for transceiver
-  tca9534.digitalWrite(PIN_CAN_EN, LOW);
+  digitalWrite(PIN_CAN_EN, LOW);
 
   init_sensors();
   init_fram();
@@ -168,9 +163,7 @@ void loop1(void)
     onboard_led_q.pop(&newLedOn);
     if (ledOn != newLedOn) {
       ledOn = newLedOn;
-      // Note:  do NOT use the LED connected to the WiFi chip.  Using it messes with the WiFi's use of
-      //        the shared SPI bus.  Hilarity (well, crashes) ensue
-      tca9534.digitalWrite(PIN_POWER_LED, ledOn ? HIGH : LOW);
+      digitalWrite(PIN_ONBOARD_LED, ledOn ? HIGH : LOW);
     }
   }
 

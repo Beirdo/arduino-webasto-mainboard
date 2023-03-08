@@ -1,7 +1,6 @@
 #ifndef __project_h_
 #define __project_h_
 
-#include <TCA9534-GPIO.h>
 #include <Beirdo-Utilities.h>
 
 // I2C definitions
@@ -9,15 +8,6 @@
 
 // I2C Addresses
 #define I2C_ADDR_OLED     0x3C  // 3D for 128x64, 3C for 128x32
-#define I2C_ADDR_TCA9534  0x27
-
-// GPIO map on the sensor boards
-#define PCA9501_WRITE_EN  0x80
-#define PCA9501_A2        0x40
-#define PCA9501_A1        0x20
-#define PCA9501_A0        0x10
-#define PCA9501_VINP      0x02
-#define PCA9501_VINN      0x01
 
 // Serial1 -> Console
 #ifdef PIN_SERIAL1_TX
@@ -26,15 +16,6 @@
 
 #ifdef PIN_SERIAL1_RX
 #undef PIN_SERIAL1_RX
-#endif
-
-// Serial2 -> KLine
-#ifdef PIN_SERIAL2_TX
-#undef PIN_SERIAL2_TX
-#endif
-
-#ifdef PIN_SERIAL2_RX
-#undef PIN_SERIAL2_RX
 #endif
 
 #ifdef PIN_SPI0_MISO
@@ -58,9 +39,10 @@
 // outputs
 #define PIN_SERIAL1_TX        0
 #define PIN_SERIAL1_RX        1
-#define PIN_KLINE_EN          3
-#define PIN_SERIAL2_TX        4
-#define PIN_SERIAL2_RX        5
+#define PIN_FLAME_LED         2
+#define PIN_OPERATING_LED     3
+#define PIN_POWER_LED         4
+#define PIN_CAN_EN            5
 #define PIN_GLOW_PLUG_OUT_EN  6
 #define PIN_GLOW_PLUG_IN_EN   7
 #define PIN_I2C0_SDA          8
@@ -69,27 +51,18 @@
 #define PIN_COMBUSTION_FAN    11
 #define PIN_GLOW_PLUG_OUT     12
 #define PIN_FUEL_PUMP         13
+#define PIN_CAN_SOF           14
 #define PIN_ALERT_BUZZER      15
 #define PIN_CAN_SPI_MISO      16
 #define PIN_CAN_SPI_SS        17
 #define PIN_CAN_SPI_SCK       18
 #define PIN_CAN_SPI_MOSI      19
 #define PIN_CAN_INT           20
+#define PIN_EMERGENYC_STOP    21
 #define PIN_BOARD_SENSE       22  // LOW = mainboard there, HIGH = just the Pico
-#define PIN_RESERVED_WIFI_ON  23
-#define PIN_RESERVED_WIFI_DAT 24
-#define PIN_RESERVED_WIFI_CS  25
-
-// On the TCA9534 GPIO Expander
-#define PIN_CAN_SOF           0
-#define PIN_POWER_LED         4
-#define PIN_OPERATING_LED     5
-#define PIN_FLAME_LED         6
-#define PIN_CAN_EN            7
-
-
-#define CAN_SPI SPI
-
+#define PIN_ONBOARD_LED       25
+#define PIN_IGNITION          26
+#define PIN_START_STOP        27
 
 #define SUPPLEMENTAL_MIN_TEMP   -2000   // -20C
 #define SUPPLEMENTAL_MAX_TEMP   1000    // 10C
@@ -137,7 +110,6 @@
 #define PURGE_FAN               80
 
 extern bool mainboardDetected;
-extern TCA9534 tca9534;
 
 void init_sensors(void);
 void update_sensors(void);

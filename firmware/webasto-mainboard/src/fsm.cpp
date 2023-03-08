@@ -115,7 +115,7 @@ void WebastoControlFSM::react(LedChangeEvent const &e)
   }
 
   *store = e.enable;
-  tca9534.digitalWrite(pin, e.enable);
+  digitalWrite(pin, e.enable);
 }
 
 void WebastoControlFSM::react(CirculationPumpEvent const &e)
@@ -1320,16 +1320,13 @@ void init_fsm(void)
   Log.notice("Starting FSM");
   mutex_init(&fsm_mutex);
 
-  // Set output pins as outputs
   flameLed = false;
-  tca9534.digitalWrite(PIN_FLAME_LED, flameLed);
+  digitalWrite(PIN_FLAME_LED, flameLed);
 
   operatingLed = false;
-  tca9534.digitalWrite(PIN_OPERATING_LED, operatingLed);
+  digitalWrite(PIN_OPERATING_LED, operatingLed);
 
   WebastoControlFSM::start();
-
-  // KLineEN handled in wbus.cpp
 
   // this is an open drain output.  default is off = input with pullup
   pinMode(PIN_GLOW_PLUG_IN_EN, INPUT);
